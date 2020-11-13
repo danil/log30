@@ -18,7 +18,13 @@ import (
 )
 
 func main() {
-    log.SetOutput(mujlog.Mujlog{Output: os.Stdout})
+    l := mujlog.Log{
+        Output: os.Stdout,
+        Short: "shortMessage",
+        Full: "fullMessage",
+        File: "file",
+    }
+    log.SetOutput(l)
 
     log.Println("Hello,\nWorld!")
 }
@@ -39,19 +45,19 @@ Output:
 package main
 
 import (
-	"log"
+    "log"
 
-	"gitlab.rocketbank.sexy/backend/random-values/jaunt/mujlog"
+    "gitlab.rocketbank.sexy/backend/random-values/jaunt/mujlog"
 )
 
 func main() {
-	glf := mujlog.GELF()
-	glf.Output = os.Stdout
-	glf.Fields["host"] = "example.com"
+    glf := mujlog.GELF()
+    glf.Output = os.Stdout
+    glf.Fields["host"] = "example.com"
 
-	log.SetOutput(glf)
+    log.SetOutput(glf)
 
-	log.Println("Hello,\nGELF!")
+    log.Println("Hello,\nGELF!")
 }
 ```
 
@@ -81,7 +87,13 @@ import (
 )
 
 func main() {
-    log.SetOutput(mujlog.Mujlog{Output: os.Stdout})
+    l := mujlog.Log{
+        Output: os.Stdout,
+        Short: "shortMessage",
+        Full: "fullMessage",
+        File: "file",
+    }
+    log.SetOutput(l)
 
     log.Println(123)
     log.Println(3.21)

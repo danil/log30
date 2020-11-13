@@ -278,8 +278,10 @@ func TestMujlogWrite(t *testing.T) {
 
 			var buf bytes.Buffer
 
-			if tc.log.Short == "" {
-				tc.log = mujlog.New()
+			if tc.log.Short == "" || tc.log.Full == "" || tc.log.File == "" {
+				tc.log.Short = "shortMessage"
+				tc.log.Full = "fullMessage"
+				tc.log.File = "file"
 			}
 
 			tc.log.Output = &buf

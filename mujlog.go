@@ -21,14 +21,6 @@ type Log struct {
 	File      string
 }
 
-func New() Log {
-	return Log{
-		Short: "shortMessage",
-		Full:  "fullMessage",
-		File:  "file",
-	}
-}
-
 func GELF() Log {
 	return Log{
 		Flag: log.Llongfile,
