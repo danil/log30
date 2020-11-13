@@ -37,9 +37,9 @@ func main() {
 package main
 
 import (
-    "log"
+	"log"
 
-    "gitlab.rocketbank.sexy/backend/random-values/jaunt/mujlog"
+	"gitlab.rocketbank.sexy/backend/random-values/jaunt/mujlog"
 )
 
 func main() {
@@ -49,13 +49,15 @@ func main() {
 
 	log.SetOutput(glf)
 
-    log.Println("Hello\nGELF!")
+	log.Println("Hello\nGELF!")
 }
 ```
 
 ```json
 {
+    "version":"1.1",
     "short_message":"Hello",
-    "full_message":"Hello\nGELF!"
+    "full_message":"Hello\nGELF!",
+    "timestamp":1602785340
 }
 ```

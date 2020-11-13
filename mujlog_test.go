@@ -27,6 +27,8 @@ func TestMujlogWriteTrailingNewLine(t *testing.T) {
 	}
 }
 
+func line() int { _, _, l, _ := runtime.Caller(1); return l }
+
 var MujlogWriteTestCases = []struct {
 	name      string
 	line      int
@@ -38,7 +40,7 @@ var MujlogWriteTestCases = []struct {
 }{
 	{
 		name:  "string",
-		line:  func() int { _, _, l, _ := runtime.Caller(1); return l }(),
+		line:  line(),
 		input: "Hello, World!",
 		expected: `{
 			"short_message":"Hello, World!"
@@ -46,7 +48,7 @@ var MujlogWriteTestCases = []struct {
 	},
 	{
 		name:  "empty message",
-		line:  func() int { _, _, l, _ := runtime.Caller(1); return l }(),
+		line:  line(),
 		input: "",
 		expected: `{
 			"short_message":"_EMPTY_",
@@ -55,7 +57,7 @@ var MujlogWriteTestCases = []struct {
 	},
 	{
 		name:  "blank message",
-		line:  func() int { _, _, l, _ := runtime.Caller(1); return l }(),
+		line:  line(),
 		input: " ",
 		expected: `{
 			"short_message":"_BLANK_",
@@ -64,7 +66,7 @@ var MujlogWriteTestCases = []struct {
 	},
 	{
 		name:  "double quotes",
-		line:  func() int { _, _, l, _ := runtime.Caller(1); return l }(),
+		line:  line(),
 		input: `foo "bar"`,
 		expected: `{
 			"short_message":"foo \"bar\""
@@ -72,7 +74,7 @@ var MujlogWriteTestCases = []struct {
 	},
 	{
 		name:  `leading/trailing "spaces"`,
-		line:  func() int { _, _, l, _ := runtime.Caller(1); return l }(),
+		line:  line(),
 		input: " \nHello, World! \n",
 		expected: `{
 			"short_message":"Hello, World!",
@@ -81,7 +83,7 @@ var MujlogWriteTestCases = []struct {
 	},
 	{
 		name:  "JSON string",
-		line:  func() int { _, _, l, _ := runtime.Caller(1); return l }(),
+		line:  line(),
 		input: `{"foo":"bar"}`,
 		expected: `{
 			"short_message":"{\"foo\":\"bar\"}"
@@ -89,7 +91,7 @@ var MujlogWriteTestCases = []struct {
 	},
 	{
 		name:  "multiline string",
-		line:  func() int { _, _, l, _ := runtime.Caller(1); return l }(),
+		line:  line(),
 		input: "Hello, World!\npath/to/file1:23\npath/to/file4:56",
 		expected: `{
 			"short_message":"Hello, World!",
@@ -98,7 +100,7 @@ var MujlogWriteTestCases = []struct {
 	},
 	{
 		name:  `"standard flag" do not respects file path`,
-		line:  func() int { _, _, l, _ := runtime.Caller(1); return l }(),
+		line:  line(),
 		input: "path/to/file1:23: Hello, World!",
 		flag:  log.LstdFlags,
 		expected: `{
@@ -107,7 +109,7 @@ var MujlogWriteTestCases = []struct {
 	},
 	{
 		name:  `"long file" flag respects file path`,
-		line:  func() int { _, _, l, _ := runtime.Caller(1); return l }(),
+		line:  line(),
 		input: "path/to/file1:23: Hello, World!",
 		flag:  log.Llongfile,
 		expected: `{
@@ -118,7 +120,7 @@ var MujlogWriteTestCases = []struct {
 	},
 	{
 		name:  "file path with empty message",
-		line:  func() int { _, _, l, _ := runtime.Caller(1); return l }(),
+		line:  line(),
 		input: "path/to/file1:23:",
 		flag:  log.Llongfile,
 		expected: `{
@@ -129,7 +131,7 @@ var MujlogWriteTestCases = []struct {
 	},
 	{
 		name:  "file path with blank message",
-		line:  func() int { _, _, l, _ := runtime.Caller(1); return l }(),
+		line:  line(),
 		input: "path/to/file4:56:  ",
 		flag:  log.Llongfile,
 		expected: `{
@@ -140,7 +142,7 @@ var MujlogWriteTestCases = []struct {
 	},
 	{
 		name:   `"environment" field with "production" value`,
-		line:   func() int { _, _, l, _ := runtime.Caller(1); return l }(),
+		line:   line(),
 		input:  "Hello, World!",
 		fields: map[string]string{"environment": "production"},
 		expected: `{
@@ -150,7 +152,7 @@ var MujlogWriteTestCases = []struct {
 	},
 	{
 		name:   `"magic" host field`,
-		line:   func() int { _, _, l, _ := runtime.Caller(1); return l }(),
+		line:   line(),
 		input:  "Hello, World!",
 		fields: map[string]string{"host": "example.tld"},
 		expected: `{
@@ -160,7 +162,7 @@ var MujlogWriteTestCases = []struct {
 	},
 	{
 		name:      "dynamic field",
-		line:      func() int { _, _, l, _ := runtime.Caller(1); return l }(),
+		line:      line(),
 		input:     "Hello, World!",
 		functions: map[string]func() interface{}{"time": func() interface{} { return time.Date(2020, time.October, 15, 18, 9, 0, 0, time.UTC).String() }},
 		expected: `{
@@ -170,7 +172,7 @@ var MujlogWriteTestCases = []struct {
 	},
 	{
 		name:      "JSON like GELF",
-		line:      func() int { _, _, l, _ := runtime.Caller(1); return l }(),
+		line:      line(),
 		input:     "Hello, GELF!",
 		fields:    map[string]string{"version": "1.1", "host": "example.tld"},
 		functions: map[string]func() interface{}{"timestamp": func() interface{} { return time.Date(2020, time.October, 15, 18, 9, 0, 0, time.UTC).Unix() }},
