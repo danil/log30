@@ -32,10 +32,11 @@ func line() int { _, _, l, _ := runtime.Caller(1); return l }
 var MujlogWriteTestCases = []struct {
 	name      string
 	line      int
-	input     string
+	input     interface{}
 	flag      int
-	fields    map[string]string
+	fields    map[string]interface{}
 	functions map[string]func() interface{}
+	metadata  map[string]string
 	expected  string
 }{
 	{
@@ -43,7 +44,23 @@ var MujlogWriteTestCases = []struct {
 		line:  line(),
 		input: "Hello, World!",
 		expected: `{
-			"short_message":"Hello, World!"
+			"shortMessage":"Hello, World!"
+		}`,
+	},
+	{
+		name:  "integer type appears in the short messages as a string",
+		line:  line(),
+		input: 123,
+		expected: `{
+			"shortMessage":"123"
+		}`,
+	},
+	{
+		name:  "float type appears in the short messages as a string",
+		line:  line(),
+		input: 3.21,
+		expected: `{
+			"shortMessage":"3.21"
 		}`,
 	},
 	{
@@ -51,8 +68,8 @@ var MujlogWriteTestCases = []struct {
 		line:  line(),
 		input: "",
 		expected: `{
-			"short_message":"_EMPTY_",
-	    "full_message":""
+			"shortMessage":"_EMPTY_",
+	    "fullMessage":""
 		}`,
 	},
 	{
@@ -60,8 +77,16 @@ var MujlogWriteTestCases = []struct {
 		line:  line(),
 		input: " ",
 		expected: `{
-			"short_message":"_BLANK_",
-	    "full_message":" "
+			"shortMessage":"_BLANK_",
+	    "fullMessage":" "
+		}`,
+	},
+	{
+		name:  "single quotes",
+		line:  line(),
+		input: "foo 'bar'",
+		expected: `{
+			"shortMessage":"foo 'bar'"
 		}`,
 	},
 	{
@@ -69,7 +94,7 @@ var MujlogWriteTestCases = []struct {
 		line:  line(),
 		input: `foo "bar"`,
 		expected: `{
-			"short_message":"foo \"bar\""
+			"shortMessage":"foo \"bar\""
 		}`,
 	},
 	{
@@ -77,8 +102,8 @@ var MujlogWriteTestCases = []struct {
 		line:  line(),
 		input: " \nHello, World! \n",
 		expected: `{
-			"short_message":"Hello, World!",
-			"full_message":" \nHello, World! \n"
+			"shortMessage":"Hello, World!",
+			"fullMessage":" \nHello, World! \n"
 		}`,
 	},
 	{
@@ -86,78 +111,65 @@ var MujlogWriteTestCases = []struct {
 		line:  line(),
 		input: `{"foo":"bar"}`,
 		expected: `{
-			"short_message":"{\"foo\":\"bar\"}"
+			"shortMessage":"{\"foo\":\"bar\"}"
+		}`,
+	},
+	{
+		name:   `"string" field with "foo" value`,
+		line:   line(),
+		input:  "Hello, World!",
+		fields: map[string]interface{}{"string": "foo"},
+		expected: `{
+			"shortMessage":"Hello, World!",
+		  "string": "foo"
+		}`,
+	},
+	{
+		name:   `"integer" field with 123 value`,
+		line:   line(),
+		input:  "Hello, World!",
+		fields: map[string]interface{}{"integer": 123},
+		expected: `{
+			"shortMessage":"Hello, World!",
+		  "integer": 123
+		}`,
+	},
+	{
+		name:   `"float" field with 3.21 value`,
+		line:   line(),
+		input:  "Hello, World!",
+		fields: map[string]interface{}{"float": 3.21},
+		expected: `{
+			"shortMessage":"Hello, World!",
+		  "float": 3.21
 		}`,
 	},
 	{
 		name:  "multiline string",
 		line:  line(),
-		input: "Hello, World!\npath/to/file1:23\npath/to/file4:56",
+		input: "Hello,\nWorld!",
 		expected: `{
-			"short_message":"Hello, World!",
-			"full_message":"Hello, World!\npath/to/file1:23\npath/to/file4:56"
+			"shortMessage":"Hello, World!",
+			"fullMessage":"Hello,\nWorld!"
 		}`,
 	},
 	{
-		name:  `"standard flag" do not respects file path`,
+		name:  "long multiline string",
 		line:  line(),
-		input: "path/to/file1:23: Hello, World!",
-		flag:  log.LstdFlags,
+		input: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
 		expected: `{
-			"short_message":"path/to/file1:23: Hello, World!"
+			"shortMessage":"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna ali…",
+			"fullMessage":"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
 		}`,
 	},
 	{
-		name:  `"long file" flag respects file path`,
-		line:  line(),
-		input: "path/to/file1:23: Hello, World!",
-		flag:  log.Llongfile,
-		expected: `{
-			"short_message":"Hello, World!",
-			"full_message":"path/to/file1:23: Hello, World!",
-			"_file":"path/to/file1:23"
-		}`,
-	},
-	{
-		name:  "file path with empty message",
-		line:  line(),
-		input: "path/to/file1:23:",
-		flag:  log.Llongfile,
-		expected: `{
-			"short_message":"_BLANK_",
-			"full_message":"path/to/file1:23:",
-			"_file":"path/to/file1:23"
-		}`,
-	},
-	{
-		name:  "file path with blank message",
-		line:  line(),
-		input: "path/to/file4:56:  ",
-		flag:  log.Llongfile,
-		expected: `{
-			"short_message":"_BLANK_",
-			"full_message":"path/to/file4:56:  ",
-			"_file":"path/to/file4:56"
-		}`,
-	},
-	{
-		name:   `"environment" field with "production" value`,
+		name:   `explicit short message field`,
 		line:   line(),
 		input:  "Hello, World!",
-		fields: map[string]string{"environment": "production"},
+		fields: map[string]interface{}{"shortMessage": "Explicit short message"},
 		expected: `{
-			"short_message":"Hello, World!",
-		  "environment": "production"
-		}`,
-	},
-	{
-		name:   `"magic" host field`,
-		line:   line(),
-		input:  "Hello, World!",
-		fields: map[string]string{"host": "example.tld"},
-		expected: `{
-			"short_message":"example.tld Hello, World!",
-			"host":"example.tld"
+			"shortMessage":"Explicit short message",
+		  "fullMessage": "Hello, World!"
 		}`,
 	},
 	{
@@ -166,21 +178,91 @@ var MujlogWriteTestCases = []struct {
 		input:     "Hello, World!",
 		functions: map[string]func() interface{}{"time": func() interface{} { return time.Date(2020, time.October, 15, 18, 9, 0, 0, time.UTC).String() }},
 		expected: `{
-			"short_message":"Hello, World!",
+			"shortMessage":"Hello, World!",
 			"time":"2020-10-15 18:09:00 +0000 UTC"
 		}`,
 	},
 	{
-		name:      "JSON like GELF",
+		name:  `"standard flag" do not respects file path`,
+		line:  line(),
+		input: "path/to/file1:23: Hello, World!",
+		flag:  log.LstdFlags,
+		expected: `{
+			"shortMessage":"path/to/file1:23: Hello, World!"
+		}`,
+	},
+	{
+		name:  `"long file" flag respects file path`,
+		line:  line(),
+		input: "path/to/file1:23: Hello, World!",
+		flag:  log.Llongfile,
+		expected: `{
+			"shortMessage":"Hello, World!",
+			"fullMessage":"path/to/file1:23: Hello, World!",
+			"file":"path/to/file1:23"
+		}`,
+	},
+	{
+		name:  "file path with empty message",
+		line:  line(),
+		input: "path/to/file1:23:",
+		flag:  log.Llongfile,
+		expected: `{
+			"shortMessage":"_BLANK_",
+			"fullMessage":"path/to/file1:23:",
+			"file":"path/to/file1:23"
+		}`,
+	},
+	{
+		name:  "file path with blank message",
+		line:  line(),
+		input: "path/to/file4:56:  ",
+		flag:  log.Llongfile,
+		expected: `{
+			"shortMessage":"_BLANK_",
+			"fullMessage":"path/to/file4:56:  ",
+			"file":"path/to/file4:56"
+		}`,
+	},
+	{
+		name:   `"magic" host field`,
+		line:   line(),
+		input:  "Hello, World!",
+		fields: map[string]interface{}{"host": "example.tld"},
+		expected: `{
+			"shortMessage":"example.tld Hello, World!",
+			"host":"example.tld"
+		}`,
+	},
+	{
+		name:      "GELF",
 		line:      line(),
 		input:     "Hello, GELF!",
-		fields:    map[string]string{"version": "1.1", "host": "example.tld"},
+		fields:    map[string]interface{}{"version": "1.1", "host": "example.tld"},
 		functions: map[string]func() interface{}{"timestamp": func() interface{} { return time.Date(2020, time.October, 15, 18, 9, 0, 0, time.UTC).Unix() }},
+		metadata:  mujlog.GELF().Metadata,
 		expected: `{
 			"version":"1.1",
 			"short_message":"example.tld Hello, GELF!",
 			"host":"example.tld",
 			"timestamp":1602785340
+		}`,
+	},
+	{
+		name:      "GELF with file path",
+		line:      line(),
+		input:     "path/to/file7:89: Hello, GELF!",
+		flag:      log.Llongfile,
+		fields:    map[string]interface{}{"version": "1.1", "host": "example.tld"},
+		functions: map[string]func() interface{}{"timestamp": func() interface{} { return time.Date(2020, time.October, 15, 18, 9, 0, 0, time.UTC).Unix() }},
+		metadata:  mujlog.GELF().Metadata,
+		expected: `{
+			"version":"1.1",
+			"short_message":"example.tld Hello, GELF!",
+			"full_message":"path/to/file7:89: Hello, GELF!",
+			"host":"example.tld",
+			"timestamp":1602785340,
+			"_file":"path/to/file7:89"
 		}`,
 	},
 }
@@ -195,14 +277,20 @@ func TestMujlogWrite(t *testing.T) {
 
 			var buf bytes.Buffer
 
+			metadata := tc.metadata
+			if metadata == nil {
+				metadata = mujlog.Metadata()
+			}
+
 			mjl := mujlog.Mujlog{
 				Output:    &buf,
 				Flag:      tc.flag,
 				Fields:    tc.fields,
 				Functions: tc.functions,
+				Metadata:  metadata,
 			}
 
-			_, err := mjl.Write([]byte(tc.input))
+			_, err := fmt.Fprint(mjl, tc.input)
 			if err != nil {
 				t.Fatalf("unexpected mujlog write error: %s", err)
 			}

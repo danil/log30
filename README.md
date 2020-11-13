@@ -20,14 +20,16 @@ import (
 func main() {
     log.SetOutput(mujlog.Mujlog{Output: os.Stdout})
 
-    log.Println("Hello\nWorld!")
+    log.Println("Hello,\nWorld!")
 }
 ```
 
+Output:
+
 ```json
 {
-    "short_message":"Hello",
-    "full_message":"Hello\nWorld!"
+    "shortMessage":"Hello, World!",
+    "fullMessage":"Hello,\nWorld!"
 }
 ```
 
@@ -49,15 +51,55 @@ func main() {
 
 	log.SetOutput(glf)
 
-	log.Println("Hello\nGELF!")
+	log.Println("Hello,\nGELF!")
 }
 ```
+
+Output:
+
 
 ```json
 {
     "version":"1.1",
-    "short_message":"Hello",
-    "full_message":"Hello\nGELF!",
+    "short_message":"Hello, GELF!",
+    "full_message":"Hello,\nGELF!",
     "timestamp":1602785340
+}
+```
+
+## Caveats
+
+Numeric types appears in the short/full messages as a string. For example:
+
+```go
+package main
+
+import (
+    "log"
+
+    "gitlab.rocketbank.sexy/backend/random-values/jaunt/mujlog"
+)
+
+func main() {
+    log.SetOutput(mujlog.Mujlog{Output: os.Stdout})
+
+    log.Println(123)
+    log.Println(3.21)
+}
+```
+
+Output:
+
+```json
+{
+    "shortMessage":"123"
+}
+```
+
+Output second:
+
+```json
+{
+    "shortMessage":"3.21"
 }
 ```
