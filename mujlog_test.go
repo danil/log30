@@ -278,10 +278,12 @@ func TestMujlogWrite(t *testing.T) {
 
 			var buf bytes.Buffer
 
-			if tc.log.Short == "" || tc.log.Full == "" || tc.log.File == "" {
+			if tc.log.Short == "" || tc.log.Full == "" || tc.log.File == "" || tc.log.TruncateMax == 0 || tc.log.TruncateMin == 0 {
 				tc.log.Short = "shortMessage"
 				tc.log.Full = "fullMessage"
 				tc.log.File = "file"
+				tc.log.TruncateMax = 1024
+				tc.log.TruncateMin = 120
 			}
 
 			tc.log.Output = &buf

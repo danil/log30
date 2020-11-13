@@ -12,13 +12,15 @@ import (
 
 // Log is a Multiline JSON Log and formatter and writer.
 type Log struct {
-	Output    io.Writer                     // destination for output
-	Flag      int                           // log properties
-	Fields    map[string]interface{}        // additional fields
-	Functions map[string]func() interface{} // dynamically calculated fields
-	Short     string
-	Full      string
-	File      string
+	Output      io.Writer                     // destination for output
+	Flag        int                           // log properties
+	Fields      map[string]interface{}        // additional fields
+	Functions   map[string]func() interface{} // dynamically calculated fields
+	Short       string
+	Full        string
+	File        string
+	TruncateMax int
+	TruncateMin int
 }
 
 func GELF() Log {
@@ -30,9 +32,11 @@ func GELF() Log {
 		Functions: map[string]func() interface{}{
 			"timestamp": func() interface{} { return time.Now().Unix() },
 		},
-		Short: "short_message",
-		Full:  "full_message",
-		File:  "_file",
+		Short:       "short_message",
+		Full:        "full_message",
+		File:        "_file",
+		TruncateMax: 1024,
+		TruncateMin: 120,
 	}
 }
 
@@ -65,7 +69,7 @@ func message(mjl Log, p []byte) ([]byte, error) {
 			continue
 		}
 		ir++
-		if ir > 1024 {
+		if ir > mjl.TruncateMax {
 			clean = full[:i]
 			break
 		}
@@ -101,7 +105,7 @@ func message(mjl Log, p []byte) ([]byte, error) {
 			ir := 0
 			for i, _ := range clean {
 				ir++
-				if ir > 119 {
+				if ir > mjl.TruncateMin-1 {
 					short = clean[:i] + "…"
 					break
 				}
