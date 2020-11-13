@@ -10,34 +10,27 @@ import (
 	"unicode"
 )
 
-const gelf = "GELF"
-
-// Mujlog (Multiline JSON Log) is a formatter and writer.
-type Mujlog struct {
+// Log is a Multiline JSON Log and formatter and writer.
+type Log struct {
 	Output    io.Writer                     // destination for output
 	Flag      int                           // log properties
 	Fields    map[string]interface{}        // additional fields
 	Functions map[string]func() interface{} // dynamically calculated fields
-	Metadata  map[string]string
+	Short     string
+	Full      string
+	File      string
 }
 
-func Metadata() map[string]string {
-	return map[string]string{
-		"short": "shortMessage",
-		"full":  "fullMessage",
-		"file":  "file",
+func New() Log {
+	return Log{
+		Short: "shortMessage",
+		Full:  "fullMessage",
+		File:  "file",
 	}
 }
 
-func GELF() Mujlog {
-	m := map[string]string{
-		"format": gelf,
-		"short":  "short_message",
-		"full":   "full_message",
-		"file":   "_file",
-	}
-
-	return Mujlog{
+func GELF() Log {
+	return Log{
 		Flag: log.Llongfile,
 		Fields: map[string]interface{}{
 			"version": "1.1",
@@ -45,11 +38,13 @@ func GELF() Mujlog {
 		Functions: map[string]func() interface{}{
 			"timestamp": func() interface{} { return time.Now().Unix() },
 		},
-		Metadata: m,
+		Short: "short_message",
+		Full:  "full_message",
+		File:  "_file",
 	}
 }
 
-func (mjl Mujlog) Write(p []byte) (int, error) {
+func (mjl Log) Write(p []byte) (int, error) {
 	msg, err := message(mjl, p)
 	if err != nil {
 		return 0, err
@@ -58,7 +53,7 @@ func (mjl Mujlog) Write(p []byte) (int, error) {
 	return mjl.Output.Write(msg)
 }
 
-func message(mjl Mujlog, p []byte) ([]byte, error) {
+func message(mjl Log, p []byte) ([]byte, error) {
 	m := make(map[string]interface{})
 
 	for k, v := range mjl.Fields {
@@ -103,8 +98,8 @@ func message(mjl Mujlog, p []byte) ([]byte, error) {
 
 	var short string
 
-	if mjl.Fields[mjl.Metadata["short"]] != nil {
-		short = fmt.Sprint(mjl.Fields[mjl.Metadata["short"]])
+	if mjl.Fields[mjl.Short] != nil {
+		short = fmt.Sprint(mjl.Fields[mjl.Short])
 	} else {
 		if full == "" {
 			short = "_EMPTY_"
@@ -127,17 +122,17 @@ func message(mjl Mujlog, p []byte) ([]byte, error) {
 	}
 
 	if mjl.Fields["host"] == nil {
-		m[mjl.Metadata["short"]] = short
+		m[mjl.Short] = short
 	} else {
-		m[mjl.Metadata["short"]] = fmt.Sprintf("%s %s", mjl.Fields["host"], short)
+		m[mjl.Short] = fmt.Sprintf("%s %s", mjl.Fields["host"], short)
 	}
 
 	if short != full {
-		m[mjl.Metadata["full"]] = full
+		m[mjl.Full] = full
 	}
 
 	if file != "" {
-		m[mjl.Metadata["file"]] = file
+		m[mjl.File] = file
 	}
 
 	p, err := json.Marshal(m)

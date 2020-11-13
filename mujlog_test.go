@@ -15,7 +15,7 @@ import (
 func TestMujlogWriteTrailingNewLine(t *testing.T) {
 	var buf bytes.Buffer
 
-	mjl := mujlog.Mujlog{Output: &buf}
+	mjl := mujlog.Log{Output: &buf}
 
 	_, err := mjl.Write([]byte("Hello, Wrold!"))
 	if err != nil {
@@ -32,6 +32,7 @@ func line() int { _, _, l, _ := runtime.Caller(1); return l }
 var MujlogWriteTestCases = []struct {
 	name      string
 	line      int
+	log       mujlog.Log
 	input     interface{}
 	flag      int
 	fields    map[string]interface{}
@@ -237,10 +238,10 @@ var MujlogWriteTestCases = []struct {
 	{
 		name:      "GELF",
 		line:      line(),
+		log:       mujlog.GELF(),
 		input:     "Hello, GELF!",
 		fields:    map[string]interface{}{"version": "1.1", "host": "example.tld"},
 		functions: map[string]func() interface{}{"timestamp": func() interface{} { return time.Date(2020, time.October, 15, 18, 9, 0, 0, time.UTC).Unix() }},
-		metadata:  mujlog.GELF().Metadata,
 		expected: `{
 			"version":"1.1",
 			"short_message":"example.tld Hello, GELF!",
@@ -251,11 +252,11 @@ var MujlogWriteTestCases = []struct {
 	{
 		name:      "GELF with file path",
 		line:      line(),
+		log:       mujlog.GELF(),
 		input:     "path/to/file7:89: Hello, GELF!",
 		flag:      log.Llongfile,
 		fields:    map[string]interface{}{"version": "1.1", "host": "example.tld"},
 		functions: map[string]func() interface{}{"timestamp": func() interface{} { return time.Date(2020, time.October, 15, 18, 9, 0, 0, time.UTC).Unix() }},
-		metadata:  mujlog.GELF().Metadata,
 		expected: `{
 			"version":"1.1",
 			"short_message":"example.tld Hello, GELF!",
@@ -277,20 +278,16 @@ func TestMujlogWrite(t *testing.T) {
 
 			var buf bytes.Buffer
 
-			metadata := tc.metadata
-			if metadata == nil {
-				metadata = mujlog.Metadata()
+			if tc.log.Short == "" {
+				tc.log = mujlog.New()
 			}
 
-			mjl := mujlog.Mujlog{
-				Output:    &buf,
-				Flag:      tc.flag,
-				Fields:    tc.fields,
-				Functions: tc.functions,
-				Metadata:  metadata,
-			}
+			tc.log.Output = &buf
+			tc.log.Flag = tc.flag
+			tc.log.Fields = tc.fields
+			tc.log.Functions = tc.functions
 
-			_, err := fmt.Fprint(mjl, tc.input)
+			_, err := fmt.Fprint(tc.log, tc.input)
 			if err != nil {
 				t.Fatalf("unexpected mujlog write error: %s", err)
 			}
