@@ -101,10 +101,10 @@ var MujlogWriteTestCases = []struct {
 	{
 		name:  `leading/trailing "spaces"`,
 		line:  line(),
-		input: " \nHello, World! \n",
+		input: " \n\tHello, World! \t\n",
 		expected: `{
 			"shortMessage":"Hello, World!",
-			"fullMessage":" \nHello, World! \n"
+			"fullMessage":" \n\tHello, World! \t\n"
 		}`,
 	},
 	{
@@ -155,12 +155,21 @@ var MujlogWriteTestCases = []struct {
 		}`,
 	},
 	{
-		name:  "long multiline string",
+		name:  "long string",
 		line:  line(),
-		input: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+		input: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
 		expected: `{
 			"shortMessage":"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna ali…",
-			"fullMessage":"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
+			"fullMessage":"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+		}`,
+	},
+	{
+		name:  "long string with leading spaces",
+		line:  line(),
+		input: " \n \tLorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+		expected: `{
+			"shortMessage":"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna ali…",
+			"fullMessage":" \n \tLorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
 		}`,
 	},
 	{
