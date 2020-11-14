@@ -5,12 +5,16 @@ import (
 	"fmt"
 	"log"
 	"runtime"
+	"strconv"
+	"sync"
 	"testing"
 	"time"
 
 	"github.com/danil/mujlog"
 	"github.com/kinbiko/jsonassert"
 )
+
+var pool = sync.Pool{New: func() interface{} { return new(bytes.Buffer) }}
 
 func TestMujlogWriteTrailingNewLine(t *testing.T) {
 	var buf bytes.Buffer
@@ -39,6 +43,7 @@ var MujlogWriteTestCases = []struct {
 	functions map[string]func() interface{}
 	metadata  map[string]string
 	expected  string
+	benchmark bool
 }{
 	{
 		name:  "string",
@@ -164,13 +169,14 @@ var MujlogWriteTestCases = []struct {
 		}`,
 	},
 	{
-		name:  "long string with leading spaces",
+		name:  "multiline long string with leading spaces",
 		line:  line(),
-		input: " \n \tLorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+		input: " \n \tLorem ipsum dolor sit amet,\nconsectetur adipiscing elit,\nsed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
 		expected: `{
 			"shortMessage":"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna ali…",
-			"fullMessage":" \n \tLorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+			"fullMessage":" \n \tLorem ipsum dolor sit amet,\nconsectetur adipiscing elit,\nsed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
 		}`,
+		benchmark: true,
 	},
 	{
 		name:   `explicit short message field`,
@@ -285,7 +291,9 @@ func TestMujlogWrite(t *testing.T) {
 			t.Parallel()
 			linkToExample := fmt.Sprintf("%s:%d", testFile, tc.line)
 
-			var buf bytes.Buffer
+			buf := pool.Get().(*bytes.Buffer)
+			buf.Reset()
+			defer pool.Put(buf)
 
 			if tc.log.Short == "" || tc.log.Full == "" || tc.log.File == "" || tc.log.Truncate == 0 {
 				tc.log.Short = "shortMessage"
@@ -294,7 +302,7 @@ func TestMujlogWrite(t *testing.T) {
 				tc.log.Truncate = 120
 			}
 
-			tc.log.Output = &buf
+			tc.log.Output = buf
 			tc.log.Flag = tc.flag
 			tc.log.Fields = tc.fields
 			tc.log.Functions = tc.functions
@@ -306,6 +314,38 @@ func TestMujlogWrite(t *testing.T) {
 
 			ja := jsonassert.New(testprinter{t: t, link: linkToExample})
 			ja.Assertf(buf.String(), tc.expected)
+		})
+	}
+}
+
+func BenchmarkMujlog(b *testing.B) {
+	for _, tc := range MujlogWriteTestCases {
+		if !tc.benchmark {
+			continue
+		}
+		b.Run(strconv.Itoa(tc.line), func(b *testing.B) {
+			for i := 0; i < b.N; i++ {
+				buf := pool.Get().(*bytes.Buffer)
+				buf.Reset()
+				defer pool.Put(buf)
+
+				if tc.log.Short == "" || tc.log.Full == "" || tc.log.File == "" || tc.log.Truncate == 0 {
+					tc.log.Short = "shortMessage"
+					tc.log.Full = "fullMessage"
+					tc.log.File = "file"
+					tc.log.Truncate = 120
+				}
+
+				tc.log.Output = buf
+				tc.log.Flag = tc.flag
+				tc.log.Fields = tc.fields
+				tc.log.Functions = tc.functions
+
+				_, err := fmt.Fprint(tc.log, tc.input)
+				if err != nil {
+					fmt.Println(err)
+				}
+			}
 		})
 	}
 }
