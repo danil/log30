@@ -12,15 +12,14 @@ import (
 
 // Log is a Multiline JSON Log and formatter and writer.
 type Log struct {
-	Output      io.Writer                     // destination for output
-	Flag        int                           // log properties
-	Fields      map[string]interface{}        // additional fields
-	Functions   map[string]func() interface{} // dynamically calculated fields
-	Short       string
-	Full        string
-	File        string
-	TruncateMax int
-	TruncateMin int
+	Output    io.Writer                     // destination for output
+	Flag      int                           // log properties
+	Fields    map[string]interface{}        // additional fields
+	Functions map[string]func() interface{} // dynamically calculated fields
+	Short     string
+	Full      string
+	File      string
+	Truncate  int
 }
 
 func GELF() Log {
@@ -32,11 +31,10 @@ func GELF() Log {
 		Functions: map[string]func() interface{}{
 			"timestamp": func() interface{} { return time.Now().Unix() },
 		},
-		Short:       "short_message",
-		Full:        "full_message",
-		File:        "_file",
-		TruncateMax: 1024,
-		TruncateMin: 120,
+		Short:    "short_message",
+		Full:     "full_message",
+		File:     "_file",
+		Truncate: 120,
 	}
 }
 
@@ -61,34 +59,18 @@ func message(mjl Log, p []byte) ([]byte, error) {
 	}
 
 	full := string(p)
+	tail := full
+	var file string
 
-	var clean string
-	ir := 0
-	for i, r := range full {
-		if unicode.IsSpace(r) {
-			continue
-		}
-		ir++
-		if ir > mjl.TruncateMax {
-			clean = full[:i]
-			break
-		}
-	}
-	if clean == "" {
-		clean = full
-	}
-	clean = strings.TrimSpace(clean)
-
-	file := ""
 	switch mjl.Flag {
 	case log.Lshortfile, log.Llongfile:
-		a := strings.SplitN(clean, ": ", 2)
+		a := strings.SplitN(full, ": ", 2)
 		if len(a) == 1 {
 			file = strings.TrimRight(a[0], ":")
-			clean = ""
+			tail = ""
 		} else {
 			file = a[0]
-			clean = a[1]
+			tail = a[1]
 		}
 	}
 
@@ -97,22 +79,46 @@ func message(mjl Log, p []byte) ([]byte, error) {
 	if mjl.Fields[mjl.Short] != nil {
 		short = fmt.Sprint(mjl.Fields[mjl.Short])
 	} else {
-		if full == "" {
+		if tail == "" {
 			short = "_EMPTY_"
-		} else if clean == "" {
-			short = "_BLANK_"
 		} else {
-			ir := 0
-			for i, _ := range clean {
-				ir++
-				if ir > mjl.TruncateMin-1 {
-					short = clean[:i] + "…"
+			var n int
+			beg := true
+
+			for i, r := range tail {
+				if beg && unicode.IsSpace(r) {
+					continue
+				} else {
+					beg = false
+				}
+
+				n++
+
+				if n == mjl.Truncate {
+					short = tail[:i]
 					break
 				}
 			}
+
 			if short == "" {
-				short = clean
+				short = tail
 			}
+
+			var trunc bool
+			if len(tail) != len(short) {
+				trunc = true
+			}
+
+			short = strings.TrimSpace(short)
+
+			if short == "" {
+				short = "_BLANK_"
+			}
+
+			if short != "" && trunc {
+				short = short + "…"
+			}
+
 			short = strings.Replace(short, "\n", " ", -1)
 		}
 	}

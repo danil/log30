@@ -23,8 +23,7 @@ func main() {
         Short: "shortMessage",
         Full: "fullMessage",
         File: "file",
-        TruncateMax: 1024,
-        TruncateMin: 120,
+        Truncate: 120,
     }
     log.SetOutput(l)
 
@@ -94,8 +93,7 @@ func main() {
         Short: "shortMessage",
         Full: "fullMessage",
         File: "file",
-        TruncateMax: 1024,
-        TruncateMin: 120,
+        Truncate: 120,
     }
     log.SetOutput(l)
 

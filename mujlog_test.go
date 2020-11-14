@@ -209,7 +209,7 @@ var MujlogWriteTestCases = []struct {
 		input: "path/to/file1:23:",
 		flag:  log.Llongfile,
 		expected: `{
-			"shortMessage":"_BLANK_",
+			"shortMessage":"_EMPTY_",
 			"fullMessage":"path/to/file1:23:",
 			"file":"path/to/file1:23"
 		}`,
@@ -278,12 +278,11 @@ func TestMujlogWrite(t *testing.T) {
 
 			var buf bytes.Buffer
 
-			if tc.log.Short == "" || tc.log.Full == "" || tc.log.File == "" || tc.log.TruncateMax == 0 || tc.log.TruncateMin == 0 {
+			if tc.log.Short == "" || tc.log.Full == "" || tc.log.File == "" || tc.log.Truncate == 0 {
 				tc.log.Short = "shortMessage"
 				tc.log.Full = "fullMessage"
 				tc.log.File = "file"
-				tc.log.TruncateMax = 1024
-				tc.log.TruncateMin = 120
+				tc.log.Truncate = 120
 			}
 
 			tc.log.Output = &buf
