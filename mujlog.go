@@ -38,23 +38,23 @@ func GELF() Log {
 	}
 }
 
-func (mjl Log) Write(p []byte) (int, error) {
-	msg, err := message(mjl, p)
+func (l Log) Write(p []byte) (int, error) {
+	msg, err := mujlog(l, p)
 	if err != nil {
 		return 0, err
 	}
 
-	return mjl.Output.Write(msg)
+	return l.Output.Write(msg)
 }
 
-func message(mjl Log, p []byte) ([]byte, error) {
+func mujlog(l Log, p []byte) ([]byte, error) {
 	m := make(map[string]interface{})
 
-	for k, v := range mjl.Fields {
+	for k, v := range l.Fields {
 		m[k] = v
 	}
 
-	for k, fn := range mjl.Functions {
+	for k, fn := range l.Functions {
 		m[k] = fn()
 	}
 
@@ -62,7 +62,7 @@ func message(mjl Log, p []byte) ([]byte, error) {
 	tail := full
 	var file string
 
-	switch mjl.Flag {
+	switch l.Flag {
 	case log.Lshortfile, log.Llongfile:
 		a := strings.SplitN(full, ": ", 2)
 		if len(a) == 1 {
@@ -76,8 +76,8 @@ func message(mjl Log, p []byte) ([]byte, error) {
 
 	var short string
 
-	if mjl.Fields[mjl.Short] != nil {
-		short = fmt.Sprint(mjl.Fields[mjl.Short])
+	if l.Fields[l.Short] != nil {
+		short = fmt.Sprint(l.Fields[l.Short])
 	} else {
 		if tail == "" {
 			short = "_EMPTY_"
@@ -94,7 +94,7 @@ func message(mjl Log, p []byte) ([]byte, error) {
 
 				n++
 
-				if n == mjl.Truncate {
+				if n == l.Truncate {
 					short = tail[:i]
 					break
 				}
@@ -123,18 +123,18 @@ func message(mjl Log, p []byte) ([]byte, error) {
 		}
 	}
 
-	if mjl.Fields["host"] == nil {
-		m[mjl.Short] = short
+	if l.Fields["host"] == nil {
+		m[l.Short] = short
 	} else {
-		m[mjl.Short] = fmt.Sprintf("%s %s", mjl.Fields["host"], short)
+		m[l.Short] = fmt.Sprintf("%s %s", l.Fields["host"], short)
 	}
 
 	if short != full {
-		m[mjl.Full] = full
+		m[l.Full] = full
 	}
 
 	if file != "" {
-		m[mjl.File] = file
+		m[l.File] = file
 	}
 
 	p, err := json.Marshal(m)
