@@ -55,7 +55,6 @@ var (
 	tailp  = sync.Pool{New: func() interface{} { return new([]byte) }}
 	tailb  = sync.Pool{New: func() interface{} { return new(bytes.Buffer) }}
 	shortp = sync.Pool{New: func() interface{} { return new([]byte) }}
-	filep  = sync.Pool{New: func() interface{} { return new([]byte) }}
 )
 
 func mujlog(l Log, full []byte) ([]byte, error) {
@@ -76,19 +75,17 @@ func mujlog(l Log, full []byte) ([]byte, error) {
 	tail = make([]byte, len(full))
 	copy(tail, full)
 
-	file := *filep.Get().(*[]byte)
-	file = file[:0]
-	defer filep.Put(&file)
+	var file int
 
 	switch l.Flag {
 	case log.Lshortfile, log.Llongfile:
-		a := bytes.SplitN(full, []byte(": "), 2)
-		if len(a) == 1 {
-			file = bytes.TrimRight(a[0], ":")
+		i := bytes.Index(full, []byte(": "))
+		if i == -1 {
+			file = len(full) - 1
 			tail = tail[:0]
 		} else {
-			file = a[0]
-			tail = a[1]
+			file = i
+			tail = tail[i+2:]
 		}
 	}
 
@@ -170,8 +167,8 @@ func mujlog(l Log, full []byte) ([]byte, error) {
 		m[l.Full] = string(full)
 	}
 
-	if !bytes.Equal(file, []byte{}) {
-		m[l.File] = string(file)
+	if file != 0 {
+		m[l.File] = string(full[:file])
 	}
 
 	p, err := json.Marshal(m)
