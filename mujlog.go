@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"sync"
 	"time"
 	"unicode"
 	"unicode/utf8"
@@ -50,6 +51,13 @@ func (l Log) Write(p []byte) (int, error) {
 
 var asciiSpace = [256]uint8{'\t': 1, '\n': 1, '\v': 1, '\f': 1, '\r': 1, ' ': 1}
 
+var (
+	tailp  = sync.Pool{New: func() interface{} { return new([]byte) }}
+	tailb  = sync.Pool{New: func() interface{} { return new(bytes.Buffer) }}
+	shortp = sync.Pool{New: func() interface{} { return new([]byte) }}
+	filep  = sync.Pool{New: func() interface{} { return new([]byte) }}
+)
+
 func mujlog(l Log, full []byte) ([]byte, error) {
 	m := make(map[string]interface{})
 
@@ -61,10 +69,16 @@ func mujlog(l Log, full []byte) ([]byte, error) {
 		m[k] = fn()
 	}
 
-	tail := make([]byte, len(full))
+	tail := *tailp.Get().(*[]byte)
+	tail = tail[:0]
+	defer tailp.Put(&tail)
+
+	tail = make([]byte, len(full))
 	copy(tail, full)
 
-	var file []byte
+	file := *filep.Get().(*[]byte)
+	file = file[:0]
+	defer filep.Put(&file)
 
 	switch l.Flag {
 	case log.Lshortfile, log.Llongfile:
@@ -78,7 +92,9 @@ func mujlog(l Log, full []byte) ([]byte, error) {
 		}
 	}
 
-	var short []byte
+	short := *shortp.Get().(*[]byte)
+	short = short[:0]
+	defer shortp.Put(&short)
 
 	if l.Fields[l.Short] != nil {
 		switch v := l.Fields[l.Short].(type) {
@@ -95,7 +111,15 @@ func mujlog(l Log, full []byte) ([]byte, error) {
 		} else {
 			tail = trimSpaceLeft(tail)
 
-			buf := bytes.NewBuffer(tail)
+			buf := tailb.Get().(*bytes.Buffer)
+			buf.Reset()
+			defer tailb.Put(buf)
+
+			_, err := buf.Write(tail)
+			if err != nil {
+				return []byte{}, err
+			}
+
 			i := 0
 
 			for {
