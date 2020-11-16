@@ -1,13 +1,14 @@
 package mujlog
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
 	"log"
-	"strings"
 	"time"
 	"unicode"
+	"unicode/utf8"
 )
 
 // Log is a Multiline JSON Log and formatter and writer.
@@ -47,7 +48,9 @@ func (l Log) Write(p []byte) (int, error) {
 	return l.Output.Write(msg)
 }
 
-func mujlog(l Log, p []byte) ([]byte, error) {
+var asciiSpace = [256]uint8{'\t': 1, '\n': 1, '\v': 1, '\f': 1, '\r': 1, ' ': 1}
+
+func mujlog(l Log, full []byte) ([]byte, error) {
 	m := make(map[string]interface{})
 
 	for k, v := range l.Fields {
@@ -58,49 +61,59 @@ func mujlog(l Log, p []byte) ([]byte, error) {
 		m[k] = fn()
 	}
 
-	full := string(p)
-	tail := full
-	var file string
+	tail := make([]byte, len(full))
+	copy(tail, full)
+
+	var file []byte
 
 	switch l.Flag {
 	case log.Lshortfile, log.Llongfile:
-		a := strings.SplitN(full, ": ", 2)
+		a := bytes.SplitN(full, []byte(": "), 2)
 		if len(a) == 1 {
-			file = strings.TrimRight(a[0], ":")
-			tail = ""
+			file = bytes.TrimRight(a[0], ":")
+			tail = tail[:0]
 		} else {
 			file = a[0]
 			tail = a[1]
 		}
 	}
 
-	var short string
+	var short []byte
 
 	if l.Fields[l.Short] != nil {
-		short = fmt.Sprint(l.Fields[l.Short])
+		switch v := l.Fields[l.Short].(type) {
+		case []byte:
+			short = v
+		case string:
+			short = []byte(v)
+		default:
+			short = []byte(fmt.Sprint(v))
+		}
 	} else {
-		if tail == "" {
-			short = "_EMPTY_"
+		if bytes.Equal(tail, []byte{}) {
+			short = []byte("_EMPTY_")
 		} else {
-			var n int
-			beg := true
+			tail = trimSpaceLeft(tail)
 
-			for i, r := range tail {
-				if beg && unicode.IsSpace(r) {
-					continue
-				} else {
-					beg = false
+			buf := bytes.NewBuffer(tail)
+			i := 0
+
+			for {
+				_, n, err := buf.ReadRune()
+				if err == io.EOF {
+					break
+				} else if err != nil {
+					return []byte{}, err
 				}
-
-				n++
-
-				if n == l.Truncate {
-					short = tail[:i]
+				if i >= l.Truncate-1 {
 					break
 				}
+				i += n
 			}
 
-			if short == "" {
+			short = tail[:i]
+
+			if bytes.Equal(short, []byte{}) {
 				short = tail
 			}
 
@@ -109,32 +122,32 @@ func mujlog(l Log, p []byte) ([]byte, error) {
 				trunc = true
 			}
 
-			short = strings.TrimSpace(short)
+			short = trimSpaceRight(short)
 
-			if short == "" {
-				short = "_BLANK_"
+			if bytes.Equal(short, []byte{}) {
+				short = []byte("_BLANK_")
 			}
 
-			if short != "" && trunc {
-				short = short + "…"
+			if !bytes.Equal(short, []byte{}) && trunc {
+				short = append(short, []byte("…")...)
 			}
 
-			short = strings.Replace(short, "\n", " ", -1)
+			short = bytes.Replace(short, []byte("\n"), []byte(" "), -1)
 		}
 	}
 
 	if l.Fields["host"] == nil {
-		m[l.Short] = short
+		m[l.Short] = string(short)
 	} else {
 		m[l.Short] = fmt.Sprintf("%s %s", l.Fields["host"], short)
 	}
 
-	if short != full {
-		m[l.Full] = full
+	if !bytes.Equal(short, full) {
+		m[l.Full] = string(full)
 	}
 
-	if file != "" {
-		m[l.File] = file
+	if !bytes.Equal(file, []byte{}) {
+		m[l.File] = string(file)
 	}
 
 	p, err := json.Marshal(m)
@@ -143,4 +156,60 @@ func mujlog(l Log, p []byte) ([]byte, error) {
 	}
 
 	return append(p, '\n'), nil
+}
+
+// trimSpaceLeft returns a subslice of s by slicing off all leading space,
+// as defined by Unicode.
+// trimSpaceLeft function is partially copied from the bytes package.
+func trimSpaceLeft(s []byte) []byte {
+	// Fast path for ASCII: look for the first ASCII non-space byte
+	start := 0
+	for ; start < len(s); start++ {
+		c := s[start]
+		if c >= utf8.RuneSelf {
+			// If we run into a non-ASCII byte, fall back to the
+			// slower unicode-aware method on the remaining bytes
+			return bytes.TrimFunc(s[start:], unicode.IsSpace)
+		}
+		if asciiSpace[c] == 0 {
+			break
+		}
+	}
+
+	// At this point s[start:stop] starts and ends with an ASCII
+	// non-space bytes, so we're done. Non-ASCII cases have already
+	// been handled above.
+	if start == len(s) {
+		// Special case to preserve previous TrimLeftFunc behavior,
+		// returning nil instead of empty slice if all spaces.
+		return nil
+	}
+	return s[start:]
+}
+
+// trimSpaceRight returns a subslice of s by slicing off all trailing white space,
+// as defined by Unicode.
+// trimSpaceRight function is partially copied from the bytes package.
+func trimSpaceRight(s []byte) []byte {
+	// Now look for the first ASCII non-space byte from the end
+	stop := len(s)
+	for ; stop > 0; stop-- {
+		c := s[stop-1]
+		if c >= utf8.RuneSelf {
+			return bytes.TrimFunc(s[0:stop], unicode.IsSpace)
+		}
+		if asciiSpace[c] == 0 {
+			break
+		}
+	}
+
+	// At this point s[start:stop] starts and ends with an ASCII
+	// non-space bytes, so we're done. Non-ASCII cases have already
+	// been handled above.
+	if stop == 0 {
+		// Special case to preserve previous TrimLeftFunc behavior,
+		// returning nil instead of empty slice if all spaces.
+		return nil
+	}
+	return s[:stop]
 }
