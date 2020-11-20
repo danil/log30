@@ -188,12 +188,62 @@ var MujlogWriteTestCases = []struct {
 		benchmark: true,
 	},
 	{
-		name:   `explicit short message field`,
+		name:   `explicit byte slice as short message field`,
 		line:   line(),
 		input:  "Hello, World!",
-		fields: map[string]interface{}{"shortMessage": "Explicit short message"},
+		fields: map[string]interface{}{"shortMessage": []byte("Explicit byte slice")},
 		expected: `{
-			"shortMessage":"Explicit short message",
+			"shortMessage":"Explicit byte slice",
+		  "fullMessage": "Hello, World!"
+		}`,
+	},
+	{
+		name:   `explicit string as short message field`,
+		line:   line(),
+		input:  "Hello, World!",
+		fields: map[string]interface{}{"shortMessage": "Explicit string"},
+		expected: `{
+			"shortMessage":"Explicit string",
+		  "fullMessage": "Hello, World!"
+		}`,
+	},
+	{
+		name:   `explicit integer as short message field`,
+		line:   line(),
+		input:  "Hello, World!",
+		fields: map[string]interface{}{"shortMessage": 42},
+		expected: `{
+			"shortMessage":42,
+		  "fullMessage": "Hello, World!"
+		}`,
+	},
+	{
+		name:   `explicit float as short message field`,
+		line:   line(),
+		input:  "Hello, World!",
+		fields: map[string]interface{}{"shortMessage": 4.2},
+		expected: `{
+			"shortMessage":4.2,
+		  "fullMessage": "Hello, World!"
+		}`,
+	},
+	{
+		name:   `explicit boolean as short message field`,
+		line:   line(),
+		input:  "Hello, World!",
+		fields: map[string]interface{}{"shortMessage": true},
+		expected: `{
+			"shortMessage":true,
+		  "fullMessage": "Hello, World!"
+		}`,
+	},
+	{
+		name:   `explicit rune slice as short message field`,
+		line:   line(),
+		input:  "Hello, World!",
+		fields: map[string]interface{}{"shortMessage": []rune("Explicit rune slice")},
+		expected: `{
+			"shortMessage":"Explicit rune slice",
 		  "fullMessage": "Hello, World!"
 		}`,
 	},

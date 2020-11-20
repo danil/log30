@@ -52,9 +52,8 @@ func (l Log) Write(p []byte) (int, error) {
 var asciiSpace = [256]uint8{'\t': 1, '\n': 1, '\v': 1, '\f': 1, '\r': 1, ' ': 1}
 
 var (
-	tailp  = sync.Pool{New: func() interface{} { return new([]byte) }}
-	tailb  = sync.Pool{New: func() interface{} { return new(bytes.Buffer) }}
 	shortp = sync.Pool{New: func() interface{} { return new([]byte) }}
+	runep  = sync.Pool{New: func() interface{} { return new([]byte) }}
 )
 
 func mujlog(l Log, full []byte) ([]byte, error) {
@@ -68,24 +67,17 @@ func mujlog(l Log, full []byte) ([]byte, error) {
 		m[k] = fn()
 	}
 
-	tail := *tailp.Get().(*[]byte)
-	tail = tail[:0]
-	defer tailp.Put(&tail)
-
-	tail = make([]byte, len(full))
-	copy(tail, full)
-
-	var file int
+	var tail, file int
 
 	switch l.Flag {
 	case log.Lshortfile, log.Llongfile:
 		i := bytes.Index(full, []byte(": "))
 		if i == -1 {
 			file = len(full) - 1
-			tail = tail[:0]
+			tail = file + 1
 		} else {
 			file = i
-			tail = tail[i+2:]
+			tail = i + 2
 		}
 	}
 
@@ -95,61 +87,83 @@ func mujlog(l Log, full []byte) ([]byte, error) {
 
 	if l.Fields[l.Short] != nil {
 		switch v := l.Fields[l.Short].(type) {
-		case []byte:
-			short = v
 		case string:
-			short = []byte(v)
+			m[l.Short] = v
+		case []byte:
+			m[l.Short] = string(v)
+		case []rune:
+			m[l.Short] = string(v)
 		default:
-			short = []byte(fmt.Sprint(v))
+			m[l.Short] = v
 		}
 	} else {
-		if bytes.Equal(tail, []byte{}) {
-			short = []byte("_EMPTY_")
+		if tail == len(full) {
+			short = append(short, []byte("_EMPTY_")...)
 		} else {
-			tail = trimSpaceLeft(tail)
-
-			buf := tailb.Get().(*bytes.Buffer)
-			buf.Reset()
-			defer tailb.Put(buf)
-
-			_, err := buf.Write(tail)
-			if err != nil {
-				return []byte{}, err
-			}
-
-			i := 0
+			i := tail
+			beg := true
 
 			for {
-				_, n, err := buf.ReadRune()
-				if err == io.EOF {
-					break
-				} else if err != nil {
-					return []byte{}, err
-				}
-				if i >= l.Truncate-1 {
+				r, n := utf8.DecodeRune(full[i:])
+				if n == 0 {
 					break
 				}
+
+				// Rids of off all leading space, as defined by Unicode.
+				// Fast path for ASCII: look for the first ASCII non-space byte or
+				// if we run into a non-ASCII byte, fall back to the slower unicode-aware method
+				if beg {
+					c := full[i]
+					if c < utf8.RuneSelf && asciiSpace[c] == 1 || unicode.IsSpace(r) {
+						i++
+						tail++
+						continue
+					} else {
+						beg = false
+					}
+				}
+
+				if i-tail >= l.Truncate-1 {
+					break
+				}
+
+				p := *runep.Get().(*[]byte)
+				p = p[:0]
+				defer runep.Put(&p)
+
+				p = append(p, make([]byte, utf8.RuneLen(r))...)
+				utf8.EncodeRune(p, r)
+				short = append(short, p...)
+
 				i += n
 			}
 
-			short = tail[:i]
-
-			if bytes.Equal(short, []byte{}) {
-				short = tail
-			}
-
 			var trunc bool
-			if len(tail) != len(short) {
+			if len(full[tail:]) > len(short) {
 				trunc = true
 			}
 
-			short = trimSpaceRight(short)
-
-			if bytes.Equal(short, []byte{}) {
-				short = []byte("_BLANK_")
+			// Rids of off all trailing white space,
+			// as defined by Unicode.
+			// Look for the first ASCII non-space byte from the end.
+			i = len(short)
+			for ; i > 0; i-- {
+				c := short[i-1]
+				if c >= utf8.RuneSelf {
+					short = bytes.TrimFunc(short[0:i], unicode.IsSpace)
+					break
+				}
+				if asciiSpace[c] == 0 {
+					short = short[:i]
+					break
+				}
 			}
 
-			if !bytes.Equal(short, []byte{}) && trunc {
+			if len(short) == 0 {
+				short = append(short, []byte("_BLANK_")...)
+			}
+
+			if len(short) != 0 && trunc {
 				short = append(short, []byte("…")...)
 			}
 
@@ -157,10 +171,12 @@ func mujlog(l Log, full []byte) ([]byte, error) {
 		}
 	}
 
-	if l.Fields["host"] == nil {
-		m[l.Short] = string(short)
-	} else {
-		m[l.Short] = fmt.Sprintf("%s %s", l.Fields["host"], short)
+	if _, ok := m[l.Short]; !ok {
+		if l.Fields["host"] == nil {
+			m[l.Short] = string(short)
+		} else {
+			m[l.Short] = fmt.Sprintf("%s %s", l.Fields["host"], short)
+		}
 	}
 
 	if !bytes.Equal(short, full) {
@@ -177,60 +193,4 @@ func mujlog(l Log, full []byte) ([]byte, error) {
 	}
 
 	return append(p, '\n'), nil
-}
-
-// trimSpaceLeft returns a subslice of s by slicing off all leading space,
-// as defined by Unicode.
-// trimSpaceLeft function is partially copied from the bytes package.
-func trimSpaceLeft(s []byte) []byte {
-	// Fast path for ASCII: look for the first ASCII non-space byte
-	start := 0
-	for ; start < len(s); start++ {
-		c := s[start]
-		if c >= utf8.RuneSelf {
-			// If we run into a non-ASCII byte, fall back to the
-			// slower unicode-aware method on the remaining bytes
-			return bytes.TrimFunc(s[start:], unicode.IsSpace)
-		}
-		if asciiSpace[c] == 0 {
-			break
-		}
-	}
-
-	// At this point s[start:stop] starts and ends with an ASCII
-	// non-space bytes, so we're done. Non-ASCII cases have already
-	// been handled above.
-	if start == len(s) {
-		// Special case to preserve previous TrimLeftFunc behavior,
-		// returning nil instead of empty slice if all spaces.
-		return nil
-	}
-	return s[start:]
-}
-
-// trimSpaceRight returns a subslice of s by slicing off all trailing white space,
-// as defined by Unicode.
-// trimSpaceRight function is partially copied from the bytes package.
-func trimSpaceRight(s []byte) []byte {
-	// Now look for the first ASCII non-space byte from the end
-	stop := len(s)
-	for ; stop > 0; stop-- {
-		c := s[stop-1]
-		if c >= utf8.RuneSelf {
-			return bytes.TrimFunc(s[0:stop], unicode.IsSpace)
-		}
-		if asciiSpace[c] == 0 {
-			break
-		}
-	}
-
-	// At this point s[start:stop] starts and ends with an ASCII
-	// non-space bytes, so we're done. Non-ASCII cases have already
-	// been handled above.
-	if stop == 0 {
-		// Special case to preserve previous TrimLeftFunc behavior,
-		// returning nil instead of empty slice if all spaces.
-		return nil
-	}
-	return s[:stop]
 }
