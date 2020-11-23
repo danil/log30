@@ -451,13 +451,10 @@ func TestLog(t *testing.T) {
 			buf.Reset()
 			defer pool.Put(buf)
 
-			if tc.log.Short == "" || tc.log.Full == "" || tc.log.File == "" || tc.log.Truncate == 0 {
-				tc.log.Short = "shortMessage"
-				tc.log.Full = "fullMessage"
-				tc.log.File = "file"
-				tc.log.Truncate = 120
-			}
-
+			tc.log.Short = "shortMessage"
+			tc.log.Full = "fullMessage"
+			tc.log.File = "file"
+			tc.log.Truncate = 120
 			tc.log.Output = buf
 			tc.log.Fields = tc.fields
 
