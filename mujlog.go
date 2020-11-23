@@ -18,10 +18,8 @@ type Log struct {
 	Flag      int                           // log properties
 	Fields    map[string]interface{}        // additional fields
 	Functions map[string]func() interface{} // dynamically calculated fields
-	Short     string
-	Full      string
-	File      string
-	Truncate  int
+	Keys      [3]string                     // key names: 0 = message; 1 = short message; 2 = file;
+	Truncate  int                           // maximum length of the short message
 }
 
 func GELF() Log {
@@ -33,38 +31,35 @@ func GELF() Log {
 		Functions: map[string]func() interface{}{
 			"timestamp": func() interface{} { return time.Now().Unix() },
 		},
-		Short:    "short_message",
-		Full:     "full_message",
-		File:     "_file",
+		Keys:     [3]string{"full_message", "short_message", "_file"},
 		Truncate: 120,
 	}
 }
 
 func (muj Log) Write(p []byte) (int, error) {
-	return muj.Log(p, make(map[string]interface{}))
+	return muj.Log(p, nil)
 }
 
 func (muj Log) Log(p []byte, kv map[string]interface{}) (int, error) {
 	if kv == nil {
 		kv = make(map[string]interface{})
 	}
-
-	msg, err := mujlog(muj, p, kv)
+	j, err := mujlog(muj, p, kv)
 	if err != nil {
 		return 0, err
 	}
-
-	return muj.Output.Write(msg)
+	return muj.Output.Write(j)
 }
 
 var asciiSpace = [256]uint8{'\t': 1, '\n': 1, '\v': 1, '\f': 1, '\r': 1, ' ': 1}
 
 var (
+	msgP   = sync.Pool{New: func() interface{} { return new([]byte) }}
 	shortP = sync.Pool{New: func() interface{} { return new([]byte) }}
 	runeP  = sync.Pool{New: func() interface{} { return new([]byte) }}
 )
 
-func mujlog(muj Log, full []byte, kv map[string]interface{}) ([]byte, error) {
+func mujlog(muj Log, msg []byte, kv map[string]interface{}) ([]byte, error) {
 	for k, v := range muj.Fields {
 		if _, ok := kv[k]; ok {
 			continue
@@ -76,13 +71,29 @@ func mujlog(muj Log, full []byte, kv map[string]interface{}) ([]byte, error) {
 		kv[k] = fn()
 	}
 
+	if v, ok := kv[muj.Keys[0]]; ok {
+		p := *msgP.Get().(*[]byte)
+		p = p[:0]
+		defer msgP.Put(&p)
+
+		if v != nil {
+			p = append(p, []byte(fmt.Sprint(v))...)
+		}
+
+		if msg == nil {
+			msg = p
+		} else {
+			msg = append(p, msg...)
+		}
+	}
+
 	var tail, file int
 
 	switch muj.Flag {
 	case log.Lshortfile, log.Llongfile:
-		i := bytes.Index(full, []byte(": "))
+		i := bytes.Index(msg, []byte(": "))
 		if i == -1 {
-			file = len(full) - 1
+			file = len(msg) - 1
 			tail = file + 1
 		} else {
 			file = i
@@ -94,26 +105,26 @@ func mujlog(muj Log, full []byte, kv map[string]interface{}) ([]byte, error) {
 	short = short[:0]
 	defer shortP.Put(&short)
 
-	if muj.Fields[muj.Short] != nil {
-		switch v := muj.Fields[muj.Short].(type) {
+	if muj.Fields[muj.Keys[1]] != nil {
+		switch v := muj.Fields[muj.Keys[1]].(type) {
 		case string:
-			kv[muj.Short] = v
+			kv[muj.Keys[1]] = v
 		case []byte:
-			kv[muj.Short] = string(v)
+			kv[muj.Keys[1]] = string(v)
 		case []rune:
-			kv[muj.Short] = string(v)
+			kv[muj.Keys[1]] = string(v)
 		default:
-			kv[muj.Short] = v
+			kv[muj.Keys[1]] = v
 		}
 	} else {
-		if tail == len(full) {
+		if tail == len(msg) {
 			short = append(short, []byte("_EMPTY_")...)
 		} else {
 			i := tail
 			beg := true
 
 			for {
-				r, n := utf8.DecodeRune(full[i:])
+				r, n := utf8.DecodeRune(msg[i:])
 				if n == 0 {
 					break
 				}
@@ -122,7 +133,7 @@ func mujlog(muj Log, full []byte, kv map[string]interface{}) ([]byte, error) {
 				// Fast path for ASCII: look for the first ASCII non-space byte or
 				// if we run into a non-ASCII byte, fall back to the slower unicode-aware method
 				if beg {
-					c := full[i]
+					c := msg[i]
 					if c < utf8.RuneSelf && asciiSpace[c] == 1 || unicode.IsSpace(r) {
 						i++
 						tail++
@@ -148,7 +159,7 @@ func mujlog(muj Log, full []byte, kv map[string]interface{}) ([]byte, error) {
 			}
 
 			var trunc bool
-			if len(full[tail:]) > len(short) {
+			if len(msg[tail:]) > len(short) {
 				trunc = true
 			}
 
@@ -180,20 +191,22 @@ func mujlog(muj Log, full []byte, kv map[string]interface{}) ([]byte, error) {
 		}
 	}
 
-	if _, ok := kv[muj.Short]; !ok {
+	if _, ok := kv[muj.Keys[1]]; !ok {
 		if muj.Fields["host"] == nil {
-			kv[muj.Short] = string(short)
+			kv[muj.Keys[1]] = string(short)
 		} else {
-			kv[muj.Short] = fmt.Sprintf("%s %s", muj.Fields["host"], short)
+			kv[muj.Keys[1]] = fmt.Sprintf("%s %s", muj.Fields["host"], short)
 		}
 	}
 
-	if !bytes.Equal(short, full) {
-		kv[muj.Full] = string(full)
+	if bytes.Equal(short, msg) {
+		delete(kv, muj.Keys[0])
+	} else {
+		kv[muj.Keys[0]] = string(msg)
 	}
 
 	if file != 0 {
-		kv[muj.File] = string(full[:file])
+		kv[muj.Keys[2]] = string(msg[:file])
 	}
 
 	p, err := json.Marshal(kv)

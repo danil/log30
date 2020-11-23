@@ -74,7 +74,7 @@ var WriteTestCases = []struct {
 		input: "",
 		expected: `{
 			"shortMessage":"_EMPTY_",
-	    "fullMessage":""
+	    "message":""
 		}`,
 	},
 	{
@@ -83,7 +83,7 @@ var WriteTestCases = []struct {
 		input: " ",
 		expected: `{
 			"shortMessage":"_BLANK_",
-	    "fullMessage":" "
+	    "message":" "
 		}`,
 	},
 	{
@@ -108,7 +108,7 @@ var WriteTestCases = []struct {
 		input: " \n\tHello, World! \t\n",
 		expected: `{
 			"shortMessage":"Hello, World!",
-			"fullMessage":" \n\tHello, World! \t\n"
+			"message":" \n\tHello, World! \t\n"
 		}`,
 	},
 	{
@@ -150,12 +150,20 @@ var WriteTestCases = []struct {
 		}`,
 	},
 	{
+		name:  "fmt.Fprint prints nil as <nil>",
+		line:  line(),
+		input: nil,
+		expected: `{
+			"shortMessage":"<nil>"
+		}`,
+	},
+	{
 		name:  "multiline string",
 		line:  line(),
 		input: "Hello,\nWorld!",
 		expected: `{
 			"shortMessage":"Hello, World!",
-			"fullMessage":"Hello,\nWorld!"
+			"message":"Hello,\nWorld!"
 		}`,
 	},
 	{
@@ -164,7 +172,7 @@ var WriteTestCases = []struct {
 		input: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
 		expected: `{
 			"shortMessage":"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna ali…",
-			"fullMessage":"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+			"message":"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
 		}`,
 	},
 	{
@@ -173,7 +181,7 @@ var WriteTestCases = []struct {
 		input: " \n \tLorem ipsum dolor sit amet,\nconsectetur adipiscing elit,\nsed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
 		expected: `{
 			"shortMessage":"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna ali…",
-			"fullMessage":" \n \tLorem ipsum dolor sit amet,\nconsectetur adipiscing elit,\nsed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+			"message":" \n \tLorem ipsum dolor sit amet,\nconsectetur adipiscing elit,\nsed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
 		}`,
 	},
 	{
@@ -182,7 +190,7 @@ var WriteTestCases = []struct {
 		input: " \n \tLorem ipsum dolor sit amet,\nconsectetur adipiscing elit,\nsed do eiusmod tempor incididunt ut labore et dolore magna Ää.",
 		expected: `{
 			"shortMessage":"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna Ää…",
-			"fullMessage":" \n \tLorem ipsum dolor sit amet,\nconsectetur adipiscing elit,\nsed do eiusmod tempor incididunt ut labore et dolore magna Ää."
+			"message":" \n \tLorem ipsum dolor sit amet,\nconsectetur adipiscing elit,\nsed do eiusmod tempor incididunt ut labore et dolore magna Ää."
 		}`,
 		benchmark: true,
 	},
@@ -193,7 +201,7 @@ var WriteTestCases = []struct {
 		fields: map[string]interface{}{"shortMessage": []byte("Explicit byte slice")},
 		expected: `{
 			"shortMessage":"Explicit byte slice",
-		  "fullMessage": "Hello, World!"
+		  "message": "Hello, World!"
 		}`,
 	},
 	{
@@ -203,7 +211,7 @@ var WriteTestCases = []struct {
 		fields: map[string]interface{}{"shortMessage": "Explicit string"},
 		expected: `{
 			"shortMessage":"Explicit string",
-		  "fullMessage": "Hello, World!"
+		  "message": "Hello, World!"
 		}`,
 	},
 	{
@@ -213,7 +221,7 @@ var WriteTestCases = []struct {
 		fields: map[string]interface{}{"shortMessage": 42},
 		expected: `{
 			"shortMessage":42,
-		  "fullMessage": "Hello, World!"
+		  "message": "Hello, World!"
 		}`,
 	},
 	{
@@ -223,7 +231,7 @@ var WriteTestCases = []struct {
 		fields: map[string]interface{}{"shortMessage": 4.2},
 		expected: `{
 			"shortMessage":4.2,
-		  "fullMessage": "Hello, World!"
+		  "message": "Hello, World!"
 		}`,
 	},
 	{
@@ -233,7 +241,7 @@ var WriteTestCases = []struct {
 		fields: map[string]interface{}{"shortMessage": true},
 		expected: `{
 			"shortMessage":true,
-		  "fullMessage": "Hello, World!"
+		  "message": "Hello, World!"
 		}`,
 	},
 	{
@@ -243,7 +251,7 @@ var WriteTestCases = []struct {
 		fields: map[string]interface{}{"shortMessage": []rune("Explicit rune slice")},
 		expected: `{
 			"shortMessage":"Explicit rune slice",
-		  "fullMessage": "Hello, World!"
+		  "message": "Hello, World!"
 		}`,
 	},
 	{
@@ -272,7 +280,7 @@ var WriteTestCases = []struct {
 		flag:  log.Llongfile,
 		expected: `{
 			"shortMessage":"Hello, World!",
-			"fullMessage":"path/to/file1:23: Hello, World!",
+			"message":"path/to/file1:23: Hello, World!",
 			"file":"path/to/file1:23"
 		}`,
 	},
@@ -283,7 +291,7 @@ var WriteTestCases = []struct {
 		flag:  log.Llongfile,
 		expected: `{
 			"shortMessage":"_EMPTY_",
-			"fullMessage":"path/to/file1:23:",
+			"message":"path/to/file1:23:",
 			"file":"path/to/file1:23"
 		}`,
 	},
@@ -294,7 +302,7 @@ var WriteTestCases = []struct {
 		flag:  log.Llongfile,
 		expected: `{
 			"shortMessage":"_BLANK_",
-			"fullMessage":"path/to/file4:56:  ",
+			"message":"path/to/file4:56:  ",
 			"file":"path/to/file4:56"
 		}`,
 	},
@@ -353,10 +361,10 @@ func TestWrite(t *testing.T) {
 			buf.Reset()
 			defer pool.Put(buf)
 
-			if tc.log.Short == "" || tc.log.Full == "" || tc.log.File == "" || tc.log.Truncate == 0 {
-				tc.log.Short = "shortMessage"
-				tc.log.Full = "fullMessage"
-				tc.log.File = "file"
+			if tc.log.Keys == ([3]string{}) {
+				tc.log.Keys = [3]string{"message", "shortMessage", "file"}
+			}
+			if tc.log.Truncate == 0 {
 				tc.log.Truncate = 120
 			}
 
@@ -387,10 +395,10 @@ func BenchmarkMujlog(b *testing.B) {
 				buf.Reset()
 				defer pool.Put(buf)
 
-				if tc.log.Short == "" || tc.log.Full == "" || tc.log.File == "" || tc.log.Truncate == 0 {
-					tc.log.Short = "shortMessage"
-					tc.log.Full = "fullMessage"
-					tc.log.File = "file"
+				if tc.log.Keys == ([3]string{}) {
+					tc.log.Keys = [3]string{"message", "shortMessage", "file"}
+				}
+				if tc.log.Truncate == 0 {
 					tc.log.Truncate = 120
 				}
 
@@ -418,6 +426,15 @@ var LogTestCases = []struct {
 	expected string
 }{
 	{
+		name:  "nil",
+		line:  line(),
+		input: nil,
+		expected: `{
+			"shortMessage":"_EMPTY_",
+      "message":""
+		}`,
+	},
+	{
 		name:   `"string" field with "foo" value and "string" key with "bar" value`,
 		line:   line(),
 		input:  []byte("Hello, World!"),
@@ -437,6 +454,83 @@ var LogTestCases = []struct {
 			"shortMessage":"Hello, World!"
 		}`,
 	},
+	{
+		name:   `input appends to the message field value "string"`,
+		line:   line(),
+		input:  []byte("\nHello, World!"),
+		fields: map[string]interface{}{"message": "field string value"},
+		expected: `{
+			"shortMessage":"field string value Hello, World!",
+			"message":"field string value\nHello, World!"
+		}`,
+	},
+	{
+		name:  `input appends to the message key-field value "string"`,
+		line:  line(),
+		input: []byte("\nHello, World!"),
+		kv:    map[string]interface{}{"message": "field string value"},
+		expected: `{
+			"shortMessage":"field string value Hello, World!",
+			"message":"field string value\nHello, World!"
+		}`,
+	},
+	{
+		name:   `input is nil and message field value is "string"`,
+		line:   line(),
+		input:  nil,
+		fields: map[string]interface{}{"message": "string"},
+		expected: `{
+			"shortMessage":"string"
+		}`,
+	},
+	{
+		name:  `input is nil and message key-value is "string"`,
+		line:  line(),
+		input: nil,
+		kv:    map[string]interface{}{"message": "string"},
+		expected: `{
+			"shortMessage":"string"
+		}`,
+	},
+	{
+		name:  `input appends to the integer key-value "message"`,
+		line:  line(),
+		input: []byte("\nHello, World!"),
+		kv:    map[string]interface{}{"message": 1},
+		expected: `{
+			"shortMessage":"1 Hello, World!",
+			"message":"1\nHello, World!"
+		}`,
+	},
+	{
+		name:  `input appends to the float key-value "message"`,
+		line:  line(),
+		input: []byte("\nHello, World!"),
+		kv:    map[string]interface{}{"message": 2.1},
+		expected: `{
+			"shortMessage":"2.1 Hello, World!",
+			"message":"2.1\nHello, World!"
+		}`,
+	},
+	{
+		name:  `input appends to the boolean key-value "message"`,
+		line:  line(),
+		input: []byte("\nHello, World!"),
+		kv:    map[string]interface{}{"message": true},
+		expected: `{
+			"shortMessage":"true Hello, World!",
+			"message":"true\nHello, World!"
+		}`,
+	},
+	{
+		name:  `input do not appends to the nil key-value "message"`,
+		line:  line(),
+		input: []byte("Hello, World!"),
+		kv:    map[string]interface{}{"message": nil},
+		expected: `{
+			"shortMessage":"Hello, World!"
+		}`,
+	},
 }
 
 func TestLog(t *testing.T) {
@@ -451,10 +545,12 @@ func TestLog(t *testing.T) {
 			buf.Reset()
 			defer pool.Put(buf)
 
-			tc.log.Short = "shortMessage"
-			tc.log.Full = "fullMessage"
-			tc.log.File = "file"
-			tc.log.Truncate = 120
+			tc.log.Keys = [3]string{"message", "shortMessage", "file"}
+
+			if tc.log.Truncate == 0 {
+				tc.log.Truncate = 120
+			}
+
 			tc.log.Output = buf
 			tc.log.Fields = tc.fields
 

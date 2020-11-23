@@ -20,9 +20,7 @@ import (
 func main() {
     l := mujlog.Log{
         Output: os.Stdout,
-        Short: "shortMessage",
-        Full: "fullMessage",
-        File: "file",
+        Keys: [3]string{"message", "shortMessage", "file"},
         Truncate: 120,
     }
     log.SetOutput(l)
@@ -36,7 +34,7 @@ Output:
 ```json
 {
     "shortMessage":"Hello, World!",
-    "fullMessage":"Hello,\nWorld!"
+    "message":"Hello,\nWorld!"
 }
 ```
 
@@ -86,9 +84,7 @@ import (
 func main() {
     l := mujlog.Log{
         Output: os.Stdout,
-        Short: "shortMessage",
-        Full: "fullMessage",
-        File: "file",
+        Keys: [3]string{"message", "shortMessage", "file"},
         Truncate: 120,
     }
     log.SetOutput(l)
