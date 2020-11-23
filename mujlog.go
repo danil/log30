@@ -42,36 +42,45 @@ func GELF() Log {
 	}
 }
 
-func (l Log) Write(p []byte) (int, error) {
-	msg, err := mujlog(l, p)
+func (muj Log) Write(p []byte) (int, error) {
+	return muj.Log(p, make(map[string]interface{}))
+}
+
+func (muj Log) Log(p []byte, kv map[string]interface{}) (int, error) {
+	if kv == nil {
+		kv = make(map[string]interface{})
+	}
+
+	msg, err := mujlog(muj, p, kv)
 	if err != nil {
 		return 0, err
 	}
 
-	return l.Output.Write(msg)
+	return muj.Output.Write(msg)
 }
 
 var asciiSpace = [256]uint8{'\t': 1, '\n': 1, '\v': 1, '\f': 1, '\r': 1, ' ': 1}
 
 var (
-	shortp = sync.Pool{New: func() interface{} { return new([]byte) }}
-	runep  = sync.Pool{New: func() interface{} { return new([]byte) }}
+	shortP = sync.Pool{New: func() interface{} { return new([]byte) }}
+	runeP  = sync.Pool{New: func() interface{} { return new([]byte) }}
 )
 
-func mujlog(l Log, full []byte) ([]byte, error) {
-	m := make(map[string]interface{})
-
-	for k, v := range l.Fields {
-		m[k] = v
+func mujlog(muj Log, full []byte, kv map[string]interface{}) ([]byte, error) {
+	for k, v := range muj.Fields {
+		if _, ok := kv[k]; ok {
+			continue
+		}
+		kv[k] = v
 	}
 
-	for k, fn := range l.Functions {
-		m[k] = fn()
+	for k, fn := range muj.Functions {
+		kv[k] = fn()
 	}
 
 	var tail, file int
 
-	switch l.Flag {
+	switch muj.Flag {
 	case log.Lshortfile, log.Llongfile:
 		i := bytes.Index(full, []byte(": "))
 		if i == -1 {
@@ -83,20 +92,20 @@ func mujlog(l Log, full []byte) ([]byte, error) {
 		}
 	}
 
-	short := *shortp.Get().(*[]byte)
+	short := *shortP.Get().(*[]byte)
 	short = short[:0]
-	defer shortp.Put(&short)
+	defer shortP.Put(&short)
 
-	if l.Fields[l.Short] != nil {
-		switch v := l.Fields[l.Short].(type) {
+	if muj.Fields[muj.Short] != nil {
+		switch v := muj.Fields[muj.Short].(type) {
 		case string:
-			m[l.Short] = v
+			kv[muj.Short] = v
 		case []byte:
-			m[l.Short] = string(v)
+			kv[muj.Short] = string(v)
 		case []rune:
-			m[l.Short] = string(v)
+			kv[muj.Short] = string(v)
 		default:
-			m[l.Short] = v
+			kv[muj.Short] = v
 		}
 	} else {
 		if tail == len(full) {
@@ -125,13 +134,13 @@ func mujlog(l Log, full []byte) ([]byte, error) {
 					}
 				}
 
-				if i-tail >= l.Truncate-1 {
+				if i-tail >= muj.Truncate-1 {
 					break
 				}
 
-				p := *runep.Get().(*[]byte)
+				p := *runeP.Get().(*[]byte)
 				p = p[:0]
-				defer runep.Put(&p)
+				defer runeP.Put(&p)
 
 				p = append(p, make([]byte, utf8.RuneLen(r))...)
 				utf8.EncodeRune(p, r)
@@ -173,23 +182,23 @@ func mujlog(l Log, full []byte) ([]byte, error) {
 		}
 	}
 
-	if _, ok := m[l.Short]; !ok {
-		if l.Fields["host"] == nil {
-			m[l.Short] = string(short)
+	if _, ok := kv[muj.Short]; !ok {
+		if muj.Fields["host"] == nil {
+			kv[muj.Short] = string(short)
 		} else {
-			m[l.Short] = fmt.Sprintf("%s %s", l.Fields["host"], short)
+			kv[muj.Short] = fmt.Sprintf("%s %s", muj.Fields["host"], short)
 		}
 	}
 
 	if !bytes.Equal(short, full) {
-		m[l.Full] = string(full)
+		kv[muj.Full] = string(full)
 	}
 
 	if file != 0 {
-		m[l.File] = string(full[:file])
+		kv[muj.File] = string(full[:file])
 	}
 
-	p, err := json.Marshal(m)
+	p, err := json.Marshal(kv)
 	if err != nil {
 		return nil, err
 	}

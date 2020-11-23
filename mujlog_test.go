@@ -33,7 +33,7 @@ func TestMujlogWriteTrailingNewLine(t *testing.T) {
 
 func line() int { _, _, l, _ := runtime.Caller(1); return l }
 
-var MujlogWriteTestCases = []struct {
+var WriteTestCases = []struct {
 	name      string
 	line      int
 	log       mujlog.Log
@@ -41,7 +41,6 @@ var MujlogWriteTestCases = []struct {
 	flag      int
 	fields    map[string]interface{}
 	functions map[string]func() interface{}
-	metadata  map[string]string
 	expected  string
 	benchmark bool
 }{
@@ -342,9 +341,9 @@ var MujlogWriteTestCases = []struct {
 	},
 }
 
-func TestMujlogWrite(t *testing.T) {
+func TestWrite(t *testing.T) {
 	_, testFile, _, _ := runtime.Caller(0)
-	for _, tc := range MujlogWriteTestCases {
+	for _, tc := range WriteTestCases {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
@@ -378,7 +377,7 @@ func TestMujlogWrite(t *testing.T) {
 }
 
 func BenchmarkMujlog(b *testing.B) {
-	for _, tc := range MujlogWriteTestCases {
+	for _, tc := range WriteTestCases {
 		if !tc.benchmark {
 			continue
 		}
@@ -405,6 +404,70 @@ func BenchmarkMujlog(b *testing.B) {
 					fmt.Println(err)
 				}
 			}
+		})
+	}
+}
+
+var LogTestCases = []struct {
+	name     string
+	line     int
+	log      mujlog.Log
+	input    []byte
+	fields   map[string]interface{}
+	kv       map[string]interface{}
+	expected string
+}{
+	{
+		name:   `"string" field with "foo" value and "string" key with "bar" value`,
+		line:   line(),
+		input:  []byte("Hello, World!"),
+		fields: map[string]interface{}{"string": "foo"},
+		kv:     map[string]interface{}{"string": "bar"},
+		expected: `{
+			"shortMessage":"Hello, World!",
+		  "string": "bar"
+		}`,
+	},
+	{
+		name:  `key-values is nil`,
+		line:  line(),
+		input: []byte("Hello, World!"),
+		kv:    nil,
+		expected: `{
+			"shortMessage":"Hello, World!"
+		}`,
+	},
+}
+
+func TestLog(t *testing.T) {
+	_, testFile, _, _ := runtime.Caller(0)
+	for _, tc := range LogTestCases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			linkToExample := fmt.Sprintf("%s:%d", testFile, tc.line)
+
+			buf := pool.Get().(*bytes.Buffer)
+			buf.Reset()
+			defer pool.Put(buf)
+
+			if tc.log.Short == "" || tc.log.Full == "" || tc.log.File == "" || tc.log.Truncate == 0 {
+				tc.log.Short = "shortMessage"
+				tc.log.Full = "fullMessage"
+				tc.log.File = "file"
+				tc.log.Truncate = 120
+			}
+
+			tc.log.Output = buf
+			tc.log.Fields = tc.fields
+
+			_, err := tc.log.Log(tc.input, tc.kv)
+			if err != nil {
+				t.Fatalf("unexpected mujlog write error: %s", err)
+			}
+
+			ja := jsonassert.New(testprinter{t: t, link: linkToExample})
+			ja.Assertf(buf.String(), tc.expected)
 		})
 	}
 }
