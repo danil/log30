@@ -53,11 +53,7 @@ import (
 
 func main() {
     glf := mujlog.GELF()
-    glf.Output = os.Stdout
-    glf.Fields["host"] = "example.com"
-
     log.SetOutput(glf)
-
     log.Println("Hello,\nGELF!")
 }
 ```

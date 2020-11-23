@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"os"
 	"sync"
 	"time"
 	"unicode"
@@ -26,7 +27,8 @@ type Log struct {
 
 func GELF() Log {
 	return Log{
-		Flag: log.Llongfile,
+		Output: os.Stdout,
+		Flag:   log.Llongfile,
 		Fields: map[string]interface{}{
 			"version": "1.1",
 		},
