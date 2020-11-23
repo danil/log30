@@ -53,13 +53,13 @@ import (
 
 func main() {
     glf := mujlog.GELF()
+    glf.Output = os.Stdout
     log.SetOutput(glf)
     log.Println("Hello,\nGELF!")
 }
 ```
 
 Output:
-
 
 ```json
 {
