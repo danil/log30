@@ -12,6 +12,16 @@ import (
 	"unicode/utf8"
 )
 
+const (
+	fullKey = iota
+	shortKey
+	truncMark
+	emptyMark
+	blankMark
+	fileKey
+	hostKey
+)
+
 // Log is a Multiline JSON Log and formatter and writer.
 type Log struct {
 	Output io.Writer                     // destination for output
@@ -19,7 +29,7 @@ type Log struct {
 	KVs    map[string]interface{}        // key-values
 	Funcs  map[string]func() interface{} // dynamically calculated key-values
 	Max    int                           // maximum length of the short message after which the short message is truncated
-	Keys   [4]string                     // key names: 0 = message; 1 = short message; 2 = file; 3 = host;
+	Keys   [7]string                     // key names: 0 = message; 1 = short message; 2 = truncate mark; 3 = empty mark; 4 = blank mark; 5 = file; 6 = host;
 }
 
 func (muj Log) Write(p []byte) (int, error) {
@@ -41,19 +51,19 @@ func (muj Log) Log(p []byte, kvs map[string]interface{}) (int, error) {
 var asciiSpace = [256]uint8{'\t': 1, '\n': 1, '\v': 1, '\f': 1, '\r': 1, ' ': 1}
 
 var (
-	msgP   = sync.Pool{New: func() interface{} { return new([]byte) }}
+	fullP  = sync.Pool{New: func() interface{} { return new([]byte) }}
 	shortP = sync.Pool{New: func() interface{} { return new([]byte) }}
 	runeP  = sync.Pool{New: func() interface{} { return new([]byte) }}
 )
 
 func mujlog(
-	msg []byte,
+	full []byte,
 	flg int,
 	kvs,
 	kvs2 map[string]interface{}, // kvs2 is a temporary key-value map in addition to the permanent kvs set of key-value map
 	fns map[string]func() interface{},
 	max int,
-	keys [4]string,
+	keys [7]string,
 ) ([]byte, error) {
 	if kvs2 == nil {
 		kvs2 = make(map[string]interface{})
@@ -70,19 +80,19 @@ func mujlog(
 		kvs2[k] = fn()
 	}
 
-	if v, ok := kvs2[keys[0]]; ok {
-		p := *msgP.Get().(*[]byte)
+	if v, ok := kvs2[keys[fullKey]]; ok {
+		p := *fullP.Get().(*[]byte)
 		p = p[:0]
-		defer msgP.Put(&p)
+		defer fullP.Put(&p)
 
 		if v != nil {
 			p = append(p, []byte(fmt.Sprint(v))...)
 		}
 
-		if msg == nil {
-			msg = p
+		if full == nil {
+			full = p
 		} else {
-			msg = append(p, msg...)
+			full = append(p, full...)
 		}
 	}
 
@@ -90,9 +100,9 @@ func mujlog(
 
 	switch flg {
 	case log.Lshortfile, log.Llongfile:
-		i := bytes.Index(msg, []byte(": "))
+		i := bytes.Index(full, []byte(": "))
 		if i == -1 {
-			file = len(msg) - 1
+			file = len(full) - 1
 			tail = file + 1
 		} else {
 			file = i
@@ -104,26 +114,26 @@ func mujlog(
 	short = short[:0]
 	defer shortP.Put(&short)
 
-	if kvs[keys[1]] != nil {
-		switch v := kvs[keys[1]].(type) {
+	if kvs[keys[shortKey]] != nil {
+		switch v := kvs[keys[shortKey]].(type) {
 		case string:
-			kvs2[keys[1]] = v
+			kvs2[keys[shortKey]] = v
 		case []byte:
-			kvs2[keys[1]] = string(v)
+			kvs2[keys[shortKey]] = string(v)
 		case []rune:
-			kvs2[keys[1]] = string(v)
+			kvs2[keys[shortKey]] = string(v)
 		default:
-			kvs2[keys[1]] = v
+			kvs2[keys[shortKey]] = v
 		}
 	} else {
-		if tail == len(msg) {
-			short = append(short, []byte("_EMPTY_")...)
+		if tail == len(full) {
+			short = append(short, []byte(keys[emptyMark])...)
 		} else {
 			i := tail
 			beg := true
 
 			for {
-				r, n := utf8.DecodeRune(msg[i:])
+				r, n := utf8.DecodeRune(full[i:])
 				if n == 0 {
 					break
 				}
@@ -132,7 +142,7 @@ func mujlog(
 				// Fast path for ASCII: look for the first ASCII non-space byte or
 				// if we run into a non-ASCII byte, fall back to the slower unicode-aware method
 				if beg {
-					c := msg[i]
+					c := full[i]
 					if c < utf8.RuneSelf && asciiSpace[c] == 1 || unicode.IsSpace(r) {
 						i++
 						tail++
@@ -158,7 +168,7 @@ func mujlog(
 			}
 
 			var trunc bool
-			if len(msg[tail:]) > len(short) {
+			if len(full[tail:]) > len(short) {
 				trunc = true
 			}
 
@@ -179,33 +189,33 @@ func mujlog(
 			}
 
 			if len(short) == 0 {
-				short = append(short, []byte("_BLANK_")...)
+				short = append(short, []byte(keys[blankMark])...)
 			}
 
 			if len(short) != 0 && trunc {
-				short = append(short, []byte("…")...)
+				short = append(short, []byte(keys[truncMark])...)
 			}
 
 			short = bytes.Replace(short, []byte("\n"), []byte(" "), -1)
 		}
 	}
 
-	if _, ok := kvs2[keys[1]]; !ok {
-		if kvs[keys[3]] == nil {
-			kvs2[keys[1]] = string(short)
+	if _, ok := kvs2[keys[shortKey]]; !ok {
+		if kvs[keys[hostKey]] == nil {
+			kvs2[keys[shortKey]] = string(short)
 		} else {
-			kvs2[keys[1]] = fmt.Sprintf("%s %s", kvs[keys[3]], short)
+			kvs2[keys[shortKey]] = fmt.Sprintf("%s %s", kvs[keys[hostKey]], short)
 		}
 	}
 
-	if bytes.Equal(short, msg) {
-		delete(kvs2, keys[0])
+	if bytes.Equal(short, full) {
+		delete(kvs2, keys[fullKey])
 	} else {
-		kvs2[keys[0]] = string(msg)
+		kvs2[keys[fullKey]] = string(full)
 	}
 
 	if file != 0 {
-		kvs2[keys[2]] = string(msg[:file])
+		kvs2[keys[fileKey]] = string(full[:file])
 	}
 
 	p, err := json.Marshal(kvs2)
@@ -225,7 +235,7 @@ func GELF() Log {
 		Funcs: map[string]func() interface{}{
 			"timestamp": func() interface{} { return time.Now().Unix() },
 		},
-		Keys: [4]string{"full_message", "short_message", "_file", "host"},
+		Keys: [7]string{"full_message", "short_message", "…", "_EMPTY_", "_BLANK_", "_file", "host"},
 		Max:  120,
 	}
 }
