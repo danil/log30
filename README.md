@@ -14,7 +14,7 @@ package main
 import (
     "log"
 
-    "gitlab.rocketbank.sexy/backend/random-values/jaunt/mujlog"
+    "github.com/danil/mujlog"
 )
 
 func main() {
@@ -47,7 +47,7 @@ package main
 import (
     "log"
 
-    "gitlab.rocketbank.sexy/backend/random-values/jaunt/mujlog"
+    "github.com/danil/mujlog"
 )
 
 func main() {
@@ -79,7 +79,7 @@ package main
 import (
     "log"
 
-    "gitlab.rocketbank.sexy/backend/random-values/jaunt/mujlog"
+    "github.com/danil/mujlog"
 )
 
 func main() {
