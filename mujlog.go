@@ -15,11 +15,14 @@ import (
 const (
 	fullKey = iota
 	shortKey
-	truncMark
-	emptyMark
-	blankMark
 	fileKey
 	hostKey
+)
+
+const (
+	truncMark = iota
+	emptyMark
+	blankMark
 )
 
 // Log is a Multiline JSON Log and formatter and writer.
@@ -29,12 +32,13 @@ type Log struct {
 	KVs     map[string]interface{}        // key-values
 	Funcs   map[string]func() interface{} // dynamically calculated key-values
 	Max     int                           // maximum length of the short message after which the short message is truncated
-	Keys    [7]string                     // key names: 0 = message; 1 = short message; 2 = truncate mark; 3 = empty mark; 4 = blank mark; 5 = file; 6 = host;
+	Keys    [4]string                     // 0 = full message key; 1 = short message key; 2 = file key; 3 = host key;
+	Marks   [3][]byte                     // 0 = truncate mark; 1 = empty mark; 2 = blank mark;
 	Replace [][]byte                      // pairs of byte slices to replace in a short message
 }
 
 func (muj Log) Write(p []byte) (int, error) {
-	j, err := mujlog(p, muj.Flag, muj.KVs, nil, muj.Funcs, muj.Max, muj.Keys, muj.Replace)
+	j, err := mujlog(p, muj.Flag, muj.KVs, nil, muj.Funcs, muj.Max, muj.Keys, muj.Marks, muj.Replace)
 	if err != nil {
 		return 0, err
 	}
@@ -42,7 +46,7 @@ func (muj Log) Write(p []byte) (int, error) {
 }
 
 func (muj Log) Log(p []byte, kvs map[string]interface{}) (int, error) {
-	j, err := mujlog(p, 0, muj.KVs, kvs, muj.Funcs, muj.Max, muj.Keys, muj.Replace)
+	j, err := mujlog(p, 0, muj.KVs, kvs, muj.Funcs, muj.Max, muj.Keys, muj.Marks, muj.Replace)
 	if err != nil {
 		return 0, err
 	}
@@ -64,7 +68,8 @@ func mujlog(
 	kvs2 map[string]interface{}, // kvs2 is a temporary key-value map in addition to the permanent kvs set of key-value map
 	fns map[string]func() interface{},
 	max int,
-	keys [7]string,
+	keys [4]string,
+	marks [3][]byte,
 	replace [][]byte,
 ) ([]byte, error) {
 	if kvs2 == nil {
@@ -129,7 +134,7 @@ func mujlog(
 		}
 	} else {
 		if tail == len(full) {
-			short = append(short, []byte(keys[emptyMark])...)
+			short = append(short, marks[emptyMark]...)
 		} else {
 			i := tail
 			beg := true
@@ -188,11 +193,11 @@ func mujlog(
 			}
 
 			if len(short) == 0 {
-				short = append(short, []byte(keys[blankMark])...)
+				short = append(short, marks[blankMark]...)
 			}
 
 			if len(short) != 0 && trunc {
-				short = append(short, []byte(keys[truncMark])...)
+				short = append(short, marks[truncMark]...)
 			}
 
 			for i := 0; i < len(replace); i += 2 {
@@ -237,7 +242,8 @@ func GELF() Log {
 			"timestamp": func() interface{} { return time.Now().Unix() },
 		},
 		Max:     120,
-		Keys:    [7]string{"full_message", "short_message", "…", "_EMPTY_", "_BLANK_", "_file", "host"},
+		Keys:    [4]string{"full_message", "short_message", "_file", "host"},
+		Marks:   [3][]byte{[]byte("…"), []byte("_EMPTY_"), []byte("_BLANK_")},
 		Replace: [][]byte{[]byte("\n"), []byte(" ")},
 	}
 }

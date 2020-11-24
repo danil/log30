@@ -364,8 +364,11 @@ func TestWrite(t *testing.T) {
 			if tc.log.Max == 0 {
 				tc.log.Max = 120
 			}
-			if tc.log.Keys == ([7]string{}) {
-				tc.log.Keys = [7]string{"message", "shortMessage", "…", "_EMPTY_", "_BLANK_", "file", "host"}
+			if tc.log.Keys == ([4]string{}) {
+				tc.log.Keys = [4]string{"message", "shortMessage", "file", "host"}
+			}
+			if bytes.Equal(tc.log.Marks[0], []byte{}) && bytes.Equal(tc.log.Marks[1], []byte{}) && bytes.Equal(tc.log.Marks[2], []byte{}) {
+				tc.log.Marks = [3][]byte{[]byte("…"), []byte("_EMPTY_"), []byte("_BLANK_")}
 			}
 			if tc.log.Replace == nil {
 				tc.log.Replace = [][]byte{[]byte("\n"), []byte(" ")}
@@ -401,8 +404,11 @@ func BenchmarkMujlog(b *testing.B) {
 				if tc.log.Max == 0 {
 					tc.log.Max = 120
 				}
-				if tc.log.Keys == ([7]string{}) {
-					tc.log.Keys = [7]string{"message", "shortMessage", "…", "_EMPTY_", "_BLANK_", "file", "host"}
+				if tc.log.Keys == ([4]string{}) {
+					tc.log.Keys = [4]string{"message", "shortMessage", "file", "host"}
+				}
+				if bytes.Equal(tc.log.Marks[0], []byte{}) && bytes.Equal(tc.log.Marks[1], []byte{}) && bytes.Equal(tc.log.Marks[2], []byte{}) {
+					tc.log.Marks = [3][]byte{[]byte("…"), []byte("_EMPTY_"), []byte("_BLANK_")}
 				}
 				if tc.log.Replace == nil {
 					tc.log.Replace = [][]byte{[]byte("\n"), []byte(" ")}
@@ -551,7 +557,8 @@ func TestLog(t *testing.T) {
 			buf.Reset()
 			defer pool.Put(buf)
 
-			tc.log.Keys = [7]string{"message", "shortMessage", "…", "_EMPTY_", "_BLANK_", "file", "host"}
+			tc.log.Keys = [4]string{"message", "shortMessage", "file", "host"}
+			tc.log.Marks = [3][]byte{[]byte("…"), []byte("_EMPTY_"), []byte("_BLANK_")}
 			tc.log.Replace = [][]byte{[]byte("\n"), []byte(" ")}
 
 			if tc.log.Max == 0 {
