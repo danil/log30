@@ -14,38 +14,24 @@ import (
 
 // Log is a Multiline JSON Log and formatter and writer.
 type Log struct {
-	Output    io.Writer                     // destination for output
-	Flag      int                           // log properties
-	Fields    map[string]interface{}        // additional fields
-	Functions map[string]func() interface{} // dynamically calculated fields
-	Keys      [3]string                     // key names: 0 = message; 1 = short message; 2 = file;
-	Truncate  int                           // maximum length of the short message
-}
-
-func GELF() Log {
-	return Log{
-		Flag: log.Llongfile,
-		Fields: map[string]interface{}{
-			"version": "1.1",
-		},
-		Functions: map[string]func() interface{}{
-			"timestamp": func() interface{} { return time.Now().Unix() },
-		},
-		Keys:     [3]string{"full_message", "short_message", "_file"},
-		Truncate: 120,
-	}
+	Output io.Writer                     // destination for output
+	Flag   int                           // log properties
+	KVs    map[string]interface{}        // key-values
+	Funcs  map[string]func() interface{} // dynamically calculated key-values
+	Keys   [3]string                     // key names: 0 = message; 1 = short message; 2 = file;
+	Max    int                           // maximum length of the short message after which the short message is truncated
 }
 
 func (muj Log) Write(p []byte) (int, error) {
-	j, err := mujlog(p, muj.Flag, muj.Fields, muj.Functions, nil, muj.Truncate, muj.Keys)
+	j, err := mujlog(p, muj.Flag, muj.KVs, nil, muj.Funcs, muj.Max, muj.Keys)
 	if err != nil {
 		return 0, err
 	}
 	return muj.Output.Write(j)
 }
 
-func (muj Log) Log(p []byte, kv map[string]interface{}) (int, error) {
-	j, err := mujlog(p, 0, muj.Fields, muj.Functions, kv, muj.Truncate, muj.Keys)
+func (muj Log) Log(p []byte, kvs map[string]interface{}) (int, error) {
+	j, err := mujlog(p, 0, muj.KVs, kvs, muj.Funcs, muj.Max, muj.Keys)
 	if err != nil {
 		return 0, err
 	}
@@ -63,28 +49,28 @@ var (
 func mujlog(
 	msg []byte,
 	flg int,
-	flds map[string]interface{},
+	kvs,
+	kvs2 map[string]interface{}, // kvs2 is a temporary key-value map in addition to the permanent kvs set of key-value map
 	fns map[string]func() interface{},
-	kv map[string]interface{},
-	trunc int,
+	max int,
 	keys [3]string,
 ) ([]byte, error) {
-	if kv == nil {
-		kv = make(map[string]interface{})
+	if kvs2 == nil {
+		kvs2 = make(map[string]interface{})
 	}
 
-	for k, v := range flds {
-		if _, ok := kv[k]; ok {
+	for k, v := range kvs {
+		if _, ok := kvs2[k]; ok {
 			continue
 		}
-		kv[k] = v
+		kvs2[k] = v
 	}
 
 	for k, fn := range fns {
-		kv[k] = fn()
+		kvs2[k] = fn()
 	}
 
-	if v, ok := kv[keys[0]]; ok {
+	if v, ok := kvs2[keys[0]]; ok {
 		p := *msgP.Get().(*[]byte)
 		p = p[:0]
 		defer msgP.Put(&p)
@@ -118,16 +104,16 @@ func mujlog(
 	short = short[:0]
 	defer shortP.Put(&short)
 
-	if flds[keys[1]] != nil {
-		switch v := flds[keys[1]].(type) {
+	if kvs[keys[1]] != nil {
+		switch v := kvs[keys[1]].(type) {
 		case string:
-			kv[keys[1]] = v
+			kvs2[keys[1]] = v
 		case []byte:
-			kv[keys[1]] = string(v)
+			kvs2[keys[1]] = string(v)
 		case []rune:
-			kv[keys[1]] = string(v)
+			kvs2[keys[1]] = string(v)
 		default:
-			kv[keys[1]] = v
+			kvs2[keys[1]] = v
 		}
 	} else {
 		if tail == len(msg) {
@@ -156,7 +142,7 @@ func mujlog(
 					}
 				}
 
-				if i-tail >= trunc-1 {
+				if i-tail >= max-1 {
 					break
 				}
 
@@ -204,28 +190,42 @@ func mujlog(
 		}
 	}
 
-	if _, ok := kv[keys[1]]; !ok {
-		if flds["host"] == nil {
-			kv[keys[1]] = string(short)
+	if _, ok := kvs2[keys[1]]; !ok {
+		if kvs["host"] == nil {
+			kvs2[keys[1]] = string(short)
 		} else {
-			kv[keys[1]] = fmt.Sprintf("%s %s", flds["host"], short)
+			kvs2[keys[1]] = fmt.Sprintf("%s %s", kvs["host"], short)
 		}
 	}
 
 	if bytes.Equal(short, msg) {
-		delete(kv, keys[0])
+		delete(kvs2, keys[0])
 	} else {
-		kv[keys[0]] = string(msg)
+		kvs2[keys[0]] = string(msg)
 	}
 
 	if file != 0 {
-		kv[keys[2]] = string(msg[:file])
+		kvs2[keys[2]] = string(msg[:file])
 	}
 
-	p, err := json.Marshal(kv)
+	p, err := json.Marshal(kvs2)
 	if err != nil {
 		return nil, err
 	}
 
 	return append(p, '\n'), nil
+}
+
+func GELF() Log {
+	return Log{
+		Flag: log.Llongfile,
+		KVs: map[string]interface{}{
+			"version": "1.1",
+		},
+		Funcs: map[string]func() interface{}{
+			"timestamp": func() interface{} { return time.Now().Unix() },
+		},
+		Keys: [3]string{"full_message", "short_message", "_file"},
+		Max:  120,
+	}
 }

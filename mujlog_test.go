@@ -40,7 +40,7 @@ var WriteTestCases = []struct {
 	input     interface{}
 	flag      int
 	fields    map[string]interface{}
-	functions map[string]func() interface{}
+	funcs     map[string]func() interface{}
 	expected  string
 	benchmark bool
 }{
@@ -255,10 +255,10 @@ var WriteTestCases = []struct {
 		}`,
 	},
 	{
-		name:      "dynamic field",
-		line:      line(),
-		input:     "Hello, World!",
-		functions: map[string]func() interface{}{"time": func() interface{} { return time.Date(2020, time.October, 15, 18, 9, 0, 0, time.UTC).String() }},
+		name:  "dynamic field",
+		line:  line(),
+		input: "Hello, World!",
+		funcs: map[string]func() interface{}{"time": func() interface{} { return time.Date(2020, time.October, 15, 18, 9, 0, 0, time.UTC).String() }},
 		expected: `{
 			"shortMessage":"Hello, World!",
 			"time":"2020-10-15 18:09:00 +0000 UTC"
@@ -317,12 +317,12 @@ var WriteTestCases = []struct {
 		}`,
 	},
 	{
-		name:      "GELF",
-		line:      line(),
-		log:       mujlog.GELF(),
-		input:     "Hello, GELF!",
-		fields:    map[string]interface{}{"version": "1.1", "host": "example.tld"},
-		functions: map[string]func() interface{}{"timestamp": func() interface{} { return time.Date(2020, time.October, 15, 18, 9, 0, 0, time.UTC).Unix() }},
+		name:   "GELF",
+		line:   line(),
+		log:    mujlog.GELF(),
+		input:  "Hello, GELF!",
+		fields: map[string]interface{}{"version": "1.1", "host": "example.tld"},
+		funcs:  map[string]func() interface{}{"timestamp": func() interface{} { return time.Date(2020, time.October, 15, 18, 9, 0, 0, time.UTC).Unix() }},
 		expected: `{
 			"version":"1.1",
 			"short_message":"example.tld Hello, GELF!",
@@ -331,13 +331,13 @@ var WriteTestCases = []struct {
 		}`,
 	},
 	{
-		name:      "GELF with file path",
-		line:      line(),
-		log:       mujlog.GELF(),
-		input:     "path/to/file7:89: Hello, GELF!",
-		flag:      log.Llongfile,
-		fields:    map[string]interface{}{"version": "1.1", "host": "example.tld"},
-		functions: map[string]func() interface{}{"timestamp": func() interface{} { return time.Date(2020, time.October, 15, 18, 9, 0, 0, time.UTC).Unix() }},
+		name:   "GELF with file path",
+		line:   line(),
+		log:    mujlog.GELF(),
+		input:  "path/to/file7:89: Hello, GELF!",
+		flag:   log.Llongfile,
+		fields: map[string]interface{}{"version": "1.1", "host": "example.tld"},
+		funcs:  map[string]func() interface{}{"timestamp": func() interface{} { return time.Date(2020, time.October, 15, 18, 9, 0, 0, time.UTC).Unix() }},
 		expected: `{
 			"version":"1.1",
 			"short_message":"example.tld Hello, GELF!",
@@ -364,14 +364,14 @@ func TestWrite(t *testing.T) {
 			if tc.log.Keys == ([3]string{}) {
 				tc.log.Keys = [3]string{"message", "shortMessage", "file"}
 			}
-			if tc.log.Truncate == 0 {
-				tc.log.Truncate = 120
+			if tc.log.Max == 0 {
+				tc.log.Max = 120
 			}
 
 			tc.log.Output = buf
 			tc.log.Flag = tc.flag
-			tc.log.Fields = tc.fields
-			tc.log.Functions = tc.functions
+			tc.log.KVs = tc.fields
+			tc.log.Funcs = tc.funcs
 
 			_, err := fmt.Fprint(tc.log, tc.input)
 			if err != nil {
@@ -398,14 +398,14 @@ func BenchmarkMujlog(b *testing.B) {
 				if tc.log.Keys == ([3]string{}) {
 					tc.log.Keys = [3]string{"message", "shortMessage", "file"}
 				}
-				if tc.log.Truncate == 0 {
-					tc.log.Truncate = 120
+				if tc.log.Max == 0 {
+					tc.log.Max = 120
 				}
 
 				tc.log.Output = buf
 				tc.log.Flag = tc.flag
-				tc.log.Fields = tc.fields
-				tc.log.Functions = tc.functions
+				tc.log.KVs = tc.fields
+				tc.log.Funcs = tc.funcs
 
 				_, err := fmt.Fprint(tc.log, tc.input)
 				if err != nil {
@@ -547,12 +547,12 @@ func TestLog(t *testing.T) {
 
 			tc.log.Keys = [3]string{"message", "shortMessage", "file"}
 
-			if tc.log.Truncate == 0 {
-				tc.log.Truncate = 120
+			if tc.log.Max == 0 {
+				tc.log.Max = 120
 			}
 
 			tc.log.Output = buf
-			tc.log.Fields = tc.fields
+			tc.log.KVs = tc.fields
 
 			_, err := tc.log.Log(tc.input, tc.kv)
 			if err != nil {
