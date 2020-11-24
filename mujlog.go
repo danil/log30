@@ -161,7 +161,7 @@ func mujlog(
 					}
 				}
 
-				if i-tail >= max-1 {
+				if i-tail >= max {
 					break
 				}
 

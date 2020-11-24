@@ -49,7 +49,7 @@ var WriteTestCases = []struct {
 		log: mujlog.Log{
 			Keys:  [4]string{"message", "preview"},
 			Marks: [3][]byte{[]byte("…")},
-			Max:   13,
+			Max:   12,
 		},
 		line:  line(),
 		input: "Hello,\nWorld!",
@@ -186,7 +186,7 @@ var WriteTestCases = []struct {
 		input: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
 		expected: `{
 			"message":"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-			"preview":"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna ali…"
+			"preview":"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliq…"
 		}`,
 	},
 	{
@@ -195,7 +195,7 @@ var WriteTestCases = []struct {
 		input: " \n \tLorem ipsum dolor sit amet,\nconsectetur adipiscing elit,\nsed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
 		expected: `{
 			"message":" \n \tLorem ipsum dolor sit amet,\nconsectetur adipiscing elit,\nsed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-			"preview":"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna ali…"
+			"preview":"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliq…"
 		}`,
 	},
 	{
