@@ -167,10 +167,7 @@ func mujlog(
 				i += n
 			}
 
-			var trunc bool
-			if len(full[tail:]) > len(short) {
-				trunc = true
-			}
+			trunc := len(full[tail:]) > len(short)
 
 			// Rids of off all trailing white space,
 			// as defined by Unicode.
