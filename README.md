@@ -21,7 +21,8 @@ func main() {
     l := mujlog.Log{
         Output: os.Stdout,
         Keys: [4]string{"message", "preview"},
-        Max: 120,
+        Marks: [3][]byte{[]byte("…")},
+        Max: 13,
     }
     log.SetOutput(l)
 
@@ -33,7 +34,7 @@ Output:
 
 ```json
 {
-    "preview":"Hello, World!",
+    "preview":"Hello, World…",
     "message":"Hello,\nWorld!"
 }
 ```
