@@ -39,7 +39,7 @@ var WriteTestCases = []struct {
 	log       mujlog.Log
 	input     interface{}
 	flag      int
-	fields    map[string]interface{}
+	kvs       map[string]interface{}
 	funcs     map[string]func() interface{}
 	expected  string
 	benchmark bool
@@ -120,30 +120,30 @@ var WriteTestCases = []struct {
 		}`,
 	},
 	{
-		name:   `"string" field with "foo" value`,
-		line:   line(),
-		input:  "Hello, World!",
-		fields: map[string]interface{}{"string": "foo"},
+		name:  `"string" field with "foo" value`,
+		line:  line(),
+		input: "Hello, World!",
+		kvs:   map[string]interface{}{"string": "foo"},
 		expected: `{
 			"shortMessage":"Hello, World!",
 		  "string": "foo"
 		}`,
 	},
 	{
-		name:   `"integer" field with 123 value`,
-		line:   line(),
-		input:  "Hello, World!",
-		fields: map[string]interface{}{"integer": 123},
+		name:  `"integer" field with 123 value`,
+		line:  line(),
+		input: "Hello, World!",
+		kvs:   map[string]interface{}{"integer": 123},
 		expected: `{
 			"shortMessage":"Hello, World!",
 		  "integer": 123
 		}`,
 	},
 	{
-		name:   `"float" field with 3.21 value`,
-		line:   line(),
-		input:  "Hello, World!",
-		fields: map[string]interface{}{"float": 3.21},
+		name:  `"float" field with 3.21 value`,
+		line:  line(),
+		input: "Hello, World!",
+		kvs:   map[string]interface{}{"float": 3.21},
 		expected: `{
 			"shortMessage":"Hello, World!",
 		  "float": 3.21
@@ -195,60 +195,60 @@ var WriteTestCases = []struct {
 		benchmark: true,
 	},
 	{
-		name:   `explicit byte slice as short message field`,
-		line:   line(),
-		input:  "Hello, World!",
-		fields: map[string]interface{}{"shortMessage": []byte("Explicit byte slice")},
+		name:  `explicit byte slice as short message field`,
+		line:  line(),
+		input: "Hello, World!",
+		kvs:   map[string]interface{}{"shortMessage": []byte("Explicit byte slice")},
 		expected: `{
 			"shortMessage":"Explicit byte slice",
 		  "message": "Hello, World!"
 		}`,
 	},
 	{
-		name:   `explicit string as short message field`,
-		line:   line(),
-		input:  "Hello, World!",
-		fields: map[string]interface{}{"shortMessage": "Explicit string"},
+		name:  `explicit string as short message field`,
+		line:  line(),
+		input: "Hello, World!",
+		kvs:   map[string]interface{}{"shortMessage": "Explicit string"},
 		expected: `{
 			"shortMessage":"Explicit string",
 		  "message": "Hello, World!"
 		}`,
 	},
 	{
-		name:   `explicit integer as short message field`,
-		line:   line(),
-		input:  "Hello, World!",
-		fields: map[string]interface{}{"shortMessage": 42},
+		name:  `explicit integer as short message field`,
+		line:  line(),
+		input: "Hello, World!",
+		kvs:   map[string]interface{}{"shortMessage": 42},
 		expected: `{
 			"shortMessage":42,
 		  "message": "Hello, World!"
 		}`,
 	},
 	{
-		name:   `explicit float as short message field`,
-		line:   line(),
-		input:  "Hello, World!",
-		fields: map[string]interface{}{"shortMessage": 4.2},
+		name:  `explicit float as short message field`,
+		line:  line(),
+		input: "Hello, World!",
+		kvs:   map[string]interface{}{"shortMessage": 4.2},
 		expected: `{
 			"shortMessage":4.2,
 		  "message": "Hello, World!"
 		}`,
 	},
 	{
-		name:   `explicit boolean as short message field`,
-		line:   line(),
-		input:  "Hello, World!",
-		fields: map[string]interface{}{"shortMessage": true},
+		name:  `explicit boolean as short message field`,
+		line:  line(),
+		input: "Hello, World!",
+		kvs:   map[string]interface{}{"shortMessage": true},
 		expected: `{
 			"shortMessage":true,
 		  "message": "Hello, World!"
 		}`,
 	},
 	{
-		name:   `explicit rune slice as short message field`,
-		line:   line(),
-		input:  "Hello, World!",
-		fields: map[string]interface{}{"shortMessage": []rune("Explicit rune slice")},
+		name:  `explicit rune slice as short message field`,
+		line:  line(),
+		input: "Hello, World!",
+		kvs:   map[string]interface{}{"shortMessage": []rune("Explicit rune slice")},
 		expected: `{
 			"shortMessage":"Explicit rune slice",
 		  "message": "Hello, World!"
@@ -307,22 +307,22 @@ var WriteTestCases = []struct {
 		}`,
 	},
 	{
-		name:   `"magic" host field`,
-		line:   line(),
-		input:  "Hello, World!",
-		fields: map[string]interface{}{"host": "example.tld"},
+		name:  `"magic" host field`,
+		line:  line(),
+		input: "Hello, World!",
+		kvs:   map[string]interface{}{"host": "example.tld"},
 		expected: `{
 			"shortMessage":"example.tld Hello, World!",
 			"host":"example.tld"
 		}`,
 	},
 	{
-		name:   "GELF",
-		line:   line(),
-		log:    mujlog.GELF(),
-		input:  "Hello, GELF!",
-		fields: map[string]interface{}{"version": "1.1", "host": "example.tld"},
-		funcs:  map[string]func() interface{}{"timestamp": func() interface{} { return time.Date(2020, time.October, 15, 18, 9, 0, 0, time.UTC).Unix() }},
+		name:  "GELF",
+		line:  line(),
+		log:   mujlog.GELF(),
+		input: "Hello, GELF!",
+		kvs:   map[string]interface{}{"version": "1.1", "host": "example.tld"},
+		funcs: map[string]func() interface{}{"timestamp": func() interface{} { return time.Date(2020, time.October, 15, 18, 9, 0, 0, time.UTC).Unix() }},
 		expected: `{
 			"version":"1.1",
 			"short_message":"example.tld Hello, GELF!",
@@ -331,13 +331,13 @@ var WriteTestCases = []struct {
 		}`,
 	},
 	{
-		name:   "GELF with file path",
-		line:   line(),
-		log:    mujlog.GELF(),
-		input:  "path/to/file7:89: Hello, GELF!",
-		flag:   log.Llongfile,
-		fields: map[string]interface{}{"version": "1.1", "host": "example.tld"},
-		funcs:  map[string]func() interface{}{"timestamp": func() interface{} { return time.Date(2020, time.October, 15, 18, 9, 0, 0, time.UTC).Unix() }},
+		name:  "GELF with file path",
+		line:  line(),
+		log:   mujlog.GELF(),
+		input: "path/to/file7:89: Hello, GELF!",
+		flag:  log.Llongfile,
+		kvs:   map[string]interface{}{"version": "1.1", "host": "example.tld"},
+		funcs: map[string]func() interface{}{"timestamp": func() interface{} { return time.Date(2020, time.October, 15, 18, 9, 0, 0, time.UTC).Unix() }},
 		expected: `{
 			"version":"1.1",
 			"short_message":"example.tld Hello, GELF!",
@@ -370,7 +370,7 @@ func TestWrite(t *testing.T) {
 
 			tc.log.Output = buf
 			tc.log.Flag = tc.flag
-			tc.log.KVs = tc.fields
+			tc.log.KVs = tc.kvs
 			tc.log.Funcs = tc.funcs
 
 			_, err := fmt.Fprint(tc.log, tc.input)
@@ -404,7 +404,7 @@ func BenchmarkMujlog(b *testing.B) {
 
 				tc.log.Output = buf
 				tc.log.Flag = tc.flag
-				tc.log.KVs = tc.fields
+				tc.log.KVs = tc.kvs
 				tc.log.Funcs = tc.funcs
 
 				_, err := fmt.Fprint(tc.log, tc.input)
@@ -421,8 +421,8 @@ var LogTestCases = []struct {
 	line     int
 	log      mujlog.Log
 	input    []byte
-	fields   map[string]interface{}
-	kv       map[string]interface{}
+	kvs      map[string]interface{}
+	kvs2     map[string]interface{}
 	expected string
 }{
 	{
@@ -435,11 +435,11 @@ var LogTestCases = []struct {
 		}`,
 	},
 	{
-		name:   `"string" field with "foo" value and "string" key with "bar" value`,
-		line:   line(),
-		input:  []byte("Hello, World!"),
-		fields: map[string]interface{}{"string": "foo"},
-		kv:     map[string]interface{}{"string": "bar"},
+		name:  `"string" field with "foo" value and "string" key with "bar" value`,
+		line:  line(),
+		input: []byte("Hello, World!"),
+		kvs:   map[string]interface{}{"string": "foo"},
+		kvs2:  map[string]interface{}{"string": "bar"},
 		expected: `{
 			"shortMessage":"Hello, World!",
 		  "string": "bar"
@@ -449,16 +449,16 @@ var LogTestCases = []struct {
 		name:  `key-values is nil`,
 		line:  line(),
 		input: []byte("Hello, World!"),
-		kv:    nil,
+		kvs2:  nil,
 		expected: `{
 			"shortMessage":"Hello, World!"
 		}`,
 	},
 	{
-		name:   `input appends to the message field value "string"`,
-		line:   line(),
-		input:  []byte("\nHello, World!"),
-		fields: map[string]interface{}{"message": "field string value"},
+		name:  `input appends to the message field value "string"`,
+		line:  line(),
+		input: []byte("\nHello, World!"),
+		kvs:   map[string]interface{}{"message": "field string value"},
 		expected: `{
 			"shortMessage":"field string value Hello, World!",
 			"message":"field string value\nHello, World!"
@@ -468,17 +468,17 @@ var LogTestCases = []struct {
 		name:  `input appends to the message key-field value "string"`,
 		line:  line(),
 		input: []byte("\nHello, World!"),
-		kv:    map[string]interface{}{"message": "field string value"},
+		kvs2:  map[string]interface{}{"message": "field string value"},
 		expected: `{
 			"shortMessage":"field string value Hello, World!",
 			"message":"field string value\nHello, World!"
 		}`,
 	},
 	{
-		name:   `input is nil and message field value is "string"`,
-		line:   line(),
-		input:  nil,
-		fields: map[string]interface{}{"message": "string"},
+		name:  `input is nil and message field value is "string"`,
+		line:  line(),
+		input: nil,
+		kvs:   map[string]interface{}{"message": "string"},
 		expected: `{
 			"shortMessage":"string"
 		}`,
@@ -487,7 +487,7 @@ var LogTestCases = []struct {
 		name:  `input is nil and message key-value is "string"`,
 		line:  line(),
 		input: nil,
-		kv:    map[string]interface{}{"message": "string"},
+		kvs2:  map[string]interface{}{"message": "string"},
 		expected: `{
 			"shortMessage":"string"
 		}`,
@@ -496,7 +496,7 @@ var LogTestCases = []struct {
 		name:  `input appends to the integer key-value "message"`,
 		line:  line(),
 		input: []byte("\nHello, World!"),
-		kv:    map[string]interface{}{"message": 1},
+		kvs2:  map[string]interface{}{"message": 1},
 		expected: `{
 			"shortMessage":"1 Hello, World!",
 			"message":"1\nHello, World!"
@@ -506,7 +506,7 @@ var LogTestCases = []struct {
 		name:  `input appends to the float key-value "message"`,
 		line:  line(),
 		input: []byte("\nHello, World!"),
-		kv:    map[string]interface{}{"message": 2.1},
+		kvs2:  map[string]interface{}{"message": 2.1},
 		expected: `{
 			"shortMessage":"2.1 Hello, World!",
 			"message":"2.1\nHello, World!"
@@ -516,7 +516,7 @@ var LogTestCases = []struct {
 		name:  `input appends to the boolean key-value "message"`,
 		line:  line(),
 		input: []byte("\nHello, World!"),
-		kv:    map[string]interface{}{"message": true},
+		kvs2:  map[string]interface{}{"message": true},
 		expected: `{
 			"shortMessage":"true Hello, World!",
 			"message":"true\nHello, World!"
@@ -526,7 +526,7 @@ var LogTestCases = []struct {
 		name:  `input do not appends to the nil key-value "message"`,
 		line:  line(),
 		input: []byte("Hello, World!"),
-		kv:    map[string]interface{}{"message": nil},
+		kvs2:  map[string]interface{}{"message": nil},
 		expected: `{
 			"shortMessage":"Hello, World!"
 		}`,
@@ -552,9 +552,9 @@ func TestLog(t *testing.T) {
 			}
 
 			tc.log.Output = buf
-			tc.log.KVs = tc.fields
+			tc.log.KVs = tc.kvs
 
-			_, err := tc.log.Log(tc.input, tc.kv)
+			_, err := tc.log.Log(tc.input, tc.kvs2)
 			if err != nil {
 				t.Fatalf("unexpected mujlog write error: %s", err)
 			}
