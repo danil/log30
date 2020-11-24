@@ -18,8 +18,8 @@ type Log struct {
 	Flag   int                           // log properties
 	KVs    map[string]interface{}        // key-values
 	Funcs  map[string]func() interface{} // dynamically calculated key-values
-	Keys   [3]string                     // key names: 0 = message; 1 = short message; 2 = file;
 	Max    int                           // maximum length of the short message after which the short message is truncated
+	Keys   [3]string                     // key names: 0 = message; 1 = short message; 2 = file;
 }
 
 func (muj Log) Write(p []byte) (int, error) {
