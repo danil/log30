@@ -37,14 +37,15 @@ func GELF() Log {
 }
 
 func (muj Log) Write(p []byte) (int, error) {
-	return muj.Log(p, nil)
+	j, err := mujlog(p, muj.Flag, muj.Fields, muj.Functions, nil, muj.Truncate, muj.Keys)
+	if err != nil {
+		return 0, err
+	}
+	return muj.Output.Write(j)
 }
 
 func (muj Log) Log(p []byte, kv map[string]interface{}) (int, error) {
-	if kv == nil {
-		kv = make(map[string]interface{})
-	}
-	j, err := mujlog(muj, p, kv)
+	j, err := mujlog(p, 0, muj.Fields, muj.Functions, kv, muj.Truncate, muj.Keys)
 	if err != nil {
 		return 0, err
 	}
@@ -59,19 +60,31 @@ var (
 	runeP  = sync.Pool{New: func() interface{} { return new([]byte) }}
 )
 
-func mujlog(muj Log, msg []byte, kv map[string]interface{}) ([]byte, error) {
-	for k, v := range muj.Fields {
+func mujlog(
+	msg []byte,
+	flg int,
+	flds map[string]interface{},
+	fns map[string]func() interface{},
+	kv map[string]interface{},
+	trunc int,
+	keys [3]string,
+) ([]byte, error) {
+	if kv == nil {
+		kv = make(map[string]interface{})
+	}
+
+	for k, v := range flds {
 		if _, ok := kv[k]; ok {
 			continue
 		}
 		kv[k] = v
 	}
 
-	for k, fn := range muj.Functions {
+	for k, fn := range fns {
 		kv[k] = fn()
 	}
 
-	if v, ok := kv[muj.Keys[0]]; ok {
+	if v, ok := kv[keys[0]]; ok {
 		p := *msgP.Get().(*[]byte)
 		p = p[:0]
 		defer msgP.Put(&p)
@@ -89,7 +102,7 @@ func mujlog(muj Log, msg []byte, kv map[string]interface{}) ([]byte, error) {
 
 	var tail, file int
 
-	switch muj.Flag {
+	switch flg {
 	case log.Lshortfile, log.Llongfile:
 		i := bytes.Index(msg, []byte(": "))
 		if i == -1 {
@@ -105,16 +118,16 @@ func mujlog(muj Log, msg []byte, kv map[string]interface{}) ([]byte, error) {
 	short = short[:0]
 	defer shortP.Put(&short)
 
-	if muj.Fields[muj.Keys[1]] != nil {
-		switch v := muj.Fields[muj.Keys[1]].(type) {
+	if flds[keys[1]] != nil {
+		switch v := flds[keys[1]].(type) {
 		case string:
-			kv[muj.Keys[1]] = v
+			kv[keys[1]] = v
 		case []byte:
-			kv[muj.Keys[1]] = string(v)
+			kv[keys[1]] = string(v)
 		case []rune:
-			kv[muj.Keys[1]] = string(v)
+			kv[keys[1]] = string(v)
 		default:
-			kv[muj.Keys[1]] = v
+			kv[keys[1]] = v
 		}
 	} else {
 		if tail == len(msg) {
@@ -143,7 +156,7 @@ func mujlog(muj Log, msg []byte, kv map[string]interface{}) ([]byte, error) {
 					}
 				}
 
-				if i-tail >= muj.Truncate-1 {
+				if i-tail >= trunc-1 {
 					break
 				}
 
@@ -191,22 +204,22 @@ func mujlog(muj Log, msg []byte, kv map[string]interface{}) ([]byte, error) {
 		}
 	}
 
-	if _, ok := kv[muj.Keys[1]]; !ok {
-		if muj.Fields["host"] == nil {
-			kv[muj.Keys[1]] = string(short)
+	if _, ok := kv[keys[1]]; !ok {
+		if flds["host"] == nil {
+			kv[keys[1]] = string(short)
 		} else {
-			kv[muj.Keys[1]] = fmt.Sprintf("%s %s", muj.Fields["host"], short)
+			kv[keys[1]] = fmt.Sprintf("%s %s", flds["host"], short)
 		}
 	}
 
 	if bytes.Equal(short, msg) {
-		delete(kv, muj.Keys[0])
+		delete(kv, keys[0])
 	} else {
-		kv[muj.Keys[0]] = string(msg)
+		kv[keys[0]] = string(msg)
 	}
 
 	if file != 0 {
-		kv[muj.Keys[2]] = string(msg[:file])
+		kv[keys[2]] = string(msg[:file])
 	}
 
 	p, err := json.Marshal(kv)
