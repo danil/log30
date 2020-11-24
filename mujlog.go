@@ -19,7 +19,7 @@ type Log struct {
 	KVs    map[string]interface{}        // key-values
 	Funcs  map[string]func() interface{} // dynamically calculated key-values
 	Max    int                           // maximum length of the short message after which the short message is truncated
-	Keys   [3]string                     // key names: 0 = message; 1 = short message; 2 = file;
+	Keys   [4]string                     // key names: 0 = message; 1 = short message; 2 = file; 3 = host;
 }
 
 func (muj Log) Write(p []byte) (int, error) {
@@ -53,7 +53,7 @@ func mujlog(
 	kvs2 map[string]interface{}, // kvs2 is a temporary key-value map in addition to the permanent kvs set of key-value map
 	fns map[string]func() interface{},
 	max int,
-	keys [3]string,
+	keys [4]string,
 ) ([]byte, error) {
 	if kvs2 == nil {
 		kvs2 = make(map[string]interface{})
@@ -191,10 +191,10 @@ func mujlog(
 	}
 
 	if _, ok := kvs2[keys[1]]; !ok {
-		if kvs["host"] == nil {
+		if kvs[keys[3]] == nil {
 			kvs2[keys[1]] = string(short)
 		} else {
-			kvs2[keys[1]] = fmt.Sprintf("%s %s", kvs["host"], short)
+			kvs2[keys[1]] = fmt.Sprintf("%s %s", kvs[keys[3]], short)
 		}
 	}
 
@@ -225,7 +225,7 @@ func GELF() Log {
 		Funcs: map[string]func() interface{}{
 			"timestamp": func() interface{} { return time.Now().Unix() },
 		},
-		Keys: [3]string{"full_message", "short_message", "_file"},
+		Keys: [4]string{"full_message", "short_message", "_file", "host"},
 		Max:  120,
 	}
 }
