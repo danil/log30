@@ -95,7 +95,7 @@ func main() {
 }
 ```
 
-Output:
+Output 1:
 
 ```json
 {
@@ -103,7 +103,7 @@ Output:
 }
 ```
 
-Output second:
+Output 2:
 
 ```json
 {
