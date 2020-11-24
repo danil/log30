@@ -45,7 +45,7 @@ var WriteTestCases = []struct {
 	benchmark bool
 }{
 	{
-		name: "first read me example",
+		name: "first readme example",
 		log: mujlog.Log{
 			Keys:  [4]string{"message", "preview"},
 			Marks: [3][]byte{[]byte("…")},

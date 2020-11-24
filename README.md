@@ -22,7 +22,7 @@ func main() {
         Output: os.Stdout,
         Keys: [4]string{"message", "preview"},
         Marks: [3][]byte{[]byte("…")},
-        Max: 13,
+        Max: 12,
     }
     log.SetOutput(l)
 
