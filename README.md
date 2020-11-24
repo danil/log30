@@ -20,7 +20,7 @@ import (
 func main() {
     l := mujlog.Log{
         Output: os.Stdout,
-        Keys: [4]string{"message"},
+        Keys: [4]string{"message", "preview"},
         Max: 120,
     }
     log.SetOutput(l)
@@ -33,7 +33,8 @@ Output:
 
 ```json
 {
-    "message":"Hello, World!"
+    "preview":"Hello, World!",
+    "message":"Hello,\nWorld!"
 }
 ```
 
