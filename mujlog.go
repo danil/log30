@@ -24,16 +24,17 @@ const (
 
 // Log is a Multiline JSON Log and formatter and writer.
 type Log struct {
-	Output io.Writer                     // destination for output
-	Flag   int                           // log properties
-	KVs    map[string]interface{}        // key-values
-	Funcs  map[string]func() interface{} // dynamically calculated key-values
-	Max    int                           // maximum length of the short message after which the short message is truncated
-	Keys   [7]string                     // key names: 0 = message; 1 = short message; 2 = truncate mark; 3 = empty mark; 4 = blank mark; 5 = file; 6 = host;
+	Output  io.Writer                     // destination for output
+	Flag    int                           // log properties
+	KVs     map[string]interface{}        // key-values
+	Funcs   map[string]func() interface{} // dynamically calculated key-values
+	Max     int                           // maximum length of the short message after which the short message is truncated
+	Keys    [7]string                     // key names: 0 = message; 1 = short message; 2 = truncate mark; 3 = empty mark; 4 = blank mark; 5 = file; 6 = host;
+	Replace [][]byte                      // pairs of byte slices to replace in a short message
 }
 
 func (muj Log) Write(p []byte) (int, error) {
-	j, err := mujlog(p, muj.Flag, muj.KVs, nil, muj.Funcs, muj.Max, muj.Keys)
+	j, err := mujlog(p, muj.Flag, muj.KVs, nil, muj.Funcs, muj.Max, muj.Keys, muj.Replace)
 	if err != nil {
 		return 0, err
 	}
@@ -41,7 +42,7 @@ func (muj Log) Write(p []byte) (int, error) {
 }
 
 func (muj Log) Log(p []byte, kvs map[string]interface{}) (int, error) {
-	j, err := mujlog(p, 0, muj.KVs, kvs, muj.Funcs, muj.Max, muj.Keys)
+	j, err := mujlog(p, 0, muj.KVs, kvs, muj.Funcs, muj.Max, muj.Keys, muj.Replace)
 	if err != nil {
 		return 0, err
 	}
@@ -64,6 +65,7 @@ func mujlog(
 	fns map[string]func() interface{},
 	max int,
 	keys [7]string,
+	replace [][]byte,
 ) ([]byte, error) {
 	if kvs2 == nil {
 		kvs2 = make(map[string]interface{})
@@ -193,7 +195,9 @@ func mujlog(
 				short = append(short, []byte(keys[truncMark])...)
 			}
 
-			short = bytes.Replace(short, []byte("\n"), []byte(" "), -1)
+			for i := 0; i < len(replace); i += 2 {
+				short = bytes.Replace(short, replace[i], replace[i+1], -1)
+			}
 		}
 	}
 
@@ -232,7 +236,8 @@ func GELF() Log {
 		Funcs: map[string]func() interface{}{
 			"timestamp": func() interface{} { return time.Now().Unix() },
 		},
-		Keys: [7]string{"full_message", "short_message", "…", "_EMPTY_", "_BLANK_", "_file", "host"},
-		Max:  120,
+		Max:     120,
+		Keys:    [7]string{"full_message", "short_message", "…", "_EMPTY_", "_BLANK_", "_file", "host"},
+		Replace: [][]byte{[]byte("\n"), []byte(" ")},
 	}
 }
