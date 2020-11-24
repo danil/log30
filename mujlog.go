@@ -13,10 +13,10 @@ import (
 )
 
 const (
-	fullKey = iota
-	shortKey
-	fileKey
-	hostKey
+	FullKey = iota
+	ShortKey
+	FileKey
+	HostKey
 )
 
 const (
@@ -33,12 +33,13 @@ type Log struct {
 	Funcs   map[string]func() interface{} // dynamically calculated key-values
 	Max     int                           // maximum length of the short message after which the short message is truncated
 	Keys    [4]string                     // 0 = full message key; 1 = short message key; 2 = file key; 3 = host key;
+	Key     uint8                         // sticky message key: all except 1 = full message; 1 = short message;
 	Marks   [3][]byte                     // 0 = truncate mark; 1 = empty mark; 2 = blank mark;
 	Replace [][]byte                      // pairs of byte slices to replace in a short message
 }
 
 func (muj Log) Write(p []byte) (int, error) {
-	j, err := mujlog(p, muj.Flag, muj.KVs, nil, muj.Funcs, muj.Max, muj.Keys, muj.Marks, muj.Replace)
+	j, err := mujlog(p, muj.Flag, muj.KVs, nil, muj.Funcs, muj.Max, muj.Keys, muj.Key, muj.Marks, muj.Replace)
 	if err != nil {
 		return 0, err
 	}
@@ -46,7 +47,7 @@ func (muj Log) Write(p []byte) (int, error) {
 }
 
 func (muj Log) Log(p []byte, kvs map[string]interface{}) (int, error) {
-	j, err := mujlog(p, 0, muj.KVs, kvs, muj.Funcs, muj.Max, muj.Keys, muj.Marks, muj.Replace)
+	j, err := mujlog(p, 0, muj.KVs, kvs, muj.Funcs, muj.Max, muj.Keys, muj.Key, muj.Marks, muj.Replace)
 	if err != nil {
 		return 0, err
 	}
@@ -69,6 +70,7 @@ func mujlog(
 	fns map[string]func() interface{},
 	max int,
 	keys [4]string,
+	key uint8,
 	marks [3][]byte,
 	replace [][]byte,
 ) ([]byte, error) {
@@ -87,7 +89,7 @@ func mujlog(
 		kvs2[k] = fn()
 	}
 
-	if v, ok := kvs2[keys[fullKey]]; ok {
+	if v, ok := kvs2[keys[FullKey]]; ok {
 		p := *fullP.Get().(*[]byte)
 		p = p[:0]
 		defer fullP.Put(&p)
@@ -121,16 +123,16 @@ func mujlog(
 	short = short[:0]
 	defer shortP.Put(&short)
 
-	if kvs[keys[shortKey]] != nil {
-		switch v := kvs[keys[shortKey]].(type) {
+	if kvs2[keys[ShortKey]] != nil {
+		switch v := kvs2[keys[ShortKey]].(type) {
 		case string:
-			kvs2[keys[shortKey]] = v
+			kvs2[keys[ShortKey]] = v
 		case []byte:
-			kvs2[keys[shortKey]] = string(v)
+			kvs2[keys[ShortKey]] = string(v)
 		case []rune:
-			kvs2[keys[shortKey]] = string(v)
+			kvs2[keys[ShortKey]] = string(v)
 		default:
-			kvs2[keys[shortKey]] = v
+			kvs2[keys[ShortKey]] = v
 		}
 	} else {
 		if tail == len(full) {
@@ -196,6 +198,10 @@ func mujlog(
 				short = append(short, marks[blankMark]...)
 			}
 
+			if kvs2[keys[HostKey]] != nil {
+				short = append(short[:0], append([]byte(fmt.Sprint(kvs2[keys[HostKey]])), append([]byte(" "), short...)...)...)
+			}
+
 			if len(short) != 0 && trunc {
 				short = append(short, marks[truncMark]...)
 			}
@@ -206,22 +212,30 @@ func mujlog(
 		}
 	}
 
-	if _, ok := kvs2[keys[shortKey]]; !ok {
-		if kvs[keys[hostKey]] == nil {
-			kvs2[keys[shortKey]] = string(short)
+	if bytes.Equal(full, short) {
+		if key != ShortKey {
+			key = FullKey
+		}
+
+		if key == FullKey {
+			delete(kvs2, keys[ShortKey])
 		} else {
-			kvs2[keys[shortKey]] = fmt.Sprintf("%s %s", kvs[keys[hostKey]], short)
+			delete(kvs2, keys[FullKey])
+		}
+
+		if kvs2[keys[key]] == nil {
+			kvs2[keys[key]] = string(full)
+		}
+	} else {
+		kvs2[keys[FullKey]] = string(full)
+
+		if kvs2[keys[ShortKey]] == nil {
+			kvs2[keys[ShortKey]] = string(short)
 		}
 	}
 
-	if bytes.Equal(short, full) {
-		delete(kvs2, keys[fullKey])
-	} else {
-		kvs2[keys[fullKey]] = string(full)
-	}
-
 	if file != 0 {
-		kvs2[keys[fileKey]] = string(full[:file])
+		kvs2[keys[FileKey]] = string(full[:file])
 	}
 
 	p, err := json.Marshal(kvs2)
@@ -243,6 +257,7 @@ func GELF() Log {
 		},
 		Max:     120,
 		Keys:    [4]string{"full_message", "short_message", "_file", "host"},
+		Key:     ShortKey,
 		Marks:   [3][]byte{[]byte("…"), []byte("_EMPTY_"), []byte("_BLANK_")},
 		Replace: [][]byte{[]byte("\n"), []byte(" ")},
 	}
