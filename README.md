@@ -20,7 +20,7 @@ func main() {
     l := logastic.Log{
         Output: os.Stdout,
         Trunc: 12,
-        Keys: [4]string{"message", "preview"},
+        Keys: [4]string{"message", "excerpt"},
         Marks: [3][]byte{[]byte("…")},
         Replace: [][]byte{[]byte("\n"), []byte(" ")},
     }
@@ -34,7 +34,7 @@ Output:
 
 ```json
 {
-    "preview":"Hello, World…",
+    "excerpt":"Hello, World…",
     "message":"Hello,\nWorld!"
 }
 ```

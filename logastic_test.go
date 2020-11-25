@@ -19,7 +19,7 @@ var (
 
 	dummy = logastic.Log{
 		Trunc:   120,
-		Keys:    [4]string{"message", "preview", "file", "host"},
+		Keys:    [4]string{"message", "excerpt", "file", "host"},
 		Key:     logastic.Original,
 		Marks:   [3][]byte{[]byte("…"), []byte("_EMPTY_"), []byte("_BLANK_")},
 		Replace: [][]byte{[]byte("\n"), []byte(" ")},
@@ -61,14 +61,14 @@ var WriteTestCases = []struct {
 		name: "readme example 1",
 		log: logastic.Log{
 			Trunc:   12,
-			Keys:    [4]string{"message", "preview"},
+			Keys:    [4]string{"message", "excerpt"},
 			Marks:   [3][]byte{[]byte("…")},
 			Replace: [][]byte{[]byte("\n"), []byte(" ")},
 		},
 		line:  line(),
 		input: "Hello,\nWorld!",
 		expected: `{
-			"preview":"Hello, World…",
+			"excerpt":"Hello, World…",
 			"message":"Hello,\nWorld!"
 		}`,
 	},
@@ -140,7 +140,7 @@ var WriteTestCases = []struct {
 		input: "",
 		expected: `{
 	    "message":"",
-			"preview":"_EMPTY_"
+			"excerpt":"_EMPTY_"
 		}`,
 	},
 	{
@@ -150,7 +150,7 @@ var WriteTestCases = []struct {
 		input: " ",
 		expected: `{
 	    "message":" ",
-			"preview":"_BLANK_"
+			"excerpt":"_BLANK_"
 		}`,
 	},
 	{
@@ -178,7 +178,7 @@ var WriteTestCases = []struct {
 		input: " \n\tHello, World! \t\n",
 		expected: `{
 			"message":" \n\tHello, World! \t\n",
-			"preview":"Hello, World!"
+			"excerpt":"Hello, World!"
 		}`,
 	},
 	{
@@ -245,7 +245,7 @@ var WriteTestCases = []struct {
 		input: "Hello,\nWorld!",
 		expected: `{
 			"message":"Hello,\nWorld!",
-			"preview":"Hello, World!"
+			"excerpt":"Hello, World!"
 		}`,
 	},
 	{
@@ -255,7 +255,7 @@ var WriteTestCases = []struct {
 		input: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
 		expected: `{
 			"message":"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-			"preview":"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliq…"
+			"excerpt":"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliq…"
 		}`,
 	},
 	{
@@ -265,7 +265,7 @@ var WriteTestCases = []struct {
 		input: " \n \tLorem ipsum dolor sit amet,\nconsectetur adipiscing elit,\nsed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
 		expected: `{
 			"message":" \n \tLorem ipsum dolor sit amet,\nconsectetur adipiscing elit,\nsed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-			"preview":"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliq…"
+			"excerpt":"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliq…"
 		}`,
 	},
 	{
@@ -275,7 +275,7 @@ var WriteTestCases = []struct {
 		input: " \n \tLorem ipsum dolor sit amet,\nconsectetur adipiscing elit,\nsed do eiusmod tempor incididunt ut labore et dolore magna Ää.",
 		expected: `{
 			"message":" \n \tLorem ipsum dolor sit amet,\nconsectetur adipiscing elit,\nsed do eiusmod tempor incididunt ut labore et dolore magna Ää.",
-			"preview":"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna Ää…"
+			"excerpt":"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna Ää…"
 		}`,
 		benchmark: true,
 	},
@@ -317,84 +317,84 @@ var WriteTestCases = []struct {
 		name: `explicit byte slice as message excerpt key`,
 		line: line(),
 		log: logastic.Log{
-			KV:    map[string]interface{}{"preview": []byte("Explicit byte slice")},
+			KV:    map[string]interface{}{"excerpt": []byte("Explicit byte slice")},
 			Trunc: 120,
-			Keys:  [4]string{"message", "preview"},
+			Keys:  [4]string{"message", "excerpt"},
 		},
 		input: "Hello, World!",
 		expected: `{
 		  "message": "Hello, World!",
-			"preview":"Explicit byte slice"
+			"excerpt":"Explicit byte slice"
 		}`,
 	},
 	{
 		name: `explicit string as message excerpt key`,
 		line: line(),
 		log: logastic.Log{
-			KV:    map[string]interface{}{"preview": "Explicit string"},
+			KV:    map[string]interface{}{"excerpt": "Explicit string"},
 			Trunc: 120,
-			Keys:  [4]string{"message", "preview"},
+			Keys:  [4]string{"message", "excerpt"},
 		},
 		input: "Hello, World!",
 		expected: `{
 		  "message": "Hello, World!",
-			"preview":"Explicit string"
+			"excerpt":"Explicit string"
 		}`,
 	},
 	{
 		name: `explicit integer as message excerpt key`,
 		line: line(),
 		log: logastic.Log{
-			KV:    map[string]interface{}{"preview": 42},
+			KV:    map[string]interface{}{"excerpt": 42},
 			Trunc: 120,
-			Keys:  [4]string{"message", "preview"},
+			Keys:  [4]string{"message", "excerpt"},
 		},
 		input: "Hello, World!",
 		expected: `{
 		  "message": "Hello, World!",
-			"preview":42
+			"excerpt":42
 		}`,
 	},
 	{
 		name: `explicit float as message excerpt key`,
 		line: line(),
 		log: logastic.Log{
-			KV:    map[string]interface{}{"preview": 4.2},
+			KV:    map[string]interface{}{"excerpt": 4.2},
 			Trunc: 120,
-			Keys:  [4]string{"message", "preview"},
+			Keys:  [4]string{"message", "excerpt"},
 		},
 		input: "Hello, World!",
 		expected: `{
 		  "message": "Hello, World!",
-			"preview":4.2
+			"excerpt":4.2
 		}`,
 	},
 	{
 		name: `explicit boolean as message excerpt key`,
 		line: line(),
 		log: logastic.Log{
-			KV:    map[string]interface{}{"preview": true},
+			KV:    map[string]interface{}{"excerpt": true},
 			Trunc: 120,
-			Keys:  [4]string{"message", "preview"},
+			Keys:  [4]string{"message", "excerpt"},
 		},
 		input: "Hello, World!",
 		expected: `{
 		  "message": "Hello, World!",
-			"preview":true
+			"excerpt":true
 		}`,
 	},
 	{
 		name: `explicit rune slice as messages excerpt key`,
 		line: line(),
 		log: logastic.Log{
-			KV:    map[string]interface{}{"preview": []rune("Explicit rune slice")},
+			KV:    map[string]interface{}{"excerpt": []rune("Explicit rune slice")},
 			Trunc: 120,
-			Keys:  [4]string{"message", "preview"},
+			Keys:  [4]string{"message", "excerpt"},
 		},
 		input: "Hello, World!",
 		expected: `{
 		  "message": "Hello, World!",
-			"preview":"Explicit rune slice"
+			"excerpt":"Explicit rune slice"
 		}`,
 	},
 	{
@@ -428,12 +428,12 @@ var WriteTestCases = []struct {
 		log: logastic.Log{
 			Flag:  log.Llongfile,
 			Trunc: 120,
-			Keys:  [4]string{"message", "preview", "file"},
+			Keys:  [4]string{"message", "excerpt", "file"},
 		},
 		input: "path/to/file1:23: Hello, World!",
 		expected: `{
 			"message":"path/to/file1:23: Hello, World!",
-			"preview":"Hello, World!",
+			"excerpt":"Hello, World!",
 			"file":"path/to/file1:23"
 		}`,
 	},
@@ -443,13 +443,13 @@ var WriteTestCases = []struct {
 		log: logastic.Log{
 			Flag:  log.Llongfile,
 			Trunc: 120,
-			Keys:  [4]string{"message", "preview", "file"},
+			Keys:  [4]string{"message", "excerpt", "file"},
 			Marks: [3][]byte{[]byte("…"), []byte("_EMPTY_")},
 		},
 		input: "path/to/file1:23:",
 		expected: `{
 			"message":"path/to/file1:23:",
-			"preview":"_EMPTY_",
+			"excerpt":"_EMPTY_",
 			"file":"path/to/file1:23"
 		}`,
 	},
@@ -459,13 +459,13 @@ var WriteTestCases = []struct {
 		log: logastic.Log{
 			Flag:  log.Llongfile,
 			Trunc: 120,
-			Keys:  [4]string{"message", "preview", "file"},
+			Keys:  [4]string{"message", "excerpt", "file"},
 			Marks: [3][]byte{[]byte("…"), []byte("_EMPTY_"), []byte("_BLANK_")},
 		},
 		input: "path/to/file4:56:  ",
 		expected: `{
 			"message":"path/to/file4:56:  ",
-			"preview":"_BLANK_",
+			"excerpt":"_BLANK_",
 			"file":"path/to/file4:56"
 		}`,
 	},
@@ -475,12 +475,12 @@ var WriteTestCases = []struct {
 		log: logastic.Log{
 			KV:    map[string]interface{}{"host": "example.tld"},
 			Trunc: 120,
-			Keys:  [4]string{"message", "preview", "file", "host"},
+			Keys:  [4]string{"message", "excerpt", "file", "host"},
 		},
 		input: "Hello, World!",
 		expected: `{
 			"message":"Hello, World!",
-			"preview":"example.tld Hello, World!",
+			"excerpt":"example.tld Hello, World!",
 			"host":"example.tld"
 		}`,
 	},
@@ -586,7 +586,7 @@ var LogTestCases = []struct {
 		log:   dummy,
 		expected: `{
 	    "message":"",
-			"preview":"_EMPTY_"
+			"excerpt":"_EMPTY_"
 		}`,
 	},
 	{
@@ -620,13 +620,13 @@ var LogTestCases = []struct {
 		log: logastic.Log{
 			KV:      map[string]interface{}{"message": "string value"},
 			Trunc:   120,
-			Keys:    [4]string{"message", "preview"},
+			Keys:    [4]string{"message", "excerpt"},
 			Replace: [][]byte{[]byte("\n"), []byte(" ")},
 		},
 		bytes: []byte("\nHello, World!"),
 		expected: `{
 			"message":"string value\nHello, World!",
-			"preview":"string value Hello, World!"
+			"excerpt":"string value Hello, World!"
 		}`,
 	},
 	{
@@ -637,7 +637,7 @@ var LogTestCases = []struct {
 		kv:    map[string]interface{}{"message": "string value"},
 		expected: `{
 			"message":"string value\nHello, World!",
-			"preview":"string value Hello, World!"
+			"excerpt":"string value Hello, World!"
 		}`,
 	},
 	{
@@ -646,7 +646,7 @@ var LogTestCases = []struct {
 		log: logastic.Log{
 			KV:      map[string]interface{}{"message": "string value"},
 			Trunc:   120,
-			Keys:    [4]string{"message", "preview"},
+			Keys:    [4]string{"message", "excerpt"},
 			Replace: [][]byte{[]byte("\n"), []byte(" ")},
 		},
 		bytes: nil,
@@ -672,7 +672,7 @@ var LogTestCases = []struct {
 		kv:    map[string]interface{}{"message": 1},
 		expected: `{
 			"message":"1\nHello, World!",
-			"preview":"1 Hello, World!"
+			"excerpt":"1 Hello, World!"
 		}`,
 	},
 	{
@@ -683,7 +683,7 @@ var LogTestCases = []struct {
 		kv:    map[string]interface{}{"message": 2.1},
 		expected: `{
 			"message":"2.1\nHello, World!",
-			"preview":"2.1 Hello, World!"
+			"excerpt":"2.1 Hello, World!"
 		}`,
 	},
 	{
@@ -694,7 +694,7 @@ var LogTestCases = []struct {
 		kv:    map[string]interface{}{"message": true},
 		expected: `{
 			"message":"true\nHello, World!",
-			"preview":"true Hello, World!"
+			"excerpt":"true Hello, World!"
 		}`,
 	},
 	{
