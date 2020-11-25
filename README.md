@@ -28,7 +28,7 @@ func main() {
     log.SetFlags(0)
     log.SetOutput(l)
 
-    log.Println("Hello,\nWorld!")
+    log.Print("Hello,\nWorld!")
 }
 ```
 
@@ -58,7 +58,7 @@ func main() {
     l.Output = os.Stdout
     log.SetFlags(0)
     log.SetOutput(l)
-    log.Println("Hello,\nGELF!")
+    log.Print("Hello,\nGELF!")
 }
 ```
 
@@ -95,8 +95,8 @@ func main() {
     log.SetFlags(0)
     log.SetOutput(l)
 
-    log.Println(123)
-    log.Println(3.21)
+    log.Print(123)
+    log.Print(3.21)
 }
 ```
 
