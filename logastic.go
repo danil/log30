@@ -206,8 +206,17 @@ func logastic(
 				excerpt = append(excerpt, marks[truncMark]...)
 			}
 
-			for i := 0; i < len(replace); i += 2 {
-				excerpt = bytes.Replace(excerpt, replace[i], replace[i+1], -1)
+		replace:
+			for n := 0; n < len(replace); n += 2 {
+				for j := 0; ; {
+					i = bytes.Index(excerpt[j:], replace[n])
+					if i == -1 {
+						continue replace
+					}
+					i += j
+					j = i + len(replace[n+1])
+					excerpt = append(excerpt[:i], append(replace[n+1], excerpt[j:]...)...)
+				}
 			}
 		}
 	}

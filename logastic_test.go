@@ -242,10 +242,10 @@ var WriteTestCases = []struct {
 		name:  "multiline string",
 		line:  line(),
 		log:   dummy,
-		input: "Hello,\nWorld!",
+		input: "Hello,\nWorld\n!",
 		expected: `{
-			"message":"Hello,\nWorld!",
-			"excerpt":"Hello, World!"
+			"message":"Hello,\nWorld\n!",
+			"excerpt":"Hello, World !"
 		}`,
 	},
 	{
