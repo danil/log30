@@ -1,4 +1,4 @@
-package mujlog
+package logastic
 
 import (
 	"bytes"
@@ -38,20 +38,20 @@ type Log struct {
 	Replace [][]byte                      // pairs of byte slices to replace in a short message
 }
 
-func (muj Log) Write(p []byte) (int, error) {
-	j, err := mujlog(p, muj.Flag, muj.KV, nil, muj.Funcs, muj.Trunc, muj.Keys, muj.Key, muj.Marks, muj.Replace)
+func (l Log) Write(p []byte) (int, error) {
+	j, err := logastic(p, l.Flag, l.KV, nil, l.Funcs, l.Trunc, l.Keys, l.Key, l.Marks, l.Replace)
 	if err != nil {
 		return 0, err
 	}
-	return muj.Output.Write(j)
+	return l.Output.Write(j)
 }
 
-func (muj Log) Log(p []byte, kv map[string]interface{}) (int, error) {
-	j, err := mujlog(p, 0, muj.KV, kv, muj.Funcs, muj.Trunc, muj.Keys, muj.Key, muj.Marks, muj.Replace)
+func (l Log) Log(p []byte, kv map[string]interface{}) (int, error) {
+	j, err := logastic(p, 0, l.KV, kv, l.Funcs, l.Trunc, l.Keys, l.Key, l.Marks, l.Replace)
 	if err != nil {
 		return 0, err
 	}
-	return muj.Output.Write(j)
+	return l.Output.Write(j)
 }
 
 var asciiSpace = [256]uint8{'\t': 1, '\n': 1, '\v': 1, '\f': 1, '\r': 1, ' ': 1}
@@ -62,7 +62,7 @@ var (
 	runeP  = sync.Pool{New: func() interface{} { return new([]byte) }}
 )
 
-func mujlog(
+func logastic(
 	full []byte,
 	flg int,
 	kv,

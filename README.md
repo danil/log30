@@ -1,12 +1,10 @@
-# Mujlog
+# Logastic
 
-Mujlog (Multiline JSON Log) is a formatter and writer.
-
-Mujlog in pre alpha version is extremely slow and allocates a lots of memory.
+Logastic in pre alpha version is extremely slow and allocates a lots of memory.
 
 ## Usage
 
-Set Mujlog as global logger
+Set Logastic as global logger
 
 ```go
 package main
@@ -14,11 +12,11 @@ package main
 import (
     "log"
 
-    "github.com/danil/mujlog"
+    "github.com/danil/logastic"
 )
 
 func main() {
-    l := mujlog.Log{
+    l := logastic.Log{
         Output: os.Stdout,
         Trunc: 12,
         Keys: [4]string{"message", "preview"},
@@ -40,7 +38,7 @@ Output:
 }
 ```
 
-## Use Mujlog as GLEF formater
+## Use Logastic as GLEF formater
 
 ```go
 package main
@@ -48,11 +46,11 @@ package main
 import (
     "log"
 
-    "github.com/danil/mujlog"
+    "github.com/danil/logastic"
 )
 
 func main() {
-    l := mujlog.GELF()
+    l := logastic.GELF()
     l.Output = os.Stdout
     log.SetOutput(l)
     log.Println("Hello,\nGELF!")
@@ -80,11 +78,11 @@ package main
 import (
     "log"
 
-    "github.com/danil/mujlog"
+    "github.com/danil/logastic"
 )
 
 func main() {
-    l := mujlog.Log{
+    l := logastic.Log{
         Output: os.Stdout,
         Keys: [4]string{"message"},
     }

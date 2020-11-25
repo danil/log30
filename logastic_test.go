@@ -1,4 +1,4 @@
-package mujlog_test
+package logastic_test
 
 import (
 	"bytes"
@@ -10,36 +10,36 @@ import (
 	"testing"
 	"time"
 
-	"github.com/danil/mujlog"
+	"github.com/danil/logastic"
 	"github.com/kinbiko/jsonassert"
 )
 
 var (
 	pool = sync.Pool{New: func() interface{} { return new(bytes.Buffer) }}
 
-	dummy = mujlog.Log{
+	dummy = logastic.Log{
 		Trunc:   120,
 		Keys:    [4]string{"message", "preview", "file", "host"},
-		Key:     mujlog.FullKey,
+		Key:     logastic.FullKey,
 		Marks:   [3][]byte{[]byte("…"), []byte("_EMPTY_"), []byte("_BLANK_")},
 		Replace: [][]byte{[]byte("\n"), []byte(" ")},
 	}
 
-	gelf = func() mujlog.Log {
-		l := mujlog.GELF()
+	gelf = func() logastic.Log {
+		l := logastic.GELF()
 		l.Funcs = map[string]func() interface{}{"timestamp": func() interface{} { return time.Date(2020, time.October, 15, 18, 9, 0, 0, time.UTC).Unix() }}
 		return l
 	}()
 )
 
-func TestMujlogWriteTrailingNewLine(t *testing.T) {
+func TestWriteTrailingNewLine(t *testing.T) {
 	var buf bytes.Buffer
 
-	mjl := mujlog.Log{Output: &buf}
+	mjl := logastic.Log{Output: &buf}
 
 	_, err := mjl.Write([]byte("Hello, Wrold!"))
 	if err != nil {
-		t.Fatalf("unexpected mujlog write error: %s", err)
+		t.Fatalf("write error: %s", err)
 	}
 
 	if buf.Bytes()[len(buf.Bytes())-1] != '\n' {
@@ -52,14 +52,14 @@ func line() int { _, _, l, _ := runtime.Caller(1); return l }
 var WriteTestCases = []struct {
 	name      string
 	line      int
-	log       mujlog.Log
+	log       logastic.Log
 	input     interface{}
 	expected  string
 	benchmark bool
 }{
 	{
 		name: "readme example 1",
-		log: mujlog.Log{
+		log: logastic.Log{
 			Trunc:   12,
 			Keys:    [4]string{"message", "preview"},
 			Marks:   [3][]byte{[]byte("…")},
@@ -86,7 +86,7 @@ var WriteTestCases = []struct {
 	},
 	{
 		name: "readme example 3.1",
-		log: mujlog.Log{
+		log: logastic.Log{
 			Keys: [4]string{"message"},
 		},
 		line:  line(),
@@ -97,7 +97,7 @@ var WriteTestCases = []struct {
 	},
 	{
 		name: "readme example 3.2",
-		log: mujlog.Log{
+		log: logastic.Log{
 			Keys: [4]string{"message"},
 		},
 		line:  line(),
@@ -193,7 +193,7 @@ var WriteTestCases = []struct {
 	{
 		name: `"string" field with "foo" value`,
 		line: line(),
-		log: mujlog.Log{
+		log: logastic.Log{
 			KV:   map[string]interface{}{"string": "foo"},
 			Keys: [4]string{"message"},
 		},
@@ -206,7 +206,7 @@ var WriteTestCases = []struct {
 	{
 		name: `"integer" field with 123 value`,
 		line: line(),
-		log: mujlog.Log{
+		log: logastic.Log{
 			KV:   map[string]interface{}{"integer": 123},
 			Keys: [4]string{"message"},
 		},
@@ -219,7 +219,7 @@ var WriteTestCases = []struct {
 	{
 		name: `"float" field with 3.21 value`,
 		line: line(),
-		log: mujlog.Log{
+		log: logastic.Log{
 			KV:   map[string]interface{}{"float": 3.21},
 			Keys: [4]string{"message"},
 		},
@@ -281,7 +281,7 @@ var WriteTestCases = []struct {
 	},
 	{
 		name: "zero maximum length",
-		log: mujlog.Log{
+		log: logastic.Log{
 			Keys:  [4]string{"message"},
 			Trunc: 0,
 		},
@@ -293,7 +293,7 @@ var WriteTestCases = []struct {
 	},
 	{
 		name: "without message key names",
-		log: mujlog.Log{
+		log: logastic.Log{
 			Keys: [4]string{},
 		},
 		line:  line(),
@@ -304,7 +304,7 @@ var WriteTestCases = []struct {
 	},
 	{
 		name: "only full message key name",
-		log: mujlog.Log{
+		log: logastic.Log{
 			Keys: [4]string{"message"},
 		},
 		line:  line(),
@@ -316,7 +316,7 @@ var WriteTestCases = []struct {
 	{
 		name: `explicit byte slice as short message field`,
 		line: line(),
-		log: mujlog.Log{
+		log: logastic.Log{
 			KV:    map[string]interface{}{"preview": []byte("Explicit byte slice")},
 			Trunc: 120,
 			Keys:  [4]string{"message", "preview"},
@@ -330,7 +330,7 @@ var WriteTestCases = []struct {
 	{
 		name: `explicit string as short message field`,
 		line: line(),
-		log: mujlog.Log{
+		log: logastic.Log{
 			KV:    map[string]interface{}{"preview": "Explicit string"},
 			Trunc: 120,
 			Keys:  [4]string{"message", "preview"},
@@ -344,7 +344,7 @@ var WriteTestCases = []struct {
 	{
 		name: `explicit integer as short message field`,
 		line: line(),
-		log: mujlog.Log{
+		log: logastic.Log{
 			KV:    map[string]interface{}{"preview": 42},
 			Trunc: 120,
 			Keys:  [4]string{"message", "preview"},
@@ -358,7 +358,7 @@ var WriteTestCases = []struct {
 	{
 		name: `explicit float as short message field`,
 		line: line(),
-		log: mujlog.Log{
+		log: logastic.Log{
 			KV:    map[string]interface{}{"preview": 4.2},
 			Trunc: 120,
 			Keys:  [4]string{"message", "preview"},
@@ -372,7 +372,7 @@ var WriteTestCases = []struct {
 	{
 		name: `explicit boolean as short message field`,
 		line: line(),
-		log: mujlog.Log{
+		log: logastic.Log{
 			KV:    map[string]interface{}{"preview": true},
 			Trunc: 120,
 			Keys:  [4]string{"message", "preview"},
@@ -386,7 +386,7 @@ var WriteTestCases = []struct {
 	{
 		name: `explicit rune slice as short message field`,
 		line: line(),
-		log: mujlog.Log{
+		log: logastic.Log{
 			KV:    map[string]interface{}{"preview": []rune("Explicit rune slice")},
 			Trunc: 120,
 			Keys:  [4]string{"message", "preview"},
@@ -400,7 +400,7 @@ var WriteTestCases = []struct {
 	{
 		name: "dynamic field",
 		line: line(),
-		log: mujlog.Log{
+		log: logastic.Log{
 			Funcs: map[string]func() interface{}{"time": func() interface{} { return time.Date(2020, time.October, 15, 18, 9, 0, 0, time.UTC).String() }},
 			Keys:  [4]string{"message"},
 		},
@@ -413,7 +413,7 @@ var WriteTestCases = []struct {
 	{
 		name: `"standard flag" do not respects file path`,
 		line: line(),
-		log: mujlog.Log{
+		log: logastic.Log{
 			Flag: log.LstdFlags,
 			Keys: [4]string{"message"},
 		},
@@ -425,7 +425,7 @@ var WriteTestCases = []struct {
 	{
 		name: `"long file" flag respects file path`,
 		line: line(),
-		log: mujlog.Log{
+		log: logastic.Log{
 			Flag:  log.Llongfile,
 			Trunc: 120,
 			Keys:  [4]string{"message", "preview", "file"},
@@ -440,7 +440,7 @@ var WriteTestCases = []struct {
 	{
 		name: "file path with empty message",
 		line: line(),
-		log: mujlog.Log{
+		log: logastic.Log{
 			Flag:  log.Llongfile,
 			Trunc: 120,
 			Keys:  [4]string{"message", "preview", "file"},
@@ -456,7 +456,7 @@ var WriteTestCases = []struct {
 	{
 		name: "file path with blank message",
 		line: line(),
-		log: mujlog.Log{
+		log: logastic.Log{
 			Flag:  log.Llongfile,
 			Trunc: 120,
 			Keys:  [4]string{"message", "preview", "file"},
@@ -472,7 +472,7 @@ var WriteTestCases = []struct {
 	{
 		name: `"magic" host field`,
 		line: line(),
-		log: mujlog.Log{
+		log: logastic.Log{
 			KV:    map[string]interface{}{"host": "example.tld"},
 			Trunc: 120,
 			Keys:  [4]string{"message", "preview", "file", "host"},
@@ -487,8 +487,8 @@ var WriteTestCases = []struct {
 	{
 		name: "GELF",
 		line: line(),
-		log: func() mujlog.Log {
-			l := mujlog.GELF()
+		log: func() logastic.Log {
+			l := logastic.GELF()
 			l.Funcs = map[string]func() interface{}{"timestamp": func() interface{} { return time.Date(2020, time.October, 15, 18, 9, 0, 0, time.UTC).Unix() }}
 			l.KV = map[string]interface{}{"version": "1.1", "host": "example.tld"}
 			return l
@@ -505,8 +505,8 @@ var WriteTestCases = []struct {
 	{
 		name: "GELF with file path",
 		line: line(),
-		log: func() mujlog.Log {
-			l := mujlog.GELF()
+		log: func() logastic.Log {
+			l := logastic.GELF()
 			l.Flag = log.Llongfile
 			l.Funcs = map[string]func() interface{}{"timestamp": func() interface{} { return time.Date(2020, time.October, 15, 18, 9, 0, 0, time.UTC).Unix() }}
 			l.KV = map[string]interface{}{"version": "1.1", "host": "example.tld"}
@@ -540,7 +540,7 @@ func TestWrite(t *testing.T) {
 
 			_, err := fmt.Fprint(tc.log, tc.input)
 			if err != nil {
-				t.Fatalf("unexpected mujlog write error: %s", err)
+				t.Fatalf("write error: %s", err)
 			}
 
 			ja := jsonassert.New(testprinter{t: t, link: linkToExample})
@@ -549,7 +549,7 @@ func TestWrite(t *testing.T) {
 	}
 }
 
-func BenchmarkMujlog(b *testing.B) {
+func BenchmarkLogastic(b *testing.B) {
 	for _, tc := range WriteTestCases {
 		if !tc.benchmark {
 			continue
@@ -574,7 +574,7 @@ func BenchmarkMujlog(b *testing.B) {
 var LogTestCases = []struct {
 	name     string
 	line     int
-	log      mujlog.Log
+	log      logastic.Log
 	input    []byte
 	kv       map[string]interface{}
 	expected string
@@ -592,7 +592,7 @@ var LogTestCases = []struct {
 	{
 		name: `"string" field with "foo" value and "string" key with "bar" value`,
 		line: line(),
-		log: mujlog.Log{
+		log: logastic.Log{
 			Trunc: 120,
 			KV:    map[string]interface{}{"string": "foo"},
 			Keys:  [4]string{"message"},
@@ -617,7 +617,7 @@ var LogTestCases = []struct {
 	{
 		name: `input appends to the message field value "string"`,
 		line: line(),
-		log: mujlog.Log{
+		log: logastic.Log{
 			KV:      map[string]interface{}{"message": "field string value"},
 			Trunc:   120,
 			Keys:    [4]string{"message", "preview"},
@@ -643,7 +643,7 @@ var LogTestCases = []struct {
 	{
 		name: `input is nil and message field value is "string"`,
 		line: line(),
-		log: mujlog.Log{
+		log: logastic.Log{
 			KV:      map[string]interface{}{"message": "string"},
 			Trunc:   120,
 			Keys:    [4]string{"message", "preview"},
@@ -725,7 +725,7 @@ func TestLog(t *testing.T) {
 
 			_, err := tc.log.Log(tc.input, tc.kv)
 			if err != nil {
-				t.Fatalf("unexpected mujlog write error: %s", err)
+				t.Fatalf("write error: %s", err)
 			}
 
 			ja := jsonassert.New(testprinter{t: t, link: linkToExample})

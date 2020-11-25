@@ -1,4 +1,4 @@
-module github.com/danil/mujlog
+module github.com/danil/logastic
 
 go 1.13
 
