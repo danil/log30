@@ -229,7 +229,7 @@ func mujlog(
 	} else {
 		kvs2[keys[FullKey]] = string(full)
 
-		if kvs2[keys[ShortKey]] == nil {
+		if kvs2[keys[ShortKey]] == nil && len(short) != 0 {
 			kvs2[keys[ShortKey]] = string(short)
 		}
 	}
@@ -248,7 +248,6 @@ func mujlog(
 
 func GELF() Log {
 	return Log{
-		Flag: log.Llongfile,
 		KVs: map[string]interface{}{
 			"version": "1.1",
 		},

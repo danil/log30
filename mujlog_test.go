@@ -15,7 +15,8 @@ import (
 )
 
 var (
-	pool  = sync.Pool{New: func() interface{} { return new(bytes.Buffer) }}
+	pool = sync.Pool{New: func() interface{} { return new(bytes.Buffer) }}
+
 	dummy = mujlog.Log{
 		Trunc:   120,
 		Keys:    [4]string{"message", "preview", "file", "host"},
@@ -23,6 +24,12 @@ var (
 		Marks:   [3][]byte{[]byte("…"), []byte("_EMPTY_"), []byte("_BLANK_")},
 		Replace: [][]byte{[]byte("\n"), []byte(" ")},
 	}
+
+	gelf = func() mujlog.Log {
+		l := mujlog.GELF()
+		l.Funcs = map[string]func() interface{}{"timestamp": func() interface{} { return time.Date(2020, time.October, 15, 18, 9, 0, 0, time.UTC).Unix() }}
+		return l
+	}()
 )
 
 func TestMujlogWriteTrailingNewLine(t *testing.T) {
@@ -47,18 +54,15 @@ var WriteTestCases = []struct {
 	line      int
 	log       mujlog.Log
 	input     interface{}
-	flag      int
-	kvs       map[string]interface{}
-	funcs     map[string]func() interface{}
 	expected  string
 	benchmark bool
 }{
 	{
-		name: "first readme example",
+		name: "readme example 1",
 		log: mujlog.Log{
+			Trunc:   12,
 			Keys:    [4]string{"message", "preview"},
 			Marks:   [3][]byte{[]byte("…")},
-			Trunc:   12,
 			Replace: [][]byte{[]byte("\n"), []byte(" ")},
 		},
 		line:  line(),
@@ -66,6 +70,42 @@ var WriteTestCases = []struct {
 		expected: `{
 			"preview":"Hello, World…",
 			"message":"Hello,\nWorld!"
+		}`,
+	},
+	{
+		name:  "readme example 2",
+		line:  line(),
+		log:   gelf,
+		input: "Hello,\nGELF!",
+		expected: `{
+			"version":"1.1",
+			"short_message":"Hello, GELF!",
+			"full_message":"Hello,\nGELF!",
+			"timestamp":1602785340
+		}`,
+	},
+	{
+		name: "readme example 3.1",
+		log: mujlog.Log{
+			Trunc: 120,
+			Keys:  [4]string{"message"},
+		},
+		line:  line(),
+		input: 3.21,
+		expected: `{
+			"message":"3.21"
+		}`,
+	},
+	{
+		name: "readme example 3.2",
+		log: mujlog.Log{
+			Trunc: 120,
+			Keys:  [4]string{"message"},
+		},
+		line:  line(),
+		input: 123,
+		expected: `{
+			"message":"123"
 		}`,
 	},
 	{
@@ -153,33 +193,39 @@ var WriteTestCases = []struct {
 		}`,
 	},
 	{
-		name:  `"string" field with "foo" value`,
-		line:  line(),
-		log:   dummy,
+		name: `"string" field with "foo" value`,
+		line: line(),
+		log: mujlog.Log{
+			KVs:  map[string]interface{}{"string": "foo"},
+			Keys: [4]string{"message"},
+		},
 		input: "Hello, World!",
-		kvs:   map[string]interface{}{"string": "foo"},
 		expected: `{
 			"message":"Hello, World!",
 		  "string": "foo"
 		}`,
 	},
 	{
-		name:  `"integer" field with 123 value`,
-		line:  line(),
-		log:   dummy,
+		name: `"integer" field with 123 value`,
+		line: line(),
+		log: mujlog.Log{
+			KVs:  map[string]interface{}{"integer": 123},
+			Keys: [4]string{"message"},
+		},
 		input: "Hello, World!",
-		kvs:   map[string]interface{}{"integer": 123},
 		expected: `{
 			"message":"Hello, World!",
 		  "integer": 123
 		}`,
 	},
 	{
-		name:  `"float" field with 3.21 value`,
-		line:  line(),
-		log:   dummy,
+		name: `"float" field with 3.21 value`,
+		line: line(),
+		log: mujlog.Log{
+			KVs:  map[string]interface{}{"float": 3.21},
+			Keys: [4]string{"message"},
+		},
 		input: "Hello, World!",
-		kvs:   map[string]interface{}{"float": 3.21},
 		expected: `{
 			"message":"Hello, World!",
 		  "float": 3.21
@@ -238,21 +284,19 @@ var WriteTestCases = []struct {
 	{
 		name: "zero maximum length",
 		log: mujlog.Log{
-			Keys:  [4]string{"message", "preview"},
+			Keys:  [4]string{"message"},
 			Trunc: 0,
 		},
 		line:  line(),
 		input: "Hello, World!",
 		expected: `{
-			"message":"Hello, World!",
-			"preview":""
+			"message":"Hello, World!"
 		}`,
 	},
 	{
 		name: "without message key names",
 		log: mujlog.Log{
-			Keys:  [4]string{},
-			Trunc: 120,
+			Keys: [4]string{},
 		},
 		line:  line(),
 		input: "Hello, World!",
@@ -263,8 +307,7 @@ var WriteTestCases = []struct {
 	{
 		name: "only full message key name",
 		log: mujlog.Log{
-			Keys:  [4]string{"message"},
-			Trunc: 120,
+			Keys: [4]string{"message"},
 		},
 		line:  line(),
 		input: "Hello, World!",
@@ -273,98 +316,123 @@ var WriteTestCases = []struct {
 		}`,
 	},
 	{
-		name:  `explicit byte slice as short message field`,
-		line:  line(),
-		log:   dummy,
+		name: `explicit byte slice as short message field`,
+		line: line(),
+		log: mujlog.Log{
+			KVs:   map[string]interface{}{"preview": []byte("Explicit byte slice")},
+			Trunc: 120,
+			Keys:  [4]string{"message", "preview"},
+		},
 		input: "Hello, World!",
-		kvs:   map[string]interface{}{"preview": []byte("Explicit byte slice")},
 		expected: `{
 		  "message": "Hello, World!",
 			"preview":"Explicit byte slice"
 		}`,
 	},
 	{
-		name:  `explicit string as short message field`,
-		line:  line(),
-		log:   dummy,
+		name: `explicit string as short message field`,
+		line: line(),
+		log: mujlog.Log{
+			KVs:   map[string]interface{}{"preview": "Explicit string"},
+			Trunc: 120,
+			Keys:  [4]string{"message", "preview"},
+		},
 		input: "Hello, World!",
-		kvs:   map[string]interface{}{"preview": "Explicit string"},
 		expected: `{
 		  "message": "Hello, World!",
 			"preview":"Explicit string"
 		}`,
 	},
 	{
-		name:  `explicit integer as short message field`,
-		line:  line(),
-		log:   dummy,
+		name: `explicit integer as short message field`,
+		line: line(),
+		log: mujlog.Log{
+			KVs:   map[string]interface{}{"preview": 42},
+			Trunc: 120,
+			Keys:  [4]string{"message", "preview"},
+		},
 		input: "Hello, World!",
-		kvs:   map[string]interface{}{"preview": 42},
 		expected: `{
 		  "message": "Hello, World!",
 			"preview":42
 		}`,
 	},
 	{
-		name:  `explicit float as short message field`,
-		line:  line(),
-		log:   dummy,
+		name: `explicit float as short message field`,
+		line: line(),
+		log: mujlog.Log{
+			KVs:   map[string]interface{}{"preview": 4.2},
+			Trunc: 120,
+			Keys:  [4]string{"message", "preview"},
+		},
 		input: "Hello, World!",
-		kvs:   map[string]interface{}{"preview": 4.2},
 		expected: `{
 		  "message": "Hello, World!",
 			"preview":4.2
 		}`,
 	},
 	{
-		name:  `explicit boolean as short message field`,
-		line:  line(),
-		log:   dummy,
+		name: `explicit boolean as short message field`,
+		line: line(),
+		log: mujlog.Log{
+			KVs:   map[string]interface{}{"preview": true},
+			Trunc: 120,
+			Keys:  [4]string{"message", "preview"},
+		},
 		input: "Hello, World!",
-		kvs:   map[string]interface{}{"preview": true},
 		expected: `{
 		  "message": "Hello, World!",
 			"preview":true
 		}`,
 	},
 	{
-		name:  `explicit rune slice as short message field`,
-		line:  line(),
-		log:   dummy,
+		name: `explicit rune slice as short message field`,
+		line: line(),
+		log: mujlog.Log{
+			KVs:   map[string]interface{}{"preview": []rune("Explicit rune slice")},
+			Trunc: 120,
+			Keys:  [4]string{"message", "preview"},
+		},
 		input: "Hello, World!",
-		kvs:   map[string]interface{}{"preview": []rune("Explicit rune slice")},
 		expected: `{
 		  "message": "Hello, World!",
 			"preview":"Explicit rune slice"
 		}`,
 	},
 	{
-		name:  "dynamic field",
-		line:  line(),
-		log:   dummy,
+		name: "dynamic field",
+		line: line(),
+		log: mujlog.Log{
+			Funcs: map[string]func() interface{}{"time": func() interface{} { return time.Date(2020, time.October, 15, 18, 9, 0, 0, time.UTC).String() }},
+			Keys:  [4]string{"message"},
+		},
 		input: "Hello, World!",
-		funcs: map[string]func() interface{}{"time": func() interface{} { return time.Date(2020, time.October, 15, 18, 9, 0, 0, time.UTC).String() }},
 		expected: `{
 			"message":"Hello, World!",
 			"time":"2020-10-15 18:09:00 +0000 UTC"
 		}`,
 	},
 	{
-		name:  `"standard flag" do not respects file path`,
-		line:  line(),
-		log:   dummy,
+		name: `"standard flag" do not respects file path`,
+		line: line(),
+		log: mujlog.Log{
+			Flag: log.LstdFlags,
+			Keys: [4]string{"message"},
+		},
 		input: "path/to/file1:23: Hello, World!",
-		flag:  log.LstdFlags,
 		expected: `{
 			"message":"path/to/file1:23: Hello, World!"
 		}`,
 	},
 	{
-		name:  `"long file" flag respects file path`,
-		line:  line(),
-		log:   dummy,
+		name: `"long file" flag respects file path`,
+		line: line(),
+		log: mujlog.Log{
+			Flag:  log.Llongfile,
+			Trunc: 120,
+			Keys:  [4]string{"message", "preview", "file"},
+		},
 		input: "path/to/file1:23: Hello, World!",
-		flag:  log.Llongfile,
 		expected: `{
 			"message":"path/to/file1:23: Hello, World!",
 			"preview":"Hello, World!",
@@ -372,11 +440,15 @@ var WriteTestCases = []struct {
 		}`,
 	},
 	{
-		name:  "file path with empty message",
-		line:  line(),
-		log:   dummy,
+		name: "file path with empty message",
+		line: line(),
+		log: mujlog.Log{
+			Flag:  log.Llongfile,
+			Trunc: 120,
+			Keys:  [4]string{"message", "preview", "file"},
+			Marks: [3][]byte{[]byte("…"), []byte("_EMPTY_")},
+		},
 		input: "path/to/file1:23:",
-		flag:  log.Llongfile,
 		expected: `{
 			"message":"path/to/file1:23:",
 			"preview":"_EMPTY_",
@@ -384,11 +456,15 @@ var WriteTestCases = []struct {
 		}`,
 	},
 	{
-		name:  "file path with blank message",
-		line:  line(),
-		log:   dummy,
+		name: "file path with blank message",
+		line: line(),
+		log: mujlog.Log{
+			Flag:  log.Llongfile,
+			Trunc: 120,
+			Keys:  [4]string{"message", "preview", "file"},
+			Marks: [3][]byte{[]byte("…"), []byte("_EMPTY_"), []byte("_BLANK_")},
+		},
 		input: "path/to/file4:56:  ",
-		flag:  log.Llongfile,
 		expected: `{
 			"message":"path/to/file4:56:  ",
 			"preview":"_BLANK_",
@@ -396,11 +472,14 @@ var WriteTestCases = []struct {
 		}`,
 	},
 	{
-		name:  `"magic" host field`,
-		line:  line(),
-		log:   dummy,
+		name: `"magic" host field`,
+		line: line(),
+		log: mujlog.Log{
+			KVs:   map[string]interface{}{"host": "example.tld"},
+			Trunc: 120,
+			Keys:  [4]string{"message", "preview", "file", "host"},
+		},
 		input: "Hello, World!",
-		kvs:   map[string]interface{}{"host": "example.tld"},
 		expected: `{
 			"message":"Hello, World!",
 			"preview":"example.tld Hello, World!",
@@ -408,12 +487,15 @@ var WriteTestCases = []struct {
 		}`,
 	},
 	{
-		name:  "GELF",
-		line:  line(),
-		log:   mujlog.GELF(),
+		name: "GELF",
+		line: line(),
+		log: func() mujlog.Log {
+			l := mujlog.GELF()
+			l.Funcs = map[string]func() interface{}{"timestamp": func() interface{} { return time.Date(2020, time.October, 15, 18, 9, 0, 0, time.UTC).Unix() }}
+			l.KVs = map[string]interface{}{"version": "1.1", "host": "example.tld"}
+			return l
+		}(),
 		input: "Hello, GELF!",
-		kvs:   map[string]interface{}{"version": "1.1", "host": "example.tld"},
-		funcs: map[string]func() interface{}{"timestamp": func() interface{} { return time.Date(2020, time.October, 15, 18, 9, 0, 0, time.UTC).Unix() }},
 		expected: `{
 			"version":"1.1",
 			"short_message":"example.tld Hello, GELF!",
@@ -423,13 +505,16 @@ var WriteTestCases = []struct {
 		}`,
 	},
 	{
-		name:  "GELF with file path",
-		line:  line(),
-		log:   mujlog.GELF(),
+		name: "GELF with file path",
+		line: line(),
+		log: func() mujlog.Log {
+			l := mujlog.GELF()
+			l.Flag = log.Llongfile
+			l.Funcs = map[string]func() interface{}{"timestamp": func() interface{} { return time.Date(2020, time.October, 15, 18, 9, 0, 0, time.UTC).Unix() }}
+			l.KVs = map[string]interface{}{"version": "1.1", "host": "example.tld"}
+			return l
+		}(),
 		input: "path/to/file7:89: Hello, GELF!",
-		flag:  log.Llongfile,
-		kvs:   map[string]interface{}{"version": "1.1", "host": "example.tld"},
-		funcs: map[string]func() interface{}{"timestamp": func() interface{} { return time.Date(2020, time.October, 15, 18, 9, 0, 0, time.UTC).Unix() }},
 		expected: `{
 			"version":"1.1",
 			"short_message":"example.tld Hello, GELF!",
@@ -454,9 +539,6 @@ func TestWrite(t *testing.T) {
 			defer pool.Put(buf)
 
 			tc.log.Output = buf
-			tc.log.Flag = tc.flag
-			tc.log.KVs = tc.kvs
-			tc.log.Funcs = tc.funcs
 
 			_, err := fmt.Fprint(tc.log, tc.input)
 			if err != nil {
@@ -481,9 +563,6 @@ func BenchmarkMujlog(b *testing.B) {
 				defer pool.Put(buf)
 
 				tc.log.Output = buf
-				tc.log.Flag = tc.flag
-				tc.log.KVs = tc.kvs
-				tc.log.Funcs = tc.funcs
 
 				_, err := fmt.Fprint(tc.log, tc.input)
 				if err != nil {
@@ -499,8 +578,7 @@ var LogTestCases = []struct {
 	line     int
 	log      mujlog.Log
 	input    []byte
-	kvs      map[string]interface{}
-	kvs2     map[string]interface{}
+	kv       map[string]interface{}
 	expected string
 }{
 	{
@@ -514,12 +592,15 @@ var LogTestCases = []struct {
 		}`,
 	},
 	{
-		name:  `"string" field with "foo" value and "string" key with "bar" value`,
-		line:  line(),
-		log:   dummy,
+		name: `"string" field with "foo" value and "string" key with "bar" value`,
+		line: line(),
+		log: mujlog.Log{
+			Trunc: 120,
+			KVs:   map[string]interface{}{"string": "foo"},
+			Keys:  [4]string{"message"},
+		},
 		input: []byte("Hello, World!"),
-		kvs:   map[string]interface{}{"string": "foo"},
-		kvs2:  map[string]interface{}{"string": "bar"},
+		kv:    map[string]interface{}{"string": "bar"},
 		expected: `{
 			"message":"Hello, World!",
 		  "string": "bar"
@@ -530,17 +611,21 @@ var LogTestCases = []struct {
 		line:  line(),
 		log:   dummy,
 		input: []byte("Hello, World!"),
-		kvs2:  nil,
+		kv:    nil,
 		expected: `{
 			"message":"Hello, World!"
 		}`,
 	},
 	{
-		name:  `input appends to the message field value "string"`,
-		line:  line(),
-		log:   dummy,
+		name: `input appends to the message field value "string"`,
+		line: line(),
+		log: mujlog.Log{
+			KVs:     map[string]interface{}{"message": "field string value"},
+			Trunc:   120,
+			Keys:    [4]string{"message", "preview"},
+			Replace: [][]byte{[]byte("\n"), []byte(" ")},
+		},
 		input: []byte("\nHello, World!"),
-		kvs:   map[string]interface{}{"message": "field string value"},
 		expected: `{
 			"message":"field string value\nHello, World!",
 			"preview":"field string value Hello, World!"
@@ -551,18 +636,22 @@ var LogTestCases = []struct {
 		line:  line(),
 		log:   dummy,
 		input: []byte("\nHello, World!"),
-		kvs2:  map[string]interface{}{"message": "field string value"},
+		kv:    map[string]interface{}{"message": "field string value"},
 		expected: `{
 			"message":"field string value\nHello, World!",
 			"preview":"field string value Hello, World!"
 		}`,
 	},
 	{
-		name:  `input is nil and message field value is "string"`,
-		line:  line(),
-		log:   dummy,
+		name: `input is nil and message field value is "string"`,
+		line: line(),
+		log: mujlog.Log{
+			KVs:     map[string]interface{}{"message": "string"},
+			Trunc:   120,
+			Keys:    [4]string{"message", "preview"},
+			Replace: [][]byte{[]byte("\n"), []byte(" ")},
+		},
 		input: nil,
-		kvs:   map[string]interface{}{"message": "string"},
 		expected: `{
 			"message":"string"
 		}`,
@@ -572,7 +661,7 @@ var LogTestCases = []struct {
 		line:  line(),
 		log:   dummy,
 		input: nil,
-		kvs2:  map[string]interface{}{"message": "string"},
+		kv:    map[string]interface{}{"message": "string"},
 		expected: `{
 			"message":"string"
 		}`,
@@ -582,7 +671,7 @@ var LogTestCases = []struct {
 		line:  line(),
 		log:   dummy,
 		input: []byte("\nHello, World!"),
-		kvs2:  map[string]interface{}{"message": 1},
+		kv:    map[string]interface{}{"message": 1},
 		expected: `{
 			"message":"1\nHello, World!",
 			"preview":"1 Hello, World!"
@@ -593,7 +682,7 @@ var LogTestCases = []struct {
 		line:  line(),
 		log:   dummy,
 		input: []byte("\nHello, World!"),
-		kvs2:  map[string]interface{}{"message": 2.1},
+		kv:    map[string]interface{}{"message": 2.1},
 		expected: `{
 			"message":"2.1\nHello, World!",
 			"preview":"2.1 Hello, World!"
@@ -604,7 +693,7 @@ var LogTestCases = []struct {
 		line:  line(),
 		log:   dummy,
 		input: []byte("\nHello, World!"),
-		kvs2:  map[string]interface{}{"message": true},
+		kv:    map[string]interface{}{"message": true},
 		expected: `{
 			"message":"true\nHello, World!",
 			"preview":"true Hello, World!"
@@ -615,7 +704,7 @@ var LogTestCases = []struct {
 		line:  line(),
 		log:   dummy,
 		input: []byte("Hello, World!"),
-		kvs2:  map[string]interface{}{"message": nil},
+		kv:    map[string]interface{}{"message": nil},
 		expected: `{
 			"message":"Hello, World!"
 		}`,
@@ -635,9 +724,8 @@ func TestLog(t *testing.T) {
 			defer pool.Put(buf)
 
 			tc.log.Output = buf
-			tc.log.KVs = tc.kvs
 
-			_, err := tc.log.Log(tc.input, tc.kvs2)
+			_, err := tc.log.Log(tc.input, tc.kv)
 			if err != nil {
 				t.Fatalf("unexpected mujlog write error: %s", err)
 			}

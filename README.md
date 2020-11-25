@@ -52,9 +52,9 @@ import (
 )
 
 func main() {
-    glf := mujlog.GELF()
-    glf.Output = os.Stdout
-    log.SetOutput(glf)
+    l := mujlog.GELF()
+    l.Output = os.Stdout
+    log.SetOutput(l)
     log.Println("Hello,\nGELF!")
 }
 ```
