@@ -14,7 +14,16 @@ import (
 	"github.com/kinbiko/jsonassert"
 )
 
-var pool = sync.Pool{New: func() interface{} { return new(bytes.Buffer) }}
+var (
+	pool  = sync.Pool{New: func() interface{} { return new(bytes.Buffer) }}
+	dummy = mujlog.Log{
+		Max:     120,
+		Keys:    [4]string{"message", "preview", "file", "host"},
+		Key:     mujlog.FullKey,
+		Marks:   [3][]byte{[]byte("…"), []byte("_EMPTY_"), []byte("_BLANK_")},
+		Replace: [][]byte{[]byte("\n"), []byte(" ")},
+	}
+)
 
 func TestMujlogWriteTrailingNewLine(t *testing.T) {
 	var buf bytes.Buffer
@@ -47,9 +56,10 @@ var WriteTestCases = []struct {
 	{
 		name: "first readme example",
 		log: mujlog.Log{
-			Keys:  [4]string{"message", "preview"},
-			Marks: [3][]byte{[]byte("…")},
-			Max:   12,
+			Keys:    [4]string{"message", "preview"},
+			Marks:   [3][]byte{[]byte("…")},
+			Max:     12,
+			Replace: [][]byte{[]byte("\n"), []byte(" ")},
 		},
 		line:  line(),
 		input: "Hello,\nWorld!",
@@ -61,6 +71,7 @@ var WriteTestCases = []struct {
 	{
 		name:  "string",
 		line:  line(),
+		log:   dummy,
 		input: "Hello, World!",
 		expected: `{
 			"message":"Hello, World!"
@@ -69,6 +80,7 @@ var WriteTestCases = []struct {
 	{
 		name:  "integer type appears in the short messages as a string",
 		line:  line(),
+		log:   dummy,
 		input: 123,
 		expected: `{
 			"message":"123"
@@ -77,6 +89,7 @@ var WriteTestCases = []struct {
 	{
 		name:  "float type appears in the short messages as a string",
 		line:  line(),
+		log:   dummy,
 		input: 3.21,
 		expected: `{
 			"message":"3.21"
@@ -85,6 +98,7 @@ var WriteTestCases = []struct {
 	{
 		name:  "empty message",
 		line:  line(),
+		log:   dummy,
 		input: "",
 		expected: `{
 	    "message":"",
@@ -94,6 +108,7 @@ var WriteTestCases = []struct {
 	{
 		name:  "blank message",
 		line:  line(),
+		log:   dummy,
 		input: " ",
 		expected: `{
 	    "message":" ",
@@ -103,6 +118,7 @@ var WriteTestCases = []struct {
 	{
 		name:  "single quotes",
 		line:  line(),
+		log:   dummy,
 		input: "foo 'bar'",
 		expected: `{
 			"message":"foo 'bar'"
@@ -111,6 +127,7 @@ var WriteTestCases = []struct {
 	{
 		name:  "double quotes",
 		line:  line(),
+		log:   dummy,
 		input: `foo "bar"`,
 		expected: `{
 			"message":"foo \"bar\""
@@ -119,6 +136,7 @@ var WriteTestCases = []struct {
 	{
 		name:  `leading/trailing "spaces"`,
 		line:  line(),
+		log:   dummy,
 		input: " \n\tHello, World! \t\n",
 		expected: `{
 			"message":" \n\tHello, World! \t\n",
@@ -128,6 +146,7 @@ var WriteTestCases = []struct {
 	{
 		name:  "JSON string",
 		line:  line(),
+		log:   dummy,
 		input: `{"foo":"bar"}`,
 		expected: `{
 			"message":"{\"foo\":\"bar\"}"
@@ -136,6 +155,7 @@ var WriteTestCases = []struct {
 	{
 		name:  `"string" field with "foo" value`,
 		line:  line(),
+		log:   dummy,
 		input: "Hello, World!",
 		kvs:   map[string]interface{}{"string": "foo"},
 		expected: `{
@@ -146,6 +166,7 @@ var WriteTestCases = []struct {
 	{
 		name:  `"integer" field with 123 value`,
 		line:  line(),
+		log:   dummy,
 		input: "Hello, World!",
 		kvs:   map[string]interface{}{"integer": 123},
 		expected: `{
@@ -156,6 +177,7 @@ var WriteTestCases = []struct {
 	{
 		name:  `"float" field with 3.21 value`,
 		line:  line(),
+		log:   dummy,
 		input: "Hello, World!",
 		kvs:   map[string]interface{}{"float": 3.21},
 		expected: `{
@@ -166,6 +188,7 @@ var WriteTestCases = []struct {
 	{
 		name:  "fmt.Fprint prints nil as <nil>",
 		line:  line(),
+		log:   dummy,
 		input: nil,
 		expected: `{
 			"message":"<nil>"
@@ -174,6 +197,7 @@ var WriteTestCases = []struct {
 	{
 		name:  "multiline string",
 		line:  line(),
+		log:   dummy,
 		input: "Hello,\nWorld!",
 		expected: `{
 			"message":"Hello,\nWorld!",
@@ -183,6 +207,7 @@ var WriteTestCases = []struct {
 	{
 		name:  "long string",
 		line:  line(),
+		log:   dummy,
 		input: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
 		expected: `{
 			"message":"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
@@ -192,6 +217,7 @@ var WriteTestCases = []struct {
 	{
 		name:  "multiline long string with leading spaces",
 		line:  line(),
+		log:   dummy,
 		input: " \n \tLorem ipsum dolor sit amet,\nconsectetur adipiscing elit,\nsed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
 		expected: `{
 			"message":" \n \tLorem ipsum dolor sit amet,\nconsectetur adipiscing elit,\nsed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
@@ -201,6 +227,7 @@ var WriteTestCases = []struct {
 	{
 		name:  "multiline long string with leading spaces and multibyte character",
 		line:  line(),
+		log:   dummy,
 		input: " \n \tLorem ipsum dolor sit amet,\nconsectetur adipiscing elit,\nsed do eiusmod tempor incididunt ut labore et dolore magna Ää.",
 		expected: `{
 			"message":" \n \tLorem ipsum dolor sit amet,\nconsectetur adipiscing elit,\nsed do eiusmod tempor incididunt ut labore et dolore magna Ää.",
@@ -209,7 +236,32 @@ var WriteTestCases = []struct {
 		benchmark: true,
 	},
 	{
-		name: "only message key name",
+		name: "zero maximum length",
+		log: mujlog.Log{
+			Keys: [4]string{"message", "preview"},
+			Max:  0,
+		},
+		line:  line(),
+		input: "Hello, World!",
+		expected: `{
+			"message":"Hello, World!",
+			"preview":""
+		}`,
+	},
+	{
+		name: "without message key names",
+		log: mujlog.Log{
+			Keys: [4]string{},
+			Max:  120,
+		},
+		line:  line(),
+		input: "Hello, World!",
+		expected: `{
+			"":"Hello, World!"
+		}`,
+	},
+	{
+		name: "only full message key name",
 		log: mujlog.Log{
 			Keys: [4]string{"message"},
 			Max:  120,
@@ -223,6 +275,7 @@ var WriteTestCases = []struct {
 	{
 		name:  `explicit byte slice as short message field`,
 		line:  line(),
+		log:   dummy,
 		input: "Hello, World!",
 		kvs:   map[string]interface{}{"preview": []byte("Explicit byte slice")},
 		expected: `{
@@ -233,6 +286,7 @@ var WriteTestCases = []struct {
 	{
 		name:  `explicit string as short message field`,
 		line:  line(),
+		log:   dummy,
 		input: "Hello, World!",
 		kvs:   map[string]interface{}{"preview": "Explicit string"},
 		expected: `{
@@ -243,6 +297,7 @@ var WriteTestCases = []struct {
 	{
 		name:  `explicit integer as short message field`,
 		line:  line(),
+		log:   dummy,
 		input: "Hello, World!",
 		kvs:   map[string]interface{}{"preview": 42},
 		expected: `{
@@ -253,6 +308,7 @@ var WriteTestCases = []struct {
 	{
 		name:  `explicit float as short message field`,
 		line:  line(),
+		log:   dummy,
 		input: "Hello, World!",
 		kvs:   map[string]interface{}{"preview": 4.2},
 		expected: `{
@@ -263,6 +319,7 @@ var WriteTestCases = []struct {
 	{
 		name:  `explicit boolean as short message field`,
 		line:  line(),
+		log:   dummy,
 		input: "Hello, World!",
 		kvs:   map[string]interface{}{"preview": true},
 		expected: `{
@@ -273,6 +330,7 @@ var WriteTestCases = []struct {
 	{
 		name:  `explicit rune slice as short message field`,
 		line:  line(),
+		log:   dummy,
 		input: "Hello, World!",
 		kvs:   map[string]interface{}{"preview": []rune("Explicit rune slice")},
 		expected: `{
@@ -283,6 +341,7 @@ var WriteTestCases = []struct {
 	{
 		name:  "dynamic field",
 		line:  line(),
+		log:   dummy,
 		input: "Hello, World!",
 		funcs: map[string]func() interface{}{"time": func() interface{} { return time.Date(2020, time.October, 15, 18, 9, 0, 0, time.UTC).String() }},
 		expected: `{
@@ -293,6 +352,7 @@ var WriteTestCases = []struct {
 	{
 		name:  `"standard flag" do not respects file path`,
 		line:  line(),
+		log:   dummy,
 		input: "path/to/file1:23: Hello, World!",
 		flag:  log.LstdFlags,
 		expected: `{
@@ -302,6 +362,7 @@ var WriteTestCases = []struct {
 	{
 		name:  `"long file" flag respects file path`,
 		line:  line(),
+		log:   dummy,
 		input: "path/to/file1:23: Hello, World!",
 		flag:  log.Llongfile,
 		expected: `{
@@ -313,6 +374,7 @@ var WriteTestCases = []struct {
 	{
 		name:  "file path with empty message",
 		line:  line(),
+		log:   dummy,
 		input: "path/to/file1:23:",
 		flag:  log.Llongfile,
 		expected: `{
@@ -324,6 +386,7 @@ var WriteTestCases = []struct {
 	{
 		name:  "file path with blank message",
 		line:  line(),
+		log:   dummy,
 		input: "path/to/file4:56:  ",
 		flag:  log.Llongfile,
 		expected: `{
@@ -335,6 +398,7 @@ var WriteTestCases = []struct {
 	{
 		name:  `"magic" host field`,
 		line:  line(),
+		log:   dummy,
 		input: "Hello, World!",
 		kvs:   map[string]interface{}{"host": "example.tld"},
 		expected: `{
@@ -388,20 +452,6 @@ func TestWrite(t *testing.T) {
 			buf := pool.Get().(*bytes.Buffer)
 			buf.Reset()
 			defer pool.Put(buf)
-
-			if tc.log.Max == 0 {
-				tc.log.Max = 120
-			}
-			if tc.log.Keys == ([4]string{}) {
-				tc.log.Keys = [4]string{"message", "preview", "file", "host"}
-				tc.log.Key = mujlog.FullKey
-			}
-			if bytes.Equal(tc.log.Marks[0], []byte{}) && bytes.Equal(tc.log.Marks[1], []byte{}) && bytes.Equal(tc.log.Marks[2], []byte{}) {
-				tc.log.Marks = [3][]byte{[]byte("…"), []byte("_EMPTY_"), []byte("_BLANK_")}
-			}
-			if tc.log.Replace == nil {
-				tc.log.Replace = [][]byte{[]byte("\n"), []byte(" ")}
-			}
 
 			tc.log.Output = buf
 			tc.log.Flag = tc.flag
@@ -471,6 +521,7 @@ var LogTestCases = []struct {
 		name:  "nil",
 		line:  line(),
 		input: nil,
+		log:   dummy,
 		expected: `{
 	    "message":"",
 			"preview":"_EMPTY_"
@@ -479,6 +530,7 @@ var LogTestCases = []struct {
 	{
 		name:  `"string" field with "foo" value and "string" key with "bar" value`,
 		line:  line(),
+		log:   dummy,
 		input: []byte("Hello, World!"),
 		kvs:   map[string]interface{}{"string": "foo"},
 		kvs2:  map[string]interface{}{"string": "bar"},
@@ -490,6 +542,7 @@ var LogTestCases = []struct {
 	{
 		name:  `key-values is nil`,
 		line:  line(),
+		log:   dummy,
 		input: []byte("Hello, World!"),
 		kvs2:  nil,
 		expected: `{
@@ -499,6 +552,7 @@ var LogTestCases = []struct {
 	{
 		name:  `input appends to the message field value "string"`,
 		line:  line(),
+		log:   dummy,
 		input: []byte("\nHello, World!"),
 		kvs:   map[string]interface{}{"message": "field string value"},
 		expected: `{
@@ -509,6 +563,7 @@ var LogTestCases = []struct {
 	{
 		name:  `input appends to the message key-field value "string"`,
 		line:  line(),
+		log:   dummy,
 		input: []byte("\nHello, World!"),
 		kvs2:  map[string]interface{}{"message": "field string value"},
 		expected: `{
@@ -519,6 +574,7 @@ var LogTestCases = []struct {
 	{
 		name:  `input is nil and message field value is "string"`,
 		line:  line(),
+		log:   dummy,
 		input: nil,
 		kvs:   map[string]interface{}{"message": "string"},
 		expected: `{
@@ -528,6 +584,7 @@ var LogTestCases = []struct {
 	{
 		name:  `input is nil and message key-value is "string"`,
 		line:  line(),
+		log:   dummy,
 		input: nil,
 		kvs2:  map[string]interface{}{"message": "string"},
 		expected: `{
@@ -537,6 +594,7 @@ var LogTestCases = []struct {
 	{
 		name:  `input appends to the integer key-value "message"`,
 		line:  line(),
+		log:   dummy,
 		input: []byte("\nHello, World!"),
 		kvs2:  map[string]interface{}{"message": 1},
 		expected: `{
@@ -547,6 +605,7 @@ var LogTestCases = []struct {
 	{
 		name:  `input appends to the float key-value "message"`,
 		line:  line(),
+		log:   dummy,
 		input: []byte("\nHello, World!"),
 		kvs2:  map[string]interface{}{"message": 2.1},
 		expected: `{
@@ -557,6 +616,7 @@ var LogTestCases = []struct {
 	{
 		name:  `input appends to the boolean key-value "message"`,
 		line:  line(),
+		log:   dummy,
 		input: []byte("\nHello, World!"),
 		kvs2:  map[string]interface{}{"message": true},
 		expected: `{
@@ -567,6 +627,7 @@ var LogTestCases = []struct {
 	{
 		name:  `input do not appends to the nil key-value "message"`,
 		line:  line(),
+		log:   dummy,
 		input: []byte("Hello, World!"),
 		kvs2:  map[string]interface{}{"message": nil},
 		expected: `{
@@ -586,15 +647,6 @@ func TestLog(t *testing.T) {
 			buf := pool.Get().(*bytes.Buffer)
 			buf.Reset()
 			defer pool.Put(buf)
-
-			tc.log.Keys = [4]string{"message", "preview", "file", "host"}
-			tc.log.Key = mujlog.FullKey
-			tc.log.Marks = [3][]byte{[]byte("…"), []byte("_EMPTY_"), []byte("_BLANK_")}
-			tc.log.Replace = [][]byte{[]byte("\n"), []byte(" ")}
-
-			if tc.log.Max == 0 {
-				tc.log.Max = 120
-			}
 
 			tc.log.Output = buf
 			tc.log.KVs = tc.kvs

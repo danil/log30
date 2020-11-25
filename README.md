@@ -72,7 +72,7 @@ Output:
 
 ## Caveats
 
-Numeric types appears in the short/full messages as a string. For example:
+Numeric types appears in the full/short messages as a string
 
 ```go
 package main
