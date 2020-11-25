@@ -68,8 +68,8 @@ var WriteTestCases = []struct {
 		line:  line(),
 		input: "Hello,\nWorld!",
 		expected: `{
-			"excerpt":"Hello, World…",
-			"message":"Hello,\nWorld!"
+			"message":"Hello,\nWorld!",
+			"excerpt":"Hello, World…"
 		}`,
 	},
 	{

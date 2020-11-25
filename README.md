@@ -34,8 +34,8 @@ Output:
 
 ```json
 {
-    "excerpt":"Hello, World…",
-    "message":"Hello,\nWorld!"
+    "message":"Hello,\nWorld!",
+    "excerpt":"Hello, World…"
 }
 ```
 
