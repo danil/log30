@@ -86,7 +86,6 @@ import (
 func main() {
     l := mujlog.Log{
         Output: os.Stdout,
-        Trunc: 120,
         Keys: [4]string{"message"},
     }
     log.SetOutput(l)

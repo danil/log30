@@ -87,8 +87,7 @@ var WriteTestCases = []struct {
 	{
 		name: "readme example 3.1",
 		log: mujlog.Log{
-			Trunc: 120,
-			Keys:  [4]string{"message"},
+			Keys: [4]string{"message"},
 		},
 		line:  line(),
 		input: 3.21,
@@ -99,8 +98,7 @@ var WriteTestCases = []struct {
 	{
 		name: "readme example 3.2",
 		log: mujlog.Log{
-			Trunc: 120,
-			Keys:  [4]string{"message"},
+			Keys: [4]string{"message"},
 		},
 		line:  line(),
 		input: 123,
