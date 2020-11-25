@@ -11,6 +11,7 @@ Set Logastic as global logger
 package main
 
 import (
+    "os"
     "log"
 
     "github.com/danil/logastic"
@@ -46,6 +47,7 @@ package main
 
 import (
     "log"
+    "os"
 
     "github.com/danil/logastic"
 )
@@ -78,6 +80,7 @@ package main
 
 import (
     "log"
+    "os"
 
     "github.com/danil/logastic"
 )
