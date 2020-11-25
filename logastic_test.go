@@ -20,7 +20,7 @@ var (
 	dummy = logastic.Log{
 		Trunc:   120,
 		Keys:    [4]string{"message", "preview", "file", "host"},
-		Key:     logastic.OriginalKey,
+		Key:     logastic.Original,
 		Marks:   [3][]byte{[]byte("…"), []byte("_EMPTY_"), []byte("_BLANK_")},
 		Replace: [][]byte{[]byte("\n"), []byte(" ")},
 	}

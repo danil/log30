@@ -13,10 +13,10 @@ import (
 )
 
 const (
-	OriginalKey = iota
-	ExcerptKey
-	FileKey
-	HostKey
+	Original = iota
+	Excerpt
+	File
+	Host
 )
 
 const (
@@ -89,7 +89,7 @@ func logastic(
 		kv2[k] = fn()
 	}
 
-	if v, ok := kv2[keys[OriginalKey]]; ok {
+	if v, ok := kv2[keys[Original]]; ok {
 		p := *originalP.Get().(*[]byte)
 		p = p[:0]
 		defer originalP.Put(&p)
@@ -123,16 +123,16 @@ func logastic(
 	excerpt = excerpt[:0]
 	defer excerptP.Put(&excerpt)
 
-	if kv2[keys[ExcerptKey]] != nil {
-		switch v := kv2[keys[ExcerptKey]].(type) {
+	if kv2[keys[Excerpt]] != nil {
+		switch v := kv2[keys[Excerpt]].(type) {
 		case string:
-			kv2[keys[ExcerptKey]] = v
+			kv2[keys[Excerpt]] = v
 		case []byte:
-			kv2[keys[ExcerptKey]] = string(v)
+			kv2[keys[Excerpt]] = string(v)
 		case []rune:
-			kv2[keys[ExcerptKey]] = string(v)
+			kv2[keys[Excerpt]] = string(v)
 		default:
-			kv2[keys[ExcerptKey]] = v
+			kv2[keys[Excerpt]] = v
 		}
 	} else {
 		if tail == len(original) {
@@ -198,8 +198,8 @@ func logastic(
 				excerpt = append(excerpt, marks[blankMark]...)
 			}
 
-			if kv2[keys[HostKey]] != nil {
-				excerpt = append(excerpt[:0], append([]byte(fmt.Sprint(kv2[keys[HostKey]])), append([]byte(" "), excerpt...)...)...)
+			if kv2[keys[Host]] != nil {
+				excerpt = append(excerpt[:0], append([]byte(fmt.Sprint(kv2[keys[Host]])), append([]byte(" "), excerpt...)...)...)
 			}
 
 			if len(excerpt) != 0 && truncate {
@@ -213,29 +213,29 @@ func logastic(
 	}
 
 	if bytes.Equal(original, excerpt) {
-		if key != ExcerptKey {
-			key = OriginalKey
+		if key != Excerpt {
+			key = Original
 		}
 
-		if key == OriginalKey {
-			delete(kv2, keys[ExcerptKey])
+		if key == Original {
+			delete(kv2, keys[Excerpt])
 		} else {
-			delete(kv2, keys[OriginalKey])
+			delete(kv2, keys[Original])
 		}
 
 		if kv2[keys[key]] == nil {
 			kv2[keys[key]] = string(original)
 		}
 	} else {
-		kv2[keys[OriginalKey]] = string(original)
+		kv2[keys[Original]] = string(original)
 
-		if kv2[keys[ExcerptKey]] == nil && len(excerpt) != 0 {
-			kv2[keys[ExcerptKey]] = string(excerpt)
+		if kv2[keys[Excerpt]] == nil && len(excerpt) != 0 {
+			kv2[keys[Excerpt]] = string(excerpt)
 		}
 	}
 
 	if file != 0 {
-		kv2[keys[FileKey]] = string(original[:file])
+		kv2[keys[File]] = string(original[:file])
 	}
 
 	p, err := json.Marshal(kv2)
@@ -256,7 +256,7 @@ func GELF() Log {
 		},
 		Trunc:   120,
 		Keys:    [4]string{"full_message", "short_message", "_file", "host"},
-		Key:     ExcerptKey,
+		Key:     Excerpt,
 		Marks:   [3][]byte{[]byte("…"), []byte("_EMPTY_"), []byte("_BLANK_")},
 		Replace: [][]byte{[]byte("\n"), []byte(" ")},
 	}
