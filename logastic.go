@@ -13,8 +13,8 @@ import (
 )
 
 const (
-	FullKey = iota
-	ShortKey
+	OrigianlKey = iota
+	ExcerptKey
 	FileKey
 	HostKey
 )
@@ -31,11 +31,11 @@ type Log struct {
 	Flag    int                           // log properties
 	KV      map[string]interface{}        // key-values
 	Funcs   map[string]func() interface{} // dynamically calculated key-values
-	Trunc   int                           // maximum length of the short message after which the short message is truncated
-	Keys    [4]string                     // 0 = full message key; 1 = short message key; 2 = file key; 3 = host key;
-	Key     uint8                         // sticky message key: all except 1 = full message; 1 = short message;
-	Marks   [3][]byte                     // 0 = truncate mark; 1 = empty mark; 2 = blank mark;
-	Replace [][]byte                      // pairs of byte slices to replace in a short message
+	Trunc   int                           // maximum length of the message excerpt after which the message excerpt is truncated
+	Keys    [4]string                     // 0 = original message; 1 = message excerpt; 2 = file; 3 = host;
+	Key     uint8                         // sticky message key: all except 1 = original message; 1 = message excerpt;
+	Marks   [3][]byte                     // 0 = truncate; 1 = empty; 2 = blank;
+	Replace [][]byte                      // pairs of byte slices to replace in the message excerpt
 }
 
 func (l Log) Write(p []byte) (int, error) {
@@ -57,9 +57,9 @@ func (l Log) Log(kv map[string]interface{}, p ...byte) (int, error) {
 var asciiSpace = [256]uint8{'\t': 1, '\n': 1, '\v': 1, '\f': 1, '\r': 1, ' ': 1}
 
 var (
-	fullP  = sync.Pool{New: func() interface{} { return new([]byte) }}
-	shortP = sync.Pool{New: func() interface{} { return new([]byte) }}
-	runeP  = sync.Pool{New: func() interface{} { return new([]byte) }}
+	originalP = sync.Pool{New: func() interface{} { return new([]byte) }}
+	excerptP  = sync.Pool{New: func() interface{} { return new([]byte) }}
+	runeP     = sync.Pool{New: func() interface{} { return new([]byte) }}
 )
 
 func logastic(
@@ -72,7 +72,7 @@ func logastic(
 	key uint8,
 	marks [3][]byte,
 	replace [][]byte,
-	full ...byte,
+	original ...byte,
 ) ([]byte, error) {
 	if kv2 == nil {
 		kv2 = make(map[string]interface{})
@@ -89,19 +89,19 @@ func logastic(
 		kv2[k] = fn()
 	}
 
-	if v, ok := kv2[keys[FullKey]]; ok {
-		p := *fullP.Get().(*[]byte)
+	if v, ok := kv2[keys[OrigianlKey]]; ok {
+		p := *originalP.Get().(*[]byte)
 		p = p[:0]
-		defer fullP.Put(&p)
+		defer originalP.Put(&p)
 
 		if v != nil {
 			p = append(p, []byte(fmt.Sprint(v))...)
 		}
 
-		if full == nil {
-			full = p
+		if original == nil {
+			original = p
 		} else {
-			full = append(p, full...)
+			original = append(p, original...)
 		}
 	}
 
@@ -109,9 +109,9 @@ func logastic(
 
 	switch flg {
 	case log.Lshortfile, log.Llongfile:
-		i := bytes.Index(full, []byte(": "))
+		i := bytes.Index(original, []byte(": "))
 		if i == -1 {
-			file = len(full) - 1
+			file = len(original) - 1
 			tail = file + 1
 		} else {
 			file = i
@@ -119,30 +119,30 @@ func logastic(
 		}
 	}
 
-	short := *shortP.Get().(*[]byte)
-	short = short[:0]
-	defer shortP.Put(&short)
+	excerpt := *excerptP.Get().(*[]byte)
+	excerpt = excerpt[:0]
+	defer excerptP.Put(&excerpt)
 
-	if kv2[keys[ShortKey]] != nil {
-		switch v := kv2[keys[ShortKey]].(type) {
+	if kv2[keys[ExcerptKey]] != nil {
+		switch v := kv2[keys[ExcerptKey]].(type) {
 		case string:
-			kv2[keys[ShortKey]] = v
+			kv2[keys[ExcerptKey]] = v
 		case []byte:
-			kv2[keys[ShortKey]] = string(v)
+			kv2[keys[ExcerptKey]] = string(v)
 		case []rune:
-			kv2[keys[ShortKey]] = string(v)
+			kv2[keys[ExcerptKey]] = string(v)
 		default:
-			kv2[keys[ShortKey]] = v
+			kv2[keys[ExcerptKey]] = v
 		}
 	} else {
-		if tail == len(full) {
-			short = append(short, marks[emptyMark]...)
+		if tail == len(original) {
+			excerpt = append(excerpt, marks[emptyMark]...)
 		} else {
 			i := tail
 			beg := true
 
 			for {
-				r, n := utf8.DecodeRune(full[i:])
+				r, n := utf8.DecodeRune(original[i:])
 				if n == 0 {
 					break
 				}
@@ -151,7 +151,7 @@ func logastic(
 				// Fast path for ASCII: look for the first ASCII non-space byte or
 				// if we run into a non-ASCII byte, fall back to the slower unicode-aware method
 				if beg {
-					c := full[i]
+					c := original[i]
 					if c < utf8.RuneSelf && asciiSpace[c] == 1 || unicode.IsSpace(r) {
 						i++
 						tail++
@@ -171,71 +171,71 @@ func logastic(
 
 				p = append(p, make([]byte, utf8.RuneLen(r))...)
 				utf8.EncodeRune(p, r)
-				short = append(short, p...)
+				excerpt = append(excerpt, p...)
 
 				i += n
 			}
 
-			truncate := len(full[tail:]) > len(short)
+			truncate := len(original[tail:]) > len(excerpt)
 
 			// Rids of off all trailing white space,
 			// as defined by Unicode.
 			// Look for the first ASCII non-space byte from the end.
-			i = len(short)
+			i = len(excerpt)
 			for ; i > 0; i-- {
-				c := short[i-1]
+				c := excerpt[i-1]
 				if c >= utf8.RuneSelf {
-					short = bytes.TrimFunc(short[0:i], unicode.IsSpace)
+					excerpt = bytes.TrimFunc(excerpt[0:i], unicode.IsSpace)
 					break
 				}
 				if asciiSpace[c] == 0 {
-					short = short[:i]
+					excerpt = excerpt[:i]
 					break
 				}
 			}
 
-			if len(short) == 0 {
-				short = append(short, marks[blankMark]...)
+			if len(excerpt) == 0 {
+				excerpt = append(excerpt, marks[blankMark]...)
 			}
 
 			if kv2[keys[HostKey]] != nil {
-				short = append(short[:0], append([]byte(fmt.Sprint(kv2[keys[HostKey]])), append([]byte(" "), short...)...)...)
+				excerpt = append(excerpt[:0], append([]byte(fmt.Sprint(kv2[keys[HostKey]])), append([]byte(" "), excerpt...)...)...)
 			}
 
-			if len(short) != 0 && truncate {
-				short = append(short, marks[truncMark]...)
+			if len(excerpt) != 0 && truncate {
+				excerpt = append(excerpt, marks[truncMark]...)
 			}
 
 			for i := 0; i < len(replace); i += 2 {
-				short = bytes.Replace(short, replace[i], replace[i+1], -1)
+				excerpt = bytes.Replace(excerpt, replace[i], replace[i+1], -1)
 			}
 		}
 	}
 
-	if bytes.Equal(full, short) {
-		if key != ShortKey {
-			key = FullKey
+	if bytes.Equal(original, excerpt) {
+		if key != ExcerptKey {
+			key = OrigianlKey
 		}
 
-		if key == FullKey {
-			delete(kv2, keys[ShortKey])
+		if key == OrigianlKey {
+			delete(kv2, keys[ExcerptKey])
 		} else {
-			delete(kv2, keys[FullKey])
+			delete(kv2, keys[OrigianlKey])
 		}
 
 		if kv2[keys[key]] == nil {
-			kv2[keys[key]] = string(full)
+			kv2[keys[key]] = string(original)
 		}
 	} else {
-		kv2[keys[FullKey]] = string(full)
+		kv2[keys[OrigianlKey]] = string(original)
 
-		if kv2[keys[ShortKey]] == nil && len(short) != 0 {
-			kv2[keys[ShortKey]] = string(short)
+		if kv2[keys[ExcerptKey]] == nil && len(excerpt) != 0 {
+			kv2[keys[ExcerptKey]] = string(excerpt)
 		}
 	}
 
 	if file != 0 {
-		kv2[keys[FileKey]] = string(full[:file])
+		kv2[keys[FileKey]] = string(original[:file])
 	}
 
 	p, err := json.Marshal(kv2)
@@ -256,7 +256,7 @@ func GELF() Log {
 		},
 		Trunc:   120,
 		Keys:    [4]string{"full_message", "short_message", "_file", "host"},
-		Key:     ShortKey,
+		Key:     ExcerptKey,
 		Marks:   [3][]byte{[]byte("…"), []byte("_EMPTY_"), []byte("_BLANK_")},
 		Replace: [][]byte{[]byte("\n"), []byte(" ")},
 	}

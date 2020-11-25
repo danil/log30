@@ -20,7 +20,7 @@ var (
 	dummy = logastic.Log{
 		Trunc:   120,
 		Keys:    [4]string{"message", "preview", "file", "host"},
-		Key:     logastic.FullKey,
+		Key:     logastic.OrigianlKey,
 		Marks:   [3][]byte{[]byte("…"), []byte("_EMPTY_"), []byte("_BLANK_")},
 		Replace: [][]byte{[]byte("\n"), []byte(" ")},
 	}
@@ -116,7 +116,7 @@ var WriteTestCases = []struct {
 		}`,
 	},
 	{
-		name:  "integer type appears in the short messages as a string",
+		name:  "integer type appears in the messages excerpt as a string",
 		line:  line(),
 		log:   dummy,
 		input: 123,
@@ -125,7 +125,7 @@ var WriteTestCases = []struct {
 		}`,
 	},
 	{
-		name:  "float type appears in the short messages as a string",
+		name:  "float type appears in the messages excerpt as a string",
 		line:  line(),
 		log:   dummy,
 		input: 3.21,
@@ -303,7 +303,7 @@ var WriteTestCases = []struct {
 		}`,
 	},
 	{
-		name: "only full message key name",
+		name: "only original message key name",
 		log: logastic.Log{
 			Keys: [4]string{"message"},
 		},
@@ -314,7 +314,7 @@ var WriteTestCases = []struct {
 		}`,
 	},
 	{
-		name: `explicit byte slice as short message key`,
+		name: `explicit byte slice as message excerpt key`,
 		line: line(),
 		log: logastic.Log{
 			KV:    map[string]interface{}{"preview": []byte("Explicit byte slice")},
@@ -328,7 +328,7 @@ var WriteTestCases = []struct {
 		}`,
 	},
 	{
-		name: `explicit string as short message key`,
+		name: `explicit string as message excerpt key`,
 		line: line(),
 		log: logastic.Log{
 			KV:    map[string]interface{}{"preview": "Explicit string"},
@@ -342,7 +342,7 @@ var WriteTestCases = []struct {
 		}`,
 	},
 	{
-		name: `explicit integer as short message key`,
+		name: `explicit integer as message excerpt key`,
 		line: line(),
 		log: logastic.Log{
 			KV:    map[string]interface{}{"preview": 42},
@@ -356,7 +356,7 @@ var WriteTestCases = []struct {
 		}`,
 	},
 	{
-		name: `explicit float as short message key`,
+		name: `explicit float as message excerpt key`,
 		line: line(),
 		log: logastic.Log{
 			KV:    map[string]interface{}{"preview": 4.2},
@@ -370,7 +370,7 @@ var WriteTestCases = []struct {
 		}`,
 	},
 	{
-		name: `explicit boolean as short message key`,
+		name: `explicit boolean as message excerpt key`,
 		line: line(),
 		log: logastic.Log{
 			KV:    map[string]interface{}{"preview": true},
@@ -384,7 +384,7 @@ var WriteTestCases = []struct {
 		}`,
 	},
 	{
-		name: `explicit rune slice as short message key`,
+		name: `explicit rune slice as messages excerpt key`,
 		line: line(),
 		log: logastic.Log{
 			KV:    map[string]interface{}{"preview": []rune("Explicit rune slice")},
