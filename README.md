@@ -25,6 +25,7 @@ func main() {
         Marks: [3][]byte{[]byte("…")},
         Replace: [][]byte{[]byte("\n"), []byte(" ")},
     }
+    log.SetFlags(0)
     log.SetOutput(l)
 
     log.Println("Hello,\nWorld!")
@@ -55,6 +56,7 @@ import (
 func main() {
     l := logastic.GELF()
     l.Output = os.Stdout
+    log.SetFlags(0)
     log.SetOutput(l)
     log.Println("Hello,\nGELF!")
 }
@@ -90,6 +92,7 @@ func main() {
         Output: os.Stdout,
         Keys: [4]string{"message"},
     }
+    log.SetFlags(0)
     log.SetOutput(l)
 
     log.Println(123)
