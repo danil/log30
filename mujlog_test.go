@@ -196,7 +196,7 @@ var WriteTestCases = []struct {
 		name: `"string" field with "foo" value`,
 		line: line(),
 		log: mujlog.Log{
-			KVs:  map[string]interface{}{"string": "foo"},
+			KV:   map[string]interface{}{"string": "foo"},
 			Keys: [4]string{"message"},
 		},
 		input: "Hello, World!",
@@ -209,7 +209,7 @@ var WriteTestCases = []struct {
 		name: `"integer" field with 123 value`,
 		line: line(),
 		log: mujlog.Log{
-			KVs:  map[string]interface{}{"integer": 123},
+			KV:   map[string]interface{}{"integer": 123},
 			Keys: [4]string{"message"},
 		},
 		input: "Hello, World!",
@@ -222,7 +222,7 @@ var WriteTestCases = []struct {
 		name: `"float" field with 3.21 value`,
 		line: line(),
 		log: mujlog.Log{
-			KVs:  map[string]interface{}{"float": 3.21},
+			KV:   map[string]interface{}{"float": 3.21},
 			Keys: [4]string{"message"},
 		},
 		input: "Hello, World!",
@@ -319,7 +319,7 @@ var WriteTestCases = []struct {
 		name: `explicit byte slice as short message field`,
 		line: line(),
 		log: mujlog.Log{
-			KVs:   map[string]interface{}{"preview": []byte("Explicit byte slice")},
+			KV:    map[string]interface{}{"preview": []byte("Explicit byte slice")},
 			Trunc: 120,
 			Keys:  [4]string{"message", "preview"},
 		},
@@ -333,7 +333,7 @@ var WriteTestCases = []struct {
 		name: `explicit string as short message field`,
 		line: line(),
 		log: mujlog.Log{
-			KVs:   map[string]interface{}{"preview": "Explicit string"},
+			KV:    map[string]interface{}{"preview": "Explicit string"},
 			Trunc: 120,
 			Keys:  [4]string{"message", "preview"},
 		},
@@ -347,7 +347,7 @@ var WriteTestCases = []struct {
 		name: `explicit integer as short message field`,
 		line: line(),
 		log: mujlog.Log{
-			KVs:   map[string]interface{}{"preview": 42},
+			KV:    map[string]interface{}{"preview": 42},
 			Trunc: 120,
 			Keys:  [4]string{"message", "preview"},
 		},
@@ -361,7 +361,7 @@ var WriteTestCases = []struct {
 		name: `explicit float as short message field`,
 		line: line(),
 		log: mujlog.Log{
-			KVs:   map[string]interface{}{"preview": 4.2},
+			KV:    map[string]interface{}{"preview": 4.2},
 			Trunc: 120,
 			Keys:  [4]string{"message", "preview"},
 		},
@@ -375,7 +375,7 @@ var WriteTestCases = []struct {
 		name: `explicit boolean as short message field`,
 		line: line(),
 		log: mujlog.Log{
-			KVs:   map[string]interface{}{"preview": true},
+			KV:    map[string]interface{}{"preview": true},
 			Trunc: 120,
 			Keys:  [4]string{"message", "preview"},
 		},
@@ -389,7 +389,7 @@ var WriteTestCases = []struct {
 		name: `explicit rune slice as short message field`,
 		line: line(),
 		log: mujlog.Log{
-			KVs:   map[string]interface{}{"preview": []rune("Explicit rune slice")},
+			KV:    map[string]interface{}{"preview": []rune("Explicit rune slice")},
 			Trunc: 120,
 			Keys:  [4]string{"message", "preview"},
 		},
@@ -475,7 +475,7 @@ var WriteTestCases = []struct {
 		name: `"magic" host field`,
 		line: line(),
 		log: mujlog.Log{
-			KVs:   map[string]interface{}{"host": "example.tld"},
+			KV:    map[string]interface{}{"host": "example.tld"},
 			Trunc: 120,
 			Keys:  [4]string{"message", "preview", "file", "host"},
 		},
@@ -492,7 +492,7 @@ var WriteTestCases = []struct {
 		log: func() mujlog.Log {
 			l := mujlog.GELF()
 			l.Funcs = map[string]func() interface{}{"timestamp": func() interface{} { return time.Date(2020, time.October, 15, 18, 9, 0, 0, time.UTC).Unix() }}
-			l.KVs = map[string]interface{}{"version": "1.1", "host": "example.tld"}
+			l.KV = map[string]interface{}{"version": "1.1", "host": "example.tld"}
 			return l
 		}(),
 		input: "Hello, GELF!",
@@ -511,7 +511,7 @@ var WriteTestCases = []struct {
 			l := mujlog.GELF()
 			l.Flag = log.Llongfile
 			l.Funcs = map[string]func() interface{}{"timestamp": func() interface{} { return time.Date(2020, time.October, 15, 18, 9, 0, 0, time.UTC).Unix() }}
-			l.KVs = map[string]interface{}{"version": "1.1", "host": "example.tld"}
+			l.KV = map[string]interface{}{"version": "1.1", "host": "example.tld"}
 			return l
 		}(),
 		input: "path/to/file7:89: Hello, GELF!",
@@ -596,7 +596,7 @@ var LogTestCases = []struct {
 		line: line(),
 		log: mujlog.Log{
 			Trunc: 120,
-			KVs:   map[string]interface{}{"string": "foo"},
+			KV:    map[string]interface{}{"string": "foo"},
 			Keys:  [4]string{"message"},
 		},
 		input: []byte("Hello, World!"),
@@ -620,7 +620,7 @@ var LogTestCases = []struct {
 		name: `input appends to the message field value "string"`,
 		line: line(),
 		log: mujlog.Log{
-			KVs:     map[string]interface{}{"message": "field string value"},
+			KV:      map[string]interface{}{"message": "field string value"},
 			Trunc:   120,
 			Keys:    [4]string{"message", "preview"},
 			Replace: [][]byte{[]byte("\n"), []byte(" ")},
@@ -646,7 +646,7 @@ var LogTestCases = []struct {
 		name: `input is nil and message field value is "string"`,
 		line: line(),
 		log: mujlog.Log{
-			KVs:     map[string]interface{}{"message": "string"},
+			KV:      map[string]interface{}{"message": "string"},
 			Trunc:   120,
 			Keys:    [4]string{"message", "preview"},
 			Replace: [][]byte{[]byte("\n"), []byte(" ")},
