@@ -20,7 +20,7 @@ import (
 func main() {
     l := mujlog.Log{
         Output: os.Stdout,
-        Max: 12,
+        Trunc: 12,
         Keys: [4]string{"message", "preview"},
         Marks: [3][]byte{[]byte("…")},
         Replace: [][]byte{[]byte("\n"), []byte(" ")},
@@ -86,7 +86,7 @@ import (
 func main() {
     l := mujlog.Log{
         Output: os.Stdout,
-        Max: 120,
+        Trunc: 120,
         Keys: [4]string{"message"},
     }
     log.SetOutput(l)

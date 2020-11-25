@@ -17,7 +17,7 @@ import (
 var (
 	pool  = sync.Pool{New: func() interface{} { return new(bytes.Buffer) }}
 	dummy = mujlog.Log{
-		Max:     120,
+		Trunc:   120,
 		Keys:    [4]string{"message", "preview", "file", "host"},
 		Key:     mujlog.FullKey,
 		Marks:   [3][]byte{[]byte("…"), []byte("_EMPTY_"), []byte("_BLANK_")},
@@ -58,7 +58,7 @@ var WriteTestCases = []struct {
 		log: mujlog.Log{
 			Keys:    [4]string{"message", "preview"},
 			Marks:   [3][]byte{[]byte("…")},
-			Max:     12,
+			Trunc:   12,
 			Replace: [][]byte{[]byte("\n"), []byte(" ")},
 		},
 		line:  line(),
@@ -238,8 +238,8 @@ var WriteTestCases = []struct {
 	{
 		name: "zero maximum length",
 		log: mujlog.Log{
-			Keys: [4]string{"message", "preview"},
-			Max:  0,
+			Keys:  [4]string{"message", "preview"},
+			Trunc: 0,
 		},
 		line:  line(),
 		input: "Hello, World!",
@@ -251,8 +251,8 @@ var WriteTestCases = []struct {
 	{
 		name: "without message key names",
 		log: mujlog.Log{
-			Keys: [4]string{},
-			Max:  120,
+			Keys:  [4]string{},
+			Trunc: 120,
 		},
 		line:  line(),
 		input: "Hello, World!",
@@ -263,8 +263,8 @@ var WriteTestCases = []struct {
 	{
 		name: "only full message key name",
 		log: mujlog.Log{
-			Keys: [4]string{"message"},
-			Max:  120,
+			Keys:  [4]string{"message"},
+			Trunc: 120,
 		},
 		line:  line(),
 		input: "Hello, World!",
@@ -479,20 +479,6 @@ func BenchmarkMujlog(b *testing.B) {
 				buf := pool.Get().(*bytes.Buffer)
 				buf.Reset()
 				defer pool.Put(buf)
-
-				if tc.log.Max == 0 {
-					tc.log.Max = 120
-				}
-				if tc.log.Keys == ([4]string{}) {
-					tc.log.Keys = [4]string{"message", "preview", "file", "host"}
-					tc.log.Key = mujlog.FullKey
-				}
-				if bytes.Equal(tc.log.Marks[0], []byte{}) && bytes.Equal(tc.log.Marks[1], []byte{}) && bytes.Equal(tc.log.Marks[2], []byte{}) {
-					tc.log.Marks = [3][]byte{[]byte("…"), []byte("_EMPTY_"), []byte("_BLANK_")}
-				}
-				if tc.log.Replace == nil {
-					tc.log.Replace = [][]byte{[]byte("\n"), []byte(" ")}
-				}
 
 				tc.log.Output = buf
 				tc.log.Flag = tc.flag

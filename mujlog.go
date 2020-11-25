@@ -31,7 +31,7 @@ type Log struct {
 	Flag    int                           // log properties
 	KVs     map[string]interface{}        // key-values
 	Funcs   map[string]func() interface{} // dynamically calculated key-values
-	Max     int                           // maximum length of the short message after which the short message is truncated
+	Trunc   int                           // maximum length of the short message after which the short message is truncated
 	Keys    [4]string                     // 0 = full message key; 1 = short message key; 2 = file key; 3 = host key;
 	Key     uint8                         // sticky message key: all except 1 = full message; 1 = short message;
 	Marks   [3][]byte                     // 0 = truncate mark; 1 = empty mark; 2 = blank mark;
@@ -39,7 +39,7 @@ type Log struct {
 }
 
 func (muj Log) Write(p []byte) (int, error) {
-	j, err := mujlog(p, muj.Flag, muj.KVs, nil, muj.Funcs, muj.Max, muj.Keys, muj.Key, muj.Marks, muj.Replace)
+	j, err := mujlog(p, muj.Flag, muj.KVs, nil, muj.Funcs, muj.Trunc, muj.Keys, muj.Key, muj.Marks, muj.Replace)
 	if err != nil {
 		return 0, err
 	}
@@ -47,7 +47,7 @@ func (muj Log) Write(p []byte) (int, error) {
 }
 
 func (muj Log) Log(p []byte, kvs map[string]interface{}) (int, error) {
-	j, err := mujlog(p, 0, muj.KVs, kvs, muj.Funcs, muj.Max, muj.Keys, muj.Key, muj.Marks, muj.Replace)
+	j, err := mujlog(p, 0, muj.KVs, kvs, muj.Funcs, muj.Trunc, muj.Keys, muj.Key, muj.Marks, muj.Replace)
 	if err != nil {
 		return 0, err
 	}
@@ -68,7 +68,7 @@ func mujlog(
 	kvs,
 	kvs2 map[string]interface{}, // kvs2 is a temporary key-value map in addition to the permanent kvs set of key-value map
 	fns map[string]func() interface{},
-	max int,
+	trunc int,
 	keys [4]string,
 	key uint8,
 	marks [3][]byte,
@@ -161,7 +161,7 @@ func mujlog(
 					}
 				}
 
-				if i-tail >= max {
+				if i-tail >= trunc {
 					break
 				}
 
@@ -176,7 +176,7 @@ func mujlog(
 				i += n
 			}
 
-			trunc := len(full[tail:]) > len(short)
+			truncate := len(full[tail:]) > len(short)
 
 			// Rids of off all trailing white space,
 			// as defined by Unicode.
@@ -202,7 +202,7 @@ func mujlog(
 				short = append(short[:0], append([]byte(fmt.Sprint(kvs2[keys[HostKey]])), append([]byte(" "), short...)...)...)
 			}
 
-			if len(short) != 0 && trunc {
+			if len(short) != 0 && truncate {
 				short = append(short, marks[truncMark]...)
 			}
 
@@ -255,7 +255,7 @@ func GELF() Log {
 		Funcs: map[string]func() interface{}{
 			"timestamp": func() interface{} { return time.Now().Unix() },
 		},
-		Max:     120,
+		Trunc:   120,
 		Keys:    [4]string{"full_message", "short_message", "_file", "host"},
 		Key:     ShortKey,
 		Marks:   [3][]byte{[]byte("…"), []byte("_EMPTY_"), []byte("_BLANK_")},
