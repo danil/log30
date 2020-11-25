@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	OrigianlKey = iota
+	OriginalKey = iota
 	ExcerptKey
 	FileKey
 	HostKey
@@ -89,7 +89,7 @@ func logastic(
 		kv2[k] = fn()
 	}
 
-	if v, ok := kv2[keys[OrigianlKey]]; ok {
+	if v, ok := kv2[keys[OriginalKey]]; ok {
 		p := *originalP.Get().(*[]byte)
 		p = p[:0]
 		defer originalP.Put(&p)
@@ -214,20 +214,20 @@ func logastic(
 
 	if bytes.Equal(original, excerpt) {
 		if key != ExcerptKey {
-			key = OrigianlKey
+			key = OriginalKey
 		}
 
-		if key == OrigianlKey {
+		if key == OriginalKey {
 			delete(kv2, keys[ExcerptKey])
 		} else {
-			delete(kv2, keys[OrigianlKey])
+			delete(kv2, keys[OriginalKey])
 		}
 
 		if kv2[keys[key]] == nil {
 			kv2[keys[key]] = string(original)
 		}
 	} else {
-		kv2[keys[OrigianlKey]] = string(original)
+		kv2[keys[OriginalKey]] = string(original)
 
 		if kv2[keys[ExcerptKey]] == nil && len(excerpt) != 0 {
 			kv2[keys[ExcerptKey]] = string(excerpt)
