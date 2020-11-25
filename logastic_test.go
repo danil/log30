@@ -191,7 +191,7 @@ var WriteTestCases = []struct {
 		}`,
 	},
 	{
-		name: `"string" field with "foo" value`,
+		name: `"string" key with "foo" value`,
 		line: line(),
 		log: logastic.Log{
 			KV:   map[string]interface{}{"string": "foo"},
@@ -204,7 +204,7 @@ var WriteTestCases = []struct {
 		}`,
 	},
 	{
-		name: `"integer" field with 123 value`,
+		name: `"integer" key with 123 value`,
 		line: line(),
 		log: logastic.Log{
 			KV:   map[string]interface{}{"integer": 123},
@@ -217,7 +217,7 @@ var WriteTestCases = []struct {
 		}`,
 	},
 	{
-		name: `"float" field with 3.21 value`,
+		name: `"float" key with 3.21 value`,
 		line: line(),
 		log: logastic.Log{
 			KV:   map[string]interface{}{"float": 3.21},
@@ -314,7 +314,7 @@ var WriteTestCases = []struct {
 		}`,
 	},
 	{
-		name: `explicit byte slice as short message field`,
+		name: `explicit byte slice as short message key`,
 		line: line(),
 		log: logastic.Log{
 			KV:    map[string]interface{}{"preview": []byte("Explicit byte slice")},
@@ -328,7 +328,7 @@ var WriteTestCases = []struct {
 		}`,
 	},
 	{
-		name: `explicit string as short message field`,
+		name: `explicit string as short message key`,
 		line: line(),
 		log: logastic.Log{
 			KV:    map[string]interface{}{"preview": "Explicit string"},
@@ -342,7 +342,7 @@ var WriteTestCases = []struct {
 		}`,
 	},
 	{
-		name: `explicit integer as short message field`,
+		name: `explicit integer as short message key`,
 		line: line(),
 		log: logastic.Log{
 			KV:    map[string]interface{}{"preview": 42},
@@ -356,7 +356,7 @@ var WriteTestCases = []struct {
 		}`,
 	},
 	{
-		name: `explicit float as short message field`,
+		name: `explicit float as short message key`,
 		line: line(),
 		log: logastic.Log{
 			KV:    map[string]interface{}{"preview": 4.2},
@@ -370,7 +370,7 @@ var WriteTestCases = []struct {
 		}`,
 	},
 	{
-		name: `explicit boolean as short message field`,
+		name: `explicit boolean as short message key`,
 		line: line(),
 		log: logastic.Log{
 			KV:    map[string]interface{}{"preview": true},
@@ -384,7 +384,7 @@ var WriteTestCases = []struct {
 		}`,
 	},
 	{
-		name: `explicit rune slice as short message field`,
+		name: `explicit rune slice as short message key`,
 		line: line(),
 		log: logastic.Log{
 			KV:    map[string]interface{}{"preview": []rune("Explicit rune slice")},
@@ -398,7 +398,7 @@ var WriteTestCases = []struct {
 		}`,
 	},
 	{
-		name: "dynamic field",
+		name: `dynamic "time" key`,
 		line: line(),
 		log: logastic.Log{
 			Funcs: map[string]func() interface{}{"time": func() interface{} { return time.Date(2020, time.October, 15, 18, 9, 0, 0, time.UTC).String() }},
@@ -470,7 +470,7 @@ var WriteTestCases = []struct {
 		}`,
 	},
 	{
-		name: `"magic" host field`,
+		name: `"magic" host key`,
 		line: line(),
 		log: logastic.Log{
 			KV:    map[string]interface{}{"host": "example.tld"},
@@ -575,14 +575,14 @@ var LogTestCases = []struct {
 	name     string
 	line     int
 	log      logastic.Log
-	input    []byte
+	bytes    []byte
 	kv       map[string]interface{}
 	expected string
 }{
 	{
 		name:  "nil",
 		line:  line(),
-		input: nil,
+		bytes: nil,
 		log:   dummy,
 		expected: `{
 	    "message":"",
@@ -590,14 +590,14 @@ var LogTestCases = []struct {
 		}`,
 	},
 	{
-		name: `"string" field with "foo" value and "string" key with "bar" value`,
+		name: `"string" key with "foo" value and "string" key with "bar" value`,
 		line: line(),
 		log: logastic.Log{
 			Trunc: 120,
 			KV:    map[string]interface{}{"string": "foo"},
 			Keys:  [4]string{"message"},
 		},
-		input: []byte("Hello, World!"),
+		bytes: []byte("Hello, World!"),
 		kv:    map[string]interface{}{"string": "bar"},
 		expected: `{
 			"message":"Hello, World!",
@@ -608,67 +608,67 @@ var LogTestCases = []struct {
 		name:  `key-values is nil`,
 		line:  line(),
 		log:   dummy,
-		input: []byte("Hello, World!"),
+		bytes: []byte("Hello, World!"),
 		kv:    nil,
 		expected: `{
 			"message":"Hello, World!"
 		}`,
 	},
 	{
-		name: `input appends to the message field value "string"`,
+		name: `bytes appends to the "message" key with "string value"`,
 		line: line(),
 		log: logastic.Log{
-			KV:      map[string]interface{}{"message": "field string value"},
+			KV:      map[string]interface{}{"message": "string value"},
 			Trunc:   120,
 			Keys:    [4]string{"message", "preview"},
 			Replace: [][]byte{[]byte("\n"), []byte(" ")},
 		},
-		input: []byte("\nHello, World!"),
+		bytes: []byte("\nHello, World!"),
 		expected: `{
-			"message":"field string value\nHello, World!",
-			"preview":"field string value Hello, World!"
+			"message":"string value\nHello, World!",
+			"preview":"string value Hello, World!"
 		}`,
 	},
 	{
-		name:  `input appends to the message key-field value "string"`,
+		name:  `bytes appends to the "message" key with "string value"`,
 		line:  line(),
 		log:   dummy,
-		input: []byte("\nHello, World!"),
-		kv:    map[string]interface{}{"message": "field string value"},
+		bytes: []byte("\nHello, World!"),
+		kv:    map[string]interface{}{"message": "string value"},
 		expected: `{
-			"message":"field string value\nHello, World!",
-			"preview":"field string value Hello, World!"
+			"message":"string value\nHello, World!",
+			"preview":"string value Hello, World!"
 		}`,
 	},
 	{
-		name: `input is nil and message field value is "string"`,
+		name: `bytes is nil and "message" key with "string value"`,
 		line: line(),
 		log: logastic.Log{
-			KV:      map[string]interface{}{"message": "string"},
+			KV:      map[string]interface{}{"message": "string value"},
 			Trunc:   120,
 			Keys:    [4]string{"message", "preview"},
 			Replace: [][]byte{[]byte("\n"), []byte(" ")},
 		},
-		input: nil,
+		bytes: nil,
 		expected: `{
-			"message":"string"
+			"message":"string value"
 		}`,
 	},
 	{
-		name:  `input is nil and message key-value is "string"`,
+		name:  `bytes is nil and "message" key with "string value"`,
 		line:  line(),
 		log:   dummy,
-		input: nil,
-		kv:    map[string]interface{}{"message": "string"},
+		bytes: nil,
+		kv:    map[string]interface{}{"message": "string value"},
 		expected: `{
-			"message":"string"
+			"message":"string value"
 		}`,
 	},
 	{
-		name:  `input appends to the integer key-value "message"`,
+		name:  `bytes appends to the integer key "message"`,
 		line:  line(),
 		log:   dummy,
-		input: []byte("\nHello, World!"),
+		bytes: []byte("\nHello, World!"),
 		kv:    map[string]interface{}{"message": 1},
 		expected: `{
 			"message":"1\nHello, World!",
@@ -676,10 +676,10 @@ var LogTestCases = []struct {
 		}`,
 	},
 	{
-		name:  `input appends to the float key-value "message"`,
+		name:  `bytes appends to the float key "message"`,
 		line:  line(),
 		log:   dummy,
-		input: []byte("\nHello, World!"),
+		bytes: []byte("\nHello, World!"),
 		kv:    map[string]interface{}{"message": 2.1},
 		expected: `{
 			"message":"2.1\nHello, World!",
@@ -687,10 +687,10 @@ var LogTestCases = []struct {
 		}`,
 	},
 	{
-		name:  `input appends to the boolean key-value "message"`,
+		name:  `bytes appends to the boolean key "message"`,
 		line:  line(),
 		log:   dummy,
-		input: []byte("\nHello, World!"),
+		bytes: []byte("\nHello, World!"),
 		kv:    map[string]interface{}{"message": true},
 		expected: `{
 			"message":"true\nHello, World!",
@@ -698,10 +698,10 @@ var LogTestCases = []struct {
 		}`,
 	},
 	{
-		name:  `input do not appends to the nil key-value "message"`,
+		name:  `bytes do not appends to the nil key "message"`,
 		line:  line(),
 		log:   dummy,
-		input: []byte("Hello, World!"),
+		bytes: []byte("Hello, World!"),
 		kv:    map[string]interface{}{"message": nil},
 		expected: `{
 			"message":"Hello, World!"
@@ -723,7 +723,7 @@ func TestLog(t *testing.T) {
 
 			tc.log.Output = buf
 
-			_, err := tc.log.Log(tc.input, tc.kv)
+			_, err := tc.log.Log(tc.kv, tc.bytes...)
 			if err != nil {
 				t.Fatalf("write error: %s", err)
 			}

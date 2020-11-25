@@ -39,15 +39,15 @@ type Log struct {
 }
 
 func (l Log) Write(p []byte) (int, error) {
-	j, err := logastic(p, l.Flag, l.KV, nil, l.Funcs, l.Trunc, l.Keys, l.Key, l.Marks, l.Replace)
+	j, err := logastic(l.Flag, l.KV, nil, l.Funcs, l.Trunc, l.Keys, l.Key, l.Marks, l.Replace, p...)
 	if err != nil {
 		return 0, err
 	}
 	return l.Output.Write(j)
 }
 
-func (l Log) Log(p []byte, kv map[string]interface{}) (int, error) {
-	j, err := logastic(p, 0, l.KV, kv, l.Funcs, l.Trunc, l.Keys, l.Key, l.Marks, l.Replace)
+func (l Log) Log(kv map[string]interface{}, p ...byte) (int, error) {
+	j, err := logastic(0, l.KV, kv, l.Funcs, l.Trunc, l.Keys, l.Key, l.Marks, l.Replace, p...)
 	if err != nil {
 		return 0, err
 	}
@@ -63,7 +63,6 @@ var (
 )
 
 func logastic(
-	full []byte,
 	flg int,
 	kv,
 	kv2 map[string]interface{}, // kv2 is a temporary key-value map in addition to the permanent kv key-value map
@@ -73,6 +72,7 @@ func logastic(
 	key uint8,
 	marks [3][]byte,
 	replace [][]byte,
+	full ...byte,
 ) ([]byte, error) {
 	if kv2 == nil {
 		kv2 = make(map[string]interface{})
