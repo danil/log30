@@ -85,6 +85,9 @@ func logastic(
 	}
 
 	for k, fn := range fns {
+		if _, ok := kv2[k]; ok {
+			continue
+		}
 		kv2[k] = fn()
 	}
 
