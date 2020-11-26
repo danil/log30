@@ -45,7 +45,7 @@ Output:
 }
 ```
 
-## Use Logastic as GLEF formater
+## Use as GELF formater
 
 ```go
 package main
