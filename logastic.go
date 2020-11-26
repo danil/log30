@@ -149,16 +149,19 @@ func logastic(
 				// Rids of off all leading space, as defined by Unicode.
 				if beg {
 					c := original[i]
+
 					// Fast path for ASCII: look for the first ASCII non-space byte or
 					// if we run into a non-ASCII byte, fall back
 					// to the slower unicode-aware method
 					if c < utf8.RuneSelf && asciiSpace[c] == 1 {
 						i++
 						tail++
+
 						continue
 					} else if unicode.IsSpace(r) {
 						i += n
 						tail += n
+
 						continue
 					} else {
 						beg = false
