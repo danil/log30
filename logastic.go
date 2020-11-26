@@ -140,30 +140,30 @@ func logastic(
 		if tail == len(original) {
 			excerpt = append(excerpt, marks[emptyMark]...)
 		} else {
-			i := tail
 			beg := true
+			end := tail
 
 			for {
-				r, n := utf8.DecodeRune(original[i:])
+				r, n := utf8.DecodeRune(original[end:])
 				if n == 0 {
 					break
 				}
 
 				// Rids of off all leading space, as defined by Unicode.
 				if beg {
-					c := original[i]
+					c := original[end]
 
 					// Fast path for ASCII: look for the first ASCII non-space byte or
 					// if we run into a non-ASCII byte, fall back
 					// to the slower unicode-aware method
 					if c < utf8.RuneSelf && asciiSpace[c] == 1 {
-						i++
 						tail++
+						end++
 
 						continue
 					} else if unicode.IsSpace(r) {
-						i += n
 						tail += n
+						end += n
 
 						continue
 					} else {
@@ -171,20 +171,20 @@ func logastic(
 					}
 				}
 
-				if i-tail >= trunc {
+				if end-tail >= trunc {
 					break
 				}
 
-				i += n
+				end += n
 			}
 
-			excerpt = append(excerpt[:0], original[tail:i]...)
+			excerpt = append(excerpt[:0], original[tail:end]...)
 			truncate := len(excerpt) < len(original[tail:])
 
 			// Rids of off all trailing white space,
 			// as defined by Unicode.
 			// Look for the first ASCII non-space byte from the end.
-			i = len(excerpt)
+			i := len(excerpt)
 			for ; i > 0; i-- {
 				c := excerpt[i-1]
 				if c >= utf8.RuneSelf {
