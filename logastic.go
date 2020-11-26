@@ -59,7 +59,6 @@ var asciiSpace = [256]uint8{'\t': 1, '\n': 1, '\v': 1, '\f': 1, '\r': 1, ' ': 1}
 var (
 	originalP = sync.Pool{New: func() interface{} { return new([]byte) }}
 	excerptP  = sync.Pool{New: func() interface{} { return new([]byte) }}
-	runeP     = sync.Pool{New: func() interface{} { return new([]byte) }}
 )
 
 func logastic(
@@ -148,13 +147,18 @@ func logastic(
 				}
 
 				// Rids of off all leading space, as defined by Unicode.
-				// Fast path for ASCII: look for the first ASCII non-space byte or
-				// if we run into a non-ASCII byte, fall back to the slower unicode-aware method
 				if beg {
 					c := original[i]
-					if c < utf8.RuneSelf && asciiSpace[c] == 1 || unicode.IsSpace(r) {
+					// Fast path for ASCII: look for the first ASCII non-space byte or
+					// if we run into a non-ASCII byte, fall back
+					// to the slower unicode-aware method
+					if c < utf8.RuneSelf && asciiSpace[c] == 1 {
 						i++
 						tail++
+						continue
+					} else if unicode.IsSpace(r) {
+						i += n
+						tail += n
 						continue
 					} else {
 						beg = false
@@ -165,17 +169,10 @@ func logastic(
 					break
 				}
 
-				p := *runeP.Get().(*[]byte)
-				p = p[:0]
-				defer runeP.Put(&p)
-
-				p = append(p, make([]byte, utf8.RuneLen(r))...)
-				utf8.EncodeRune(p, r)
-				excerpt = append(excerpt, p...)
-
 				i += n
 			}
 
+			excerpt = append(excerpt[:0], original[tail:i]...)
 			truncate := len(original[tail:]) > len(excerpt)
 
 			// Rids of off all trailing white space,
