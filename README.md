@@ -3,6 +3,10 @@
 JSON logging for Go.
 Logastic in pre alpha version is extremely slow and allocates a lots of memory.
 
+## Install
+
+    go get github.com/danil/logastic@v0.27.0
+
 ## Usage
 
 Set Logastic as global logger
