@@ -1,7 +1,7 @@
 # Logastic
 
 JSON logging for Go.
-Logastic in pre alpha version is extremely slow and allocates a lots of memory.
+Pre-alpha software is extremely slow and allocates a lots of memory)
 
 ## Install
 
