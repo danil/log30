@@ -179,7 +179,7 @@ func logastic(
 			}
 
 			excerpt = append(excerpt[:0], original[tail:end]...)
-			truncate := len(excerpt) < len(original[tail:])
+			truncate := end-tail < len(original[tail:])
 
 			// Rids of off all trailing white space,
 			// as defined by Unicode.
