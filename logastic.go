@@ -63,8 +63,8 @@ var (
 
 func logastic(
 	flg int,
-	kv,
-	kv2 map[string]interface{}, // kv2 is a temporary key-value map in addition to the permanent kv key-value map
+	permKV,
+	tempKV map[string]interface{}, // tempKV is a temporary key-value map in addition to the permanent kv key-value map
 	fns map[string]func() interface{},
 	trunc int,
 	keys [4]string,
@@ -73,25 +73,25 @@ func logastic(
 	replace [][]byte,
 	original ...byte,
 ) ([]byte, error) {
-	if kv2 == nil {
-		kv2 = make(map[string]interface{})
+	if tempKV == nil {
+		tempKV = make(map[string]interface{})
 	}
 
-	for k, v := range kv {
-		if _, ok := kv2[k]; ok {
+	for k, v := range permKV {
+		if _, ok := tempKV[k]; ok {
 			continue
 		}
-		kv2[k] = v
+		tempKV[k] = v
 	}
 
 	for k, fn := range fns {
-		if _, ok := kv2[k]; ok {
+		if _, ok := tempKV[k]; ok {
 			continue
 		}
-		kv2[k] = fn()
+		tempKV[k] = fn()
 	}
 
-	if v, ok := kv2[keys[Original]]; ok {
+	if v, ok := tempKV[keys[Original]]; ok {
 		p := *originalP.Get().(*[]byte)
 		p = p[:0]
 		defer originalP.Put(&p)
@@ -125,16 +125,16 @@ func logastic(
 	excerpt = excerpt[:0]
 	defer excerptP.Put(&excerpt)
 
-	if kv2[keys[Excerpt]] != nil {
-		switch v := kv2[keys[Excerpt]].(type) {
+	if tempKV[keys[Excerpt]] != nil {
+		switch v := tempKV[keys[Excerpt]].(type) {
 		case string:
-			kv2[keys[Excerpt]] = v
+			tempKV[keys[Excerpt]] = v
 		case []byte:
-			kv2[keys[Excerpt]] = string(v)
+			tempKV[keys[Excerpt]] = string(v)
 		case []rune:
-			kv2[keys[Excerpt]] = string(v)
+			tempKV[keys[Excerpt]] = string(v)
 		default:
-			kv2[keys[Excerpt]] = v
+			tempKV[keys[Excerpt]] = v
 		}
 	} else {
 		if tail == len(original) {
@@ -219,8 +219,8 @@ func logastic(
 				excerpt = append(excerpt, marks[blankMark]...)
 			}
 
-			if kv2[keys[Host]] != nil {
-				excerpt = append(excerpt[:0], append([]byte(fmt.Sprint(kv2[keys[Host]])), append([]byte(" "), excerpt...)...)...)
+			if tempKV[keys[Host]] != nil {
+				excerpt = append(excerpt[:0], append([]byte(fmt.Sprint(tempKV[keys[Host]])), append([]byte(" "), excerpt...)...)...)
 			}
 
 			if end-tail != 0 && truncate {
@@ -235,27 +235,27 @@ func logastic(
 		}
 
 		if key == Original {
-			delete(kv2, keys[Excerpt])
+			delete(tempKV, keys[Excerpt])
 		} else {
-			delete(kv2, keys[Original])
+			delete(tempKV, keys[Original])
 		}
 
-		if kv2[keys[key]] == nil {
-			kv2[keys[key]] = string(original)
+		if tempKV[keys[key]] == nil {
+			tempKV[keys[key]] = string(original)
 		}
 	} else {
-		kv2[keys[Original]] = string(original)
+		tempKV[keys[Original]] = string(original)
 
-		if kv2[keys[Excerpt]] == nil && len(excerpt) != 0 {
-			kv2[keys[Excerpt]] = string(excerpt)
+		if tempKV[keys[Excerpt]] == nil && len(excerpt) != 0 {
+			tempKV[keys[Excerpt]] = string(excerpt)
 		}
 	}
 
 	if file != 0 {
-		kv2[keys[File]] = string(original[:file])
+		tempKV[keys[File]] = string(original[:file])
 	}
 
-	p, err := json.Marshal(kv2)
+	p, err := json.Marshal(tempKV)
 	if err != nil {
 		return nil, err
 	}
