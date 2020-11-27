@@ -178,41 +178,34 @@ func logastic(
 				end += n
 			}
 
-			excerpt = append(excerpt[:0], original[tail:end]...)
 			truncate := end-tail < len(original[tail:])
 
 			// Rids of off all trailing white space,
 			// as defined by Unicode.
 			// Look for the first ASCII non-space byte from the end.
-			i := len(excerpt)
-			for ; i > 0; i-- {
-				c := excerpt[i-1]
+			for ; end > tail; end-- {
+				c := original[end-1]
 				if c >= utf8.RuneSelf {
-					excerpt = bytes.TrimFunc(excerpt[0:i], unicode.IsSpace)
+					end = lastIndexFunc(original[:end], unicode.IsSpace, false)
+					if end >= 0 && original[end] >= utf8.RuneSelf {
+						_, wid := utf8.DecodeRune(original[end:])
+						end += wid
+					} else {
+						end++
+					}
 					break
 				}
 				if asciiSpace[c] == 0 {
-					excerpt = excerpt[:i]
 					break
 				}
 			}
 
-			if len(excerpt) == 0 {
-				excerpt = append(excerpt, marks[blankMark]...)
-			}
-
-			if kv2[keys[Host]] != nil {
-				excerpt = append(excerpt[:0], append([]byte(fmt.Sprint(kv2[keys[Host]])), append([]byte(" "), excerpt...)...)...)
-			}
-
-			if len(excerpt) != 0 && truncate {
-				excerpt = append(excerpt, marks[truncMark]...)
-			}
+			excerpt = append(excerpt[:0], original[tail:end]...)
 
 		replace:
 			for n := 0; n < len(replace); n += 2 {
 				for j := 0; ; {
-					i = bytes.Index(excerpt[j:], replace[n])
+					i := bytes.Index(excerpt[j:], replace[n])
 					if i == -1 {
 						continue replace
 					}
@@ -220,6 +213,18 @@ func logastic(
 					j = i + len(replace[n+1])
 					excerpt = append(excerpt[:i], append(replace[n+1], excerpt[j:]...)...)
 				}
+			}
+
+			if end-tail == 0 {
+				excerpt = append(excerpt, marks[blankMark]...)
+			}
+
+			if kv2[keys[Host]] != nil {
+				excerpt = append(excerpt[:0], append([]byte(fmt.Sprint(kv2[keys[Host]])), append([]byte(" "), excerpt...)...)...)
+			}
+
+			if end-tail != 0 && truncate {
+				excerpt = append(excerpt, marks[truncMark]...)
 			}
 		}
 	}
@@ -256,6 +261,24 @@ func logastic(
 	}
 
 	return append(p, '\n'), nil
+}
+
+// lastIndexFunc is the same as bytes.LastIndexFunc except that if
+// truth==false, the sense of the predicate function is
+// inverted.
+// lastIndexFunc copied from the bytes package.
+func lastIndexFunc(s []byte, f func(r rune) bool, truth bool) int {
+	for i := len(s); i > 0; {
+		r, size := rune(s[i-1]), 1
+		if r >= utf8.RuneSelf {
+			r, size = utf8.DecodeLastRune(s[0:i])
+		}
+		i -= size
+		if f(r) == truth {
+			return i
+		}
+	}
+	return -1
 }
 
 func GELF() Log {
