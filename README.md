@@ -1,6 +1,5 @@
 # Logastic
 
-[![build status](https://travis-ci.org/danil/logastic.svg?branch=master)](https://travis-ci.org/danil/logastic)
 [![Build Status](https://cloud.drone.io/api/badges/danil/logastic/status.svg)](https://cloud.drone.io/danil/logastic)
 
 JSON logging for Go.
