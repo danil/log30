@@ -121,9 +121,8 @@ func logastic(
 		}
 	}
 
-	excerpt := *excerptP.Get().(*[]byte)
-	excerpt = excerpt[:0]
-	defer excerptP.Put(&excerpt)
+	var excerpt []byte
+	end := tail
 
 	if tempKV[keys[Excerpt]] != nil {
 		switch v := tempKV[keys[Excerpt]].(type) {
@@ -138,10 +137,11 @@ func logastic(
 		}
 	} else {
 		if tail == len(original) {
-			excerpt = append(excerpt, marks[emptyMark]...)
+			excerpt = *excerptP.Get().(*[]byte)
+			excerpt = append(excerpt[:0], marks[emptyMark]...)
+			defer excerptP.Put(&excerpt)
 		} else {
 			beg := true
-			end := tail
 
 			for {
 				r, n := utf8.DecodeRune(original[end:])
@@ -200,33 +200,52 @@ func logastic(
 				}
 			}
 
-			excerpt = append(excerpt[:0], original[tail:end]...)
-
 		replace:
 			for n := 0; n < len(replace); n += 2 {
-				for j := 0; ; {
-					i := bytes.Index(excerpt[j:], replace[n])
-					if i == -1 {
+				for i := 0; ; {
+					j := bytes.Index(original[tail+i:end], replace[n])
+					if j == -1 {
 						continue replace
 					}
-					i += j
-					j = i + len(replace[n+1])
-					excerpt = append(excerpt[:i], append(replace[n+1], excerpt[j:]...)...)
+
+					j += i
+					i = j + len(replace[n+1])
+
+					if excerpt == nil {
+						excerpt = *excerptP.Get().(*[]byte)
+						excerpt = append(excerpt[:0], original[tail:end]...)
+						defer excerptP.Put(&excerpt)
+					}
+					excerpt = append(excerpt[:j], append(replace[n+1], excerpt[i:]...)...)
 				}
 			}
 
-			if end-tail == 0 {
-				excerpt = append(excerpt, marks[blankMark]...)
-			}
+			if end-tail == 0 || tempKV[keys[Host]] != nil || end-tail != 0 && truncate {
+				if excerpt == nil {
+					excerpt = *excerptP.Get().(*[]byte)
+					excerpt = append(excerpt[:0], original[tail:end]...)
+					defer excerptP.Put(&excerpt)
+				}
 
-			if tempKV[keys[Host]] != nil {
-				excerpt = append(excerpt[:0], append([]byte(fmt.Sprint(tempKV[keys[Host]])), append([]byte(" "), excerpt...)...)...)
-			}
+				if end-tail == 0 {
+					excerpt = append(excerpt, marks[blankMark]...)
+				}
 
-			if end-tail != 0 && truncate {
-				excerpt = append(excerpt, marks[truncMark]...)
+				if tempKV[keys[Host]] != nil {
+					excerpt = append(excerpt[:0], append([]byte(fmt.Sprint(tempKV[keys[Host]])), append([]byte(" "), excerpt...)...)...)
+				}
+
+				if end-tail != 0 && truncate {
+					excerpt = append(excerpt, marks[truncMark]...)
+				}
 			}
 		}
+	}
+
+	if excerpt == nil {
+		excerpt = *excerptP.Get().(*[]byte)
+		excerpt = append(excerpt[:0], original[tail:end]...)
+		defer excerptP.Put(&excerpt)
 	}
 
 	if bytes.Equal(original, excerpt) {
