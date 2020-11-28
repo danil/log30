@@ -1,12 +1,14 @@
 # Logastic
 
+[![build status](https://travis-ci.org/danil/logastic.svg?branch=master)](https://travis-ci.org/danil/logastic)
+
 JSON logging for Go.
 Development of the Logastic is in pre alpha version and
 is extremely slow and allocates a lots of memory)
 
 ## Install
 
-    go get github.com/danil/logastic@v0.29.0
+    go get github.com/danil/logastic@v0.30.1
 
 ## Usage
 
