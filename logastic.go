@@ -121,7 +121,10 @@ func logastic(
 		}
 	}
 
-	var excerpt []byte
+	excerpt := *excerptP.Get().(*[]byte)
+	excerpt = excerpt[:0]
+	defer excerptP.Put(&excerpt)
+
 	end := tail
 
 	if tempKV[keys[Excerpt]] != nil {
@@ -137,9 +140,7 @@ func logastic(
 		}
 	} else {
 		if tail == len(original) {
-			excerpt = *excerptP.Get().(*[]byte)
 			excerpt = append(excerpt[:0], marks[emptyMark]...)
-			defer excerptP.Put(&excerpt)
 		} else {
 			beg := true
 
@@ -200,6 +201,8 @@ func logastic(
 				}
 			}
 
+			excerpt = append(excerpt[:0], original[tail:end]...)
+
 		replace:
 			for n := 0; n < len(replace); n += 2 {
 				for i := 0; ; {
@@ -207,45 +210,24 @@ func logastic(
 					if j == -1 {
 						continue replace
 					}
-
 					j += i
 					i = j + len(replace[n+1])
-
-					if excerpt == nil {
-						excerpt = *excerptP.Get().(*[]byte)
-						excerpt = append(excerpt[:0], original[tail:end]...)
-						defer excerptP.Put(&excerpt)
-					}
 					excerpt = append(excerpt[:j], append(replace[n+1], excerpt[i:]...)...)
 				}
 			}
 
-			if end-tail == 0 || tempKV[keys[Host]] != nil || end-tail != 0 && truncate {
-				if excerpt == nil {
-					excerpt = *excerptP.Get().(*[]byte)
-					excerpt = append(excerpt[:0], original[tail:end]...)
-					defer excerptP.Put(&excerpt)
-				}
+			if end-tail == 0 {
+				excerpt = append(excerpt, marks[blankMark]...)
+			}
 
-				if end-tail == 0 {
-					excerpt = append(excerpt, marks[blankMark]...)
-				}
+			if tempKV[keys[Host]] != nil {
+				excerpt = append(excerpt[:0], append([]byte(fmt.Sprint(tempKV[keys[Host]])), append([]byte(" "), excerpt...)...)...)
+			}
 
-				if tempKV[keys[Host]] != nil {
-					excerpt = append(excerpt[:0], append([]byte(fmt.Sprint(tempKV[keys[Host]])), append([]byte(" "), excerpt...)...)...)
-				}
-
-				if end-tail != 0 && truncate {
-					excerpt = append(excerpt, marks[truncMark]...)
-				}
+			if end-tail != 0 && truncate {
+				excerpt = append(excerpt, marks[truncMark]...)
 			}
 		}
-	}
-
-	if excerpt == nil {
-		excerpt = *excerptP.Get().(*[]byte)
-		excerpt = append(excerpt[:0], original[tail:end]...)
-		defer excerptP.Put(&excerpt)
 	}
 
 	if bytes.Equal(original, excerpt) {
