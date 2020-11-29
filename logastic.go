@@ -59,12 +59,13 @@ var asciiSpace = [256]uint8{'\t': 1, '\n': 1, '\v': 1, '\f': 1, '\r': 1, ' ': 1}
 var (
 	originalP = sync.Pool{New: func() interface{} { return new([]byte) }}
 	excerptP  = sync.Pool{New: func() interface{} { return new([]byte) }}
+	kvP       = sync.Pool{New: func() interface{} { m := make(map[string]interface{}); return &m }}
 )
 
 func logastic(
 	flg int,
 	permKV,
-	tempKV map[string]interface{}, // tempKV is a temporary key-value map in addition to the permanent kv key-value map
+	optKV map[string]interface{}, // optKV is a optional key-value map in addition to the permanent kv key-value map
 	fns map[string]func() interface{},
 	trunc int,
 	keys [4]string,
@@ -73,8 +74,14 @@ func logastic(
 	replace [][]byte,
 	original ...byte,
 ) ([]byte, error) {
-	if tempKV == nil {
-		tempKV = make(map[string]interface{})
+	tempKV := *kvP.Get().(*map[string]interface{})
+	for k := range tempKV {
+		delete(tempKV, k)
+	}
+	defer kvP.Put(&tempKV)
+
+	for k, v := range optKV {
+		tempKV[k] = v
 	}
 
 	for k, v := range permKV {

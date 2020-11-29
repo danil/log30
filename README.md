@@ -8,7 +8,7 @@ is extremely slow and allocates a lots of memory)
 
 ## Install
 
-    go get github.com/danil/logastic@v0.30.5
+    go get github.com/danil/logastic@v0.31.0
 
 ## Usage
 

@@ -714,17 +714,7 @@ func TestLog(t *testing.T) {
 
 			tc.log.Output = &buf
 
-			var kvTemp map[string]interface{}
-
-			if tc.kv != nil {
-				kvTemp = make(map[string]interface{}, len(tc.kv))
-
-				for k, v := range tc.kv {
-					kvTemp[k] = v
-				}
-			}
-
-			_, err := tc.log.Log(kvTemp, tc.bytes...)
+			_, err := tc.log.Log(tc.kv, tc.bytes...)
 			if err != nil {
 				t.Fatalf("write error: %s", err)
 			}
