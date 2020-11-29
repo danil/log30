@@ -6,7 +6,6 @@ import (
 	"log"
 	"runtime"
 	"strconv"
-	"sync"
 	"testing"
 	"time"
 
@@ -15,8 +14,6 @@ import (
 )
 
 var (
-	pool = sync.Pool{New: func() interface{} { return new(bytes.Buffer) }}
-
 	dummy = logastic.Log{
 		Trunc:   120,
 		Keys:    [4]string{"message", "excerpt", "file", "host"},
@@ -532,11 +529,9 @@ func TestWrite(t *testing.T) {
 			t.Parallel()
 			linkToExample := fmt.Sprintf("%s:%d", testFile, tc.line)
 
-			buf := pool.Get().(*bytes.Buffer)
-			buf.Reset()
-			defer pool.Put(buf)
+			var buf bytes.Buffer
 
-			tc.log.Output = buf
+			tc.log.Output = &buf
 
 			_, err := fmt.Fprint(tc.log, tc.input)
 			if err != nil {
@@ -556,11 +551,9 @@ func BenchmarkLogastic(b *testing.B) {
 		}
 		b.Run(strconv.Itoa(tc.line), func(b *testing.B) {
 			for i := 0; i < b.N; i++ {
-				buf := pool.Get().(*bytes.Buffer)
-				buf.Reset()
-				defer pool.Put(buf)
+				var buf bytes.Buffer
 
-				tc.log.Output = buf
+				tc.log.Output = &buf
 
 				_, err := fmt.Fprint(tc.log, tc.input)
 				if err != nil {
@@ -717,13 +710,19 @@ func TestLog(t *testing.T) {
 			t.Parallel()
 			linkToExample := fmt.Sprintf("%s:%d", testFile, tc.line)
 
-			buf := pool.Get().(*bytes.Buffer)
-			buf.Reset()
-			defer pool.Put(buf)
+			var buf bytes.Buffer
 
-			tc.log.Output = buf
+			tc.log.Output = &buf
 
-			_, err := tc.log.Log(tc.kv, tc.bytes...)
+			var kvTemp map[string]interface{}
+			if tc.kv != nil {
+				kvTemp = make(map[string]interface{})
+				for k, v := range tc.kv {
+					kvTemp[k] = v
+				}
+			}
+
+			_, err := tc.log.Log(kvTemp, tc.bytes...)
 			if err != nil {
 				t.Fatalf("write error: %s", err)
 			}
