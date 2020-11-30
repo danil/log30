@@ -107,11 +107,7 @@ func logastic(
 			p = append(p, []byte(fmt.Sprint(v))...)
 		}
 
-		if original == nil {
-			original = p
-		} else {
-			original = append(p, original...)
-		}
+		original = append(p, original...)
 	}
 
 	var tail, file int
