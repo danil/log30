@@ -3,8 +3,11 @@
 [![Build Status](https://cloud.drone.io/api/badges/danil/logastic/status.svg)](https://cloud.drone.io/danil/logastic)
 
 JSON logging for Go.
-Development of the Logastic is in pre alpha version and
-is extremely slow and allocates a lots of memory)
+
+## About
+
+The software is considered to be at a alpha level of readiness -
+its extremely slow and allocates a lots of memory)
 
 ## Install
 
