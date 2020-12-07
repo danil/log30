@@ -33,18 +33,6 @@ func (p boolP) MarshalJSON() ([]byte, error) {
 	return boolV{V: *p.P}.MarshalJSON()
 }
 
-// Byte returns JSON marshaler for the byte slice type.
-func Byte(v ...byte) json.Marshaler { return byteV{V: v} }
-
-type byteV struct{ V []byte }
-
-func (v byteV) MarshalJSON() ([]byte, error) {
-	if len(v.V) == 0 {
-		return []byte("null"), nil
-	}
-	return append([]byte(`"`), append(encode.Bytes(v.V), []byte(`"`)...)...), nil
-}
-
 // Bytes returns JSON marshaler for the byte slice type.
 func Bytes(v []byte) json.Marshaler { return bytesV{V: v} }
 
@@ -248,18 +236,6 @@ func (p int8P) MarshalJSON() ([]byte, error) {
 	return int8V{V: *p.P}.MarshalJSON()
 }
 
-// Rune returns JSON marshaler for the rune type.
-func Rune(v ...rune) json.Marshaler { return runeV{V: v} }
-
-type runeV struct{ V []rune }
-
-func (v runeV) MarshalJSON() ([]byte, error) {
-	if len(v.V) == 0 {
-		return []byte("null"), nil
-	}
-	return append([]byte(`"`), append(encode.Runes(v.V), []byte(`"`)...)...), nil
-}
-
 // Runes returns JSON marshaler for the rune slice type.
 func Runes(v []rune) json.Marshaler { return runesV{V: v} }
 
@@ -405,4 +381,93 @@ func (p uintptrP) MarshalJSON() ([]byte, error) {
 		return []byte("null"), nil
 	}
 	return uintptrV{V: *p.P}.MarshalJSON()
+}
+
+func Any(v interface{}) json.Marshaler { return anyV{V: v} }
+
+type anyV struct{ V interface{} }
+
+func (v anyV) MarshalJSON() ([]byte, error) {
+	switch x := v.V.(type) {
+	case bool:
+		return Bool(x).MarshalJSON()
+	case *bool:
+		return Boolp(x).MarshalJSON()
+	case []byte:
+		return Bytes(x).MarshalJSON()
+	case *[]byte:
+		return Bytesp(x).MarshalJSON()
+	case complex128:
+		return Complex128(x).MarshalJSON()
+	case complex64:
+		return Complex64(x).MarshalJSON()
+	case error:
+		return Error(x).MarshalJSON()
+	case float32:
+		return Float32(x).MarshalJSON()
+	case *float32:
+		return Float32p(x).MarshalJSON()
+	case float64:
+		return Float64(x).MarshalJSON()
+	case *float64:
+		return Float64p(x).MarshalJSON()
+	case int:
+		return Int(x).MarshalJSON()
+	case *int:
+		return Intp(x).MarshalJSON()
+	case int16:
+		return Int16(x).MarshalJSON()
+	case *int16:
+		return Int16p(x).MarshalJSON()
+	case int32:
+		return Int32(x).MarshalJSON()
+	case *int32:
+		return Int32p(x).MarshalJSON()
+	case int64:
+		return Int64(x).MarshalJSON()
+	case *int64:
+		return Int64p(x).MarshalJSON()
+	case int8:
+		return Int8(x).MarshalJSON()
+	case *int8:
+		return Int8p(x).MarshalJSON()
+	case []rune:
+		return Runes(x).MarshalJSON()
+	case string:
+		return String(x).MarshalJSON()
+	case uint:
+		return Uint(x).MarshalJSON()
+	case *uint:
+		return Uintp(x).MarshalJSON()
+	case uint16:
+		return Uint16(x).MarshalJSON()
+	case *uint16:
+		return Uint16p(x).MarshalJSON()
+	case uint32:
+		return Uint32(x).MarshalJSON()
+	case *uint32:
+		return Uint32p(x).MarshalJSON()
+	case uint64:
+		return Uint64(x).MarshalJSON()
+	case *uint64:
+		return Uint64p(x).MarshalJSON()
+	case uint8:
+		return Uint8(x).MarshalJSON()
+	case *uint8:
+		return Uint8p(x).MarshalJSON()
+	case uintptr:
+		return Uintptr(x).MarshalJSON()
+	case *uintptr:
+		return Uintptrp(x).MarshalJSON()
+	default:
+		return Reflect(x).MarshalJSON()
+	}
+}
+
+func Reflect(v interface{}) json.Marshaler { return reflectV{V: v} }
+
+type reflectV struct{ V interface{} }
+
+func (v reflectV) MarshalJSON() ([]byte, error) {
+	return json.Marshal(v.V)
 }
