@@ -83,9 +83,7 @@ Output:
 }
 ```
 
-## Caveats
-
-Numeric types appears in the message as a string
+## Caveat: numeric types appears in the message as a string
 
 ```go
 package main

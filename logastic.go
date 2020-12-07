@@ -3,7 +3,6 @@ package logastic
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"io"
 	"log"
 	"sync"
@@ -27,15 +26,15 @@ const (
 
 // Log is a Multiline JSON Log and formatter and writer.
 type Log struct {
-	Output  io.Writer                     // destination for output
-	Flag    int                           // log properties
-	KV      map[string]interface{}        // key-values
-	Funcs   map[string]func() interface{} // dynamically calculated key-values
-	Trunc   int                           // maximum length of the message excerpt after which the message excerpt is truncated
-	Keys    [4]string                     // 0 = original message; 1 = message excerpt; 2 = file; 3 = host;
-	Key     uint8                         // sticky message key: all except 1 = original message; 1 = message excerpt;
-	Marks   [3][]byte                     // 0 = truncate; 1 = empty; 2 = blank;
-	Replace [][]byte                      // pairs of byte slices to replace in the message excerpt
+	Output  io.Writer                        // destination for output
+	Flag    int                              // log properties
+	KV      map[string]json.Marshaler        // key-values
+	Funcs   map[string]func() json.Marshaler // dynamically calculated key-values
+	Trunc   int                              // maximum length of the message excerpt after which the message excerpt is truncated
+	Keys    [4]string                        // 0 = original message; 1 = message excerpt; 2 = file; 3 = host;
+	Key     uint8                            // sticky message key: all except 1 = original message; 1 = message excerpt;
+	Marks   [3][]byte                        // 0 = truncate; 1 = empty; 2 = blank;
+	Replace [][]byte                         // pairs of byte slices to replace in the message excerpt
 }
 
 func (l Log) Write(p []byte) (int, error) {
@@ -46,7 +45,7 @@ func (l Log) Write(p []byte) (int, error) {
 	return l.Output.Write(j)
 }
 
-func (l Log) Log(kv map[string]interface{}, p ...byte) (int, error) {
+func (l Log) Log(kv map[string]json.Marshaler, p ...byte) (int, error) {
 	j, err := logastic(0, l.KV, kv, l.Funcs, l.Trunc, l.Keys, l.Key, l.Marks, l.Replace, p...)
 	if err != nil {
 		return 0, err
@@ -59,14 +58,14 @@ var asciiSpace = [256]uint8{'\t': 1, '\n': 1, '\v': 1, '\f': 1, '\r': 1, ' ': 1}
 var (
 	originalP = sync.Pool{New: func() interface{} { return new([]byte) }}
 	excerptP  = sync.Pool{New: func() interface{} { return new([]byte) }}
-	kvP       = sync.Pool{New: func() interface{} { m := make(map[string]interface{}); return &m }}
+	kvP       = sync.Pool{New: func() interface{} { m := make(map[string]json.Marshaler); return &m }}
 )
 
 func logastic(
 	flg int,
 	permKV,
-	optKV map[string]interface{}, // optKV is a optional key-value map in addition to the permanent kv key-value map
-	fns map[string]func() interface{},
+	optKV map[string]json.Marshaler, // optKV is a optional key-value map in addition to the permanent kv key-value map
+	fns map[string]func() json.Marshaler,
 	trunc int,
 	keys [4]string,
 	key uint8,
@@ -74,7 +73,7 @@ func logastic(
 	replace [][]byte,
 	original ...byte,
 ) ([]byte, error) {
-	tempKV := *kvP.Get().(*map[string]interface{})
+	tempKV := *kvP.Get().(*map[string]json.Marshaler)
 	for k := range tempKV {
 		delete(tempKV, k)
 	}
@@ -104,7 +103,11 @@ func logastic(
 		defer originalP.Put(&p)
 
 		if v != nil {
-			p = append(p, []byte(fmt.Sprint(v))...)
+			j, err := v.MarshalJSON()
+			if err != nil {
+				return nil, err
+			}
+			p = append(p, j...)
 		}
 
 		original = append(p, original...)
@@ -130,18 +133,7 @@ func logastic(
 
 	end := tail
 
-	if tempKV[keys[Excerpt]] != nil {
-		switch v := tempKV[keys[Excerpt]].(type) {
-		case string:
-			tempKV[keys[Excerpt]] = v
-		case []byte:
-			tempKV[keys[Excerpt]] = string(v)
-		case []rune:
-			tempKV[keys[Excerpt]] = string(v)
-		default:
-			tempKV[keys[Excerpt]] = v
-		}
-	} else {
+	if tempKV[keys[Excerpt]] == nil {
 		if tail == len(original) {
 			excerpt = append(excerpt[:0], marks[emptyMark]...)
 		} else {
@@ -224,7 +216,11 @@ func logastic(
 			}
 
 			if tempKV[keys[Host]] != nil {
-				excerpt = append(excerpt[:0], append([]byte(fmt.Sprint(tempKV[keys[Host]])), append([]byte(" "), excerpt...)...)...)
+				p, err := tempKV[keys[Host]].MarshalJSON()
+				if err != nil {
+					return nil, err
+				}
+				excerpt = append(excerpt[:0], append(p, append([]byte(" "), excerpt...)...)...)
 			}
 
 			if end-tail != 0 && truncate {
@@ -245,18 +241,18 @@ func logastic(
 		}
 
 		if tempKV[keys[key]] == nil {
-			tempKV[keys[key]] = string(original)
+			tempKV[keys[key]] = Bytes(original)
 		}
 	} else {
-		tempKV[keys[Original]] = string(original)
+		tempKV[keys[Original]] = Bytes(original)
 
 		if tempKV[keys[Excerpt]] == nil && len(excerpt) != 0 {
-			tempKV[keys[Excerpt]] = string(excerpt)
+			tempKV[keys[Excerpt]] = Bytes(excerpt)
 		}
 	}
 
 	if file != 0 {
-		tempKV[keys[File]] = string(original[:file])
+		tempKV[keys[File]] = Bytes(original[:file])
 	}
 
 	p, err := json.Marshal(tempKV)
@@ -287,11 +283,11 @@ func lastIndexFunc(s []byte, f func(r rune) bool, truth bool) int {
 
 func GELF() Log {
 	return Log{
-		KV: map[string]interface{}{
-			"version": "1.1",
+		KV: map[string]json.Marshaler{
+			"version": String("1.1"),
 		},
-		Funcs: map[string]func() interface{}{
-			"timestamp": func() interface{} { return time.Now().Unix() },
+		Funcs: map[string]func() json.Marshaler{
+			"timestamp": func() json.Marshaler { return Int64(time.Now().Unix()) },
 		},
 		Trunc:   120,
 		Keys:    [4]string{"full_message", "short_message", "_file", "host"},

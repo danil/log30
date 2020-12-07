@@ -2,6 +2,7 @@ package logastic_test
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"log"
 	"runtime"
@@ -24,7 +25,9 @@ var (
 
 	gelf = func() logastic.Log {
 		l := logastic.GELF()
-		l.Funcs = map[string]func() interface{}{"timestamp": func() interface{} { return time.Date(2020, time.October, 15, 18, 9, 0, 0, time.UTC).Unix() }}
+		l.Funcs = map[string]func() json.Marshaler{"timestamp": func() json.Marshaler {
+			return logastic.Int64(time.Date(2020, time.October, 15, 18, 9, 0, 0, time.UTC).Unix())
+		}}
 		return l
 	}()
 )
@@ -43,8 +46,6 @@ func TestWriteTrailingNewLine(t *testing.T) {
 		t.Errorf("trailing new line expected but not present: %q", buf.String())
 	}
 }
-
-func line() int { _, _, l, _ := runtime.Caller(1); return l }
 
 var WriteTestCases = []struct {
 	name      string
@@ -191,7 +192,7 @@ var WriteTestCases = []struct {
 		name: `"string" key with "foo" value`,
 		line: line(),
 		log: logastic.Log{
-			KV:   map[string]interface{}{"string": "foo"},
+			KV:   map[string]json.Marshaler{"string": logastic.String("foo")},
 			Keys: [4]string{"message"},
 		},
 		input: "Hello, World!",
@@ -204,7 +205,7 @@ var WriteTestCases = []struct {
 		name: `"integer" key with 123 value`,
 		line: line(),
 		log: logastic.Log{
-			KV:   map[string]interface{}{"integer": 123},
+			KV:   map[string]json.Marshaler{"integer": logastic.Int(123)},
 			Keys: [4]string{"message"},
 		},
 		input: "Hello, World!",
@@ -217,7 +218,7 @@ var WriteTestCases = []struct {
 		name: `"float" key with 3.21 value`,
 		line: line(),
 		log: logastic.Log{
-			KV:   map[string]interface{}{"float": 3.21},
+			KV:   map[string]json.Marshaler{"float": logastic.Float32(3.21)},
 			Keys: [4]string{"message"},
 		},
 		input: "Hello, World!",
@@ -314,7 +315,7 @@ var WriteTestCases = []struct {
 		name: `explicit byte slice as message excerpt key`,
 		line: line(),
 		log: logastic.Log{
-			KV:    map[string]interface{}{"excerpt": []byte("Explicit byte slice")},
+			KV:    map[string]json.Marshaler{"excerpt": logastic.Bytes([]byte("Explicit byte slice"))},
 			Trunc: 120,
 			Keys:  [4]string{"message", "excerpt"},
 		},
@@ -328,7 +329,7 @@ var WriteTestCases = []struct {
 		name: `explicit string as message excerpt key`,
 		line: line(),
 		log: logastic.Log{
-			KV:    map[string]interface{}{"excerpt": "Explicit string"},
+			KV:    map[string]json.Marshaler{"excerpt": logastic.String("Explicit string")},
 			Trunc: 120,
 			Keys:  [4]string{"message", "excerpt"},
 		},
@@ -342,7 +343,7 @@ var WriteTestCases = []struct {
 		name: `explicit integer as message excerpt key`,
 		line: line(),
 		log: logastic.Log{
-			KV:    map[string]interface{}{"excerpt": 42},
+			KV:    map[string]json.Marshaler{"excerpt": logastic.Int(42)},
 			Trunc: 120,
 			Keys:  [4]string{"message", "excerpt"},
 		},
@@ -356,7 +357,7 @@ var WriteTestCases = []struct {
 		name: `explicit float as message excerpt key`,
 		line: line(),
 		log: logastic.Log{
-			KV:    map[string]interface{}{"excerpt": 4.2},
+			KV:    map[string]json.Marshaler{"excerpt": logastic.Float32(4.2)},
 			Trunc: 120,
 			Keys:  [4]string{"message", "excerpt"},
 		},
@@ -370,7 +371,7 @@ var WriteTestCases = []struct {
 		name: `explicit boolean as message excerpt key`,
 		line: line(),
 		log: logastic.Log{
-			KV:    map[string]interface{}{"excerpt": true},
+			KV:    map[string]json.Marshaler{"excerpt": logastic.Bool(true)},
 			Trunc: 120,
 			Keys:  [4]string{"message", "excerpt"},
 		},
@@ -384,7 +385,7 @@ var WriteTestCases = []struct {
 		name: `explicit rune slice as messages excerpt key`,
 		line: line(),
 		log: logastic.Log{
-			KV:    map[string]interface{}{"excerpt": []rune("Explicit rune slice")},
+			KV:    map[string]json.Marshaler{"excerpt": logastic.Runes([]rune("Explicit rune slice"))},
 			Trunc: 120,
 			Keys:  [4]string{"message", "excerpt"},
 		},
@@ -398,8 +399,10 @@ var WriteTestCases = []struct {
 		name: `dynamic "time" key`,
 		line: line(),
 		log: logastic.Log{
-			Funcs: map[string]func() interface{}{"time": func() interface{} { return time.Date(2020, time.October, 15, 18, 9, 0, 0, time.UTC).String() }},
-			Keys:  [4]string{"message"},
+			Funcs: map[string]func() json.Marshaler{"time": func() json.Marshaler {
+				return logastic.String(time.Date(2020, time.October, 15, 18, 9, 0, 0, time.UTC).String())
+			}},
+			Keys: [4]string{"message"},
 		},
 		input: "Hello, World!",
 		expected: `{
@@ -470,14 +473,14 @@ var WriteTestCases = []struct {
 		name: `"magic" host key`,
 		line: line(),
 		log: logastic.Log{
-			KV:    map[string]interface{}{"host": "example.tld"},
+			KV:    map[string]json.Marshaler{"host": logastic.String("example.tld")},
 			Trunc: 120,
 			Keys:  [4]string{"message", "excerpt", "file", "host"},
 		},
 		input: "Hello, World!",
 		expected: `{
 			"message":"Hello, World!",
-			"excerpt":"example.tld Hello, World!",
+			"excerpt":"\"example.tld\" Hello, World!",
 			"host":"example.tld"
 		}`,
 	},
@@ -486,14 +489,16 @@ var WriteTestCases = []struct {
 		line: line(),
 		log: func() logastic.Log {
 			l := logastic.GELF()
-			l.Funcs = map[string]func() interface{}{"timestamp": func() interface{} { return time.Date(2020, time.October, 15, 18, 9, 0, 0, time.UTC).Unix() }}
-			l.KV = map[string]interface{}{"version": "1.1", "host": "example.tld"}
+			l.Funcs = map[string]func() json.Marshaler{"timestamp": func() json.Marshaler {
+				return logastic.Int64(time.Date(2020, time.October, 15, 18, 9, 0, 0, time.UTC).Unix())
+			}}
+			l.KV = map[string]json.Marshaler{"version": logastic.String("1.1"), "host": logastic.String("example.tld")}
 			return l
 		}(),
 		input: "Hello, GELF!",
 		expected: `{
 			"version":"1.1",
-			"short_message":"example.tld Hello, GELF!",
+			"short_message":"\"example.tld\" Hello, GELF!",
 			"full_message":"Hello, GELF!",
 			"host":"example.tld",
 			"timestamp":1602785340
@@ -505,14 +510,16 @@ var WriteTestCases = []struct {
 		log: func() logastic.Log {
 			l := logastic.GELF()
 			l.Flag = log.Llongfile
-			l.Funcs = map[string]func() interface{}{"timestamp": func() interface{} { return time.Date(2020, time.October, 15, 18, 9, 0, 0, time.UTC).Unix() }}
-			l.KV = map[string]interface{}{"version": "1.1", "host": "example.tld"}
+			l.Funcs = map[string]func() json.Marshaler{"timestamp": func() json.Marshaler {
+				return logastic.Int64(time.Date(2020, time.October, 15, 18, 9, 0, 0, time.UTC).Unix())
+			}}
+			l.KV = map[string]json.Marshaler{"version": logastic.String("1.1"), "host": logastic.String("example.tld")}
 			return l
 		}(),
 		input: "path/to/file7:89: Hello, GELF!",
 		expected: `{
 			"version":"1.1",
-			"short_message":"example.tld Hello, GELF!",
+			"short_message":"\"example.tld\" Hello, GELF!",
 			"full_message":"path/to/file7:89: Hello, GELF!",
 			"host":"example.tld",
 			"timestamp":1602785340,
@@ -569,7 +576,7 @@ var LogTestCases = []struct {
 	line     int
 	log      logastic.Log
 	bytes    []byte
-	kv       map[string]interface{}
+	kv       map[string]json.Marshaler
 	expected string
 }{
 	{
@@ -578,7 +585,7 @@ var LogTestCases = []struct {
 		bytes: nil,
 		log:   dummy,
 		expected: `{
-	    "message":"",
+	    "message":null,
 			"excerpt":"_EMPTY_"
 		}`,
 	},
@@ -587,11 +594,11 @@ var LogTestCases = []struct {
 		line: line(),
 		log: logastic.Log{
 			Trunc: 120,
-			KV:    map[string]interface{}{"string": "foo"},
+			KV:    map[string]json.Marshaler{"string": logastic.String("foo")},
 			Keys:  [4]string{"message"},
 		},
 		bytes: []byte("Hello, World!"),
-		kv:    map[string]interface{}{"string": "bar"},
+		kv:    map[string]json.Marshaler{"string": logastic.String("bar")},
 		expected: `{
 			"message":"Hello, World!",
 		  "string": "bar"
@@ -611,15 +618,15 @@ var LogTestCases = []struct {
 		name: `bytes appends to the "message" key with "string value"`,
 		line: line(),
 		log: logastic.Log{
-			KV:      map[string]interface{}{"message": "string value"},
+			KV:      map[string]json.Marshaler{"message": logastic.String("string value")},
 			Trunc:   120,
 			Keys:    [4]string{"message", "excerpt"},
 			Replace: [][]byte{[]byte("\n"), []byte(" ")},
 		},
 		bytes: []byte("\nHello, World!"),
 		expected: `{
-			"message":"string value\nHello, World!",
-			"excerpt":"string value Hello, World!"
+			"message":"\"string value\"\nHello, World!",
+			"excerpt":"\"string value\" Hello, World!"
 		}`,
 	},
 	{
@@ -627,17 +634,17 @@ var LogTestCases = []struct {
 		line:  line(),
 		log:   dummy,
 		bytes: []byte("\nHello, World!"),
-		kv:    map[string]interface{}{"message": "string value"},
+		kv:    map[string]json.Marshaler{"message": logastic.String("string value")},
 		expected: `{
-			"message":"string value\nHello, World!",
-			"excerpt":"string value Hello, World!"
+			"message":"\"string value\"\nHello, World!",
+			"excerpt":"\"string value\" Hello, World!"
 		}`,
 	},
 	{
 		name: `bytes is nil and "message" key with "string value"`,
 		line: line(),
 		log: logastic.Log{
-			KV:      map[string]interface{}{"message": "string value"},
+			KV:      map[string]json.Marshaler{"message": logastic.String("string value")},
 			Trunc:   120,
 			Keys:    [4]string{"message", "excerpt"},
 			Replace: [][]byte{[]byte("\n"), []byte(" ")},
@@ -652,7 +659,7 @@ var LogTestCases = []struct {
 		line:  line(),
 		log:   dummy,
 		bytes: nil,
-		kv:    map[string]interface{}{"message": "string value"},
+		kv:    map[string]json.Marshaler{"message": logastic.String("string value")},
 		expected: `{
 			"message":"string value"
 		}`,
@@ -662,21 +669,32 @@ var LogTestCases = []struct {
 		line:  line(),
 		log:   dummy,
 		bytes: []byte("\nHello, World!"),
-		kv:    map[string]interface{}{"message": 1},
+		kv:    map[string]json.Marshaler{"message": logastic.Int(1)},
 		expected: `{
 			"message":"1\nHello, World!",
 			"excerpt":"1 Hello, World!"
 		}`,
 	},
 	{
-		name:  `bytes appends to the float key "message"`,
+		name:  `bytes appends to the float 32 bit key "message"`,
 		line:  line(),
 		log:   dummy,
 		bytes: []byte("\nHello, World!"),
-		kv:    map[string]interface{}{"message": 2.1},
+		kv:    map[string]json.Marshaler{"message": logastic.Float32(4.2)},
 		expected: `{
-			"message":"2.1\nHello, World!",
-			"excerpt":"2.1 Hello, World!"
+			"message":"4.2\nHello, World!",
+			"excerpt":"4.2 Hello, World!"
+		}`,
+	},
+	{
+		name:  `bytes appends to the float 64 bit key "message"`,
+		line:  line(),
+		log:   dummy,
+		bytes: []byte("\nHello, World!"),
+		kv:    map[string]json.Marshaler{"message": logastic.Float64(4.2)},
+		expected: `{
+			"message":"4.2\nHello, World!",
+			"excerpt":"4.2 Hello, World!"
 		}`,
 	},
 	{
@@ -684,7 +702,7 @@ var LogTestCases = []struct {
 		line:  line(),
 		log:   dummy,
 		bytes: []byte("\nHello, World!"),
-		kv:    map[string]interface{}{"message": true},
+		kv:    map[string]json.Marshaler{"message": logastic.Bool(true)},
 		expected: `{
 			"message":"true\nHello, World!",
 			"excerpt":"true Hello, World!"
@@ -695,7 +713,7 @@ var LogTestCases = []struct {
 		line:  line(),
 		log:   dummy,
 		bytes: []byte("Hello, World!"),
-		kv:    map[string]interface{}{"message": nil},
+		kv:    map[string]json.Marshaler{"message": nil},
 		expected: `{
 			"message":"Hello, World!"
 		}`,
@@ -723,13 +741,4 @@ func TestLog(t *testing.T) {
 			ja.Assertf(buf.String(), tc.expected)
 		})
 	}
-}
-
-type testprinter struct {
-	t    *testing.T
-	link string
-}
-
-func (p testprinter) Errorf(msg string, args ...interface{}) {
-	p.t.Errorf(p.link+"\n"+msg, args...)
 }
