@@ -205,14 +205,14 @@ func logastic(
 						continue replace
 					}
 
-					idx := bytes.Index(excerpt, rep[0])
+					idx := bytes.Index(excerpt[offset:], rep[0])
 					if idx == -1 {
 						continue replace
 					}
 
-					offset += idx + len(rep[0])
+					excerpt = append(excerpt[:idx+offset], append(rep[1], excerpt[idx+offset+len(rep[0]):]...)...)
 
-					excerpt = append(excerpt[:idx], append(rep[1], excerpt[idx+len(rep[0]):]...)...)
+					offset += idx + len(rep[1])
 				}
 			}
 
