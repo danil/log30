@@ -67,6 +67,18 @@ func (v complex128V) MarshalJSON() ([]byte, error) {
 	return append([]byte(`"`), append([]byte(s[1:len(s)-1]), []byte(`"`)...)...), nil
 }
 
+// Complex128p returns JSON marshaler for the pointer to the complex128 type.
+func Complex128p(p *complex128) json.Marshaler { return complex128P{P: p} }
+
+type complex128P struct{ P *complex128 }
+
+func (p complex128P) MarshalJSON() ([]byte, error) {
+	if p.P == nil {
+		return []byte("null"), nil
+	}
+	return complex128V{V: *p.P}.MarshalJSON()
+}
+
 // Complex64 returns JSON marshaler for the complex64 type.
 func Complex64(v complex64) json.Marshaler { return complex64V{V: v} }
 
@@ -75,6 +87,18 @@ type complex64V struct{ V complex64 }
 func (v complex64V) MarshalJSON() ([]byte, error) {
 	s := fmt.Sprintf("%g", v.V)
 	return append([]byte(`"`), append([]byte(s[1:len(s)-1]), []byte(`"`)...)...), nil
+}
+
+// Complex64p returns JSON marshaler for the pointer to the complex64 type.
+func Complex64p(p *complex64) json.Marshaler { return complex64P{P: p} }
+
+type complex64P struct{ P *complex64 }
+
+func (p complex64P) MarshalJSON() ([]byte, error) {
+	if p.P == nil {
+		return []byte("null"), nil
+	}
+	return complex64V{V: *p.P}.MarshalJSON()
 }
 
 // Error returns JSON marshaler for the error type.
@@ -248,6 +272,18 @@ func (v runesV) MarshalJSON() ([]byte, error) {
 	return append([]byte(`"`), append(encode.Runes(v.V), []byte(`"`)...)...), nil
 }
 
+// Runesp returns JSON marshaler for the pointer to the rune slice type.
+func Runesp(p *[]rune) json.Marshaler { return runesP{P: p} }
+
+type runesP struct{ P *[]rune }
+
+func (p runesP) MarshalJSON() ([]byte, error) {
+	if p.P == nil {
+		return []byte("null"), nil
+	}
+	return runesV{V: *p.P}.MarshalJSON()
+}
+
 // String returns JSON marshaler for the string type.
 func String(v string) json.Marshaler { return stringV{V: v} }
 
@@ -255,6 +291,18 @@ type stringV struct{ V string }
 
 func (v stringV) MarshalJSON() ([]byte, error) {
 	return append([]byte(`"`), append(encode.String(v.V), []byte(`"`)...)...), nil
+}
+
+// Stringp returns JSON marshaler for the pointer to the string type.
+func Stringp(p *string) json.Marshaler { return stringP{P: p} }
+
+type stringP struct{ P *string }
+
+func (p stringP) MarshalJSON() ([]byte, error) {
+	if p.P == nil {
+		return []byte("null"), nil
+	}
+	return stringV{V: *p.P}.MarshalJSON()
 }
 
 // Uint returns JSON marshaler for the uint type.
@@ -399,8 +447,12 @@ func (v anyV) MarshalJSON() ([]byte, error) {
 		return Bytesp(x).MarshalJSON()
 	case complex128:
 		return Complex128(x).MarshalJSON()
+	case *complex128:
+		return Complex128p(x).MarshalJSON()
 	case complex64:
 		return Complex64(x).MarshalJSON()
+	case *complex64:
+		return Complex64p(x).MarshalJSON()
 	case error:
 		return Error(x).MarshalJSON()
 	case float32:
@@ -433,8 +485,12 @@ func (v anyV) MarshalJSON() ([]byte, error) {
 		return Int8p(x).MarshalJSON()
 	case []rune:
 		return Runes(x).MarshalJSON()
+	case *[]rune:
+		return Runesp(x).MarshalJSON()
 	case string:
 		return String(x).MarshalJSON()
+	case *string:
+		return Stringp(x).MarshalJSON()
 	case uint:
 		return Uint(x).MarshalJSON()
 	case *uint:

@@ -90,13 +90,6 @@ var MarshalTestCases = []struct {
 		}`,
 	},
 	{
-		line:  line(),
-		input: map[string]json.Marshaler{"any bool pointer null": logastic.Any(nil)},
-		expected: `{
-			"any bool pointer null":null
-		}`,
-	},
-	{
 		line: line(),
 		input: func() map[string]json.Marshaler {
 			b := true
@@ -150,13 +143,6 @@ var MarshalTestCases = []struct {
 	},
 	{
 		line:  line(),
-		input: map[string]json.Marshaler{"any nil bytes": logastic.Any(nil)},
-		expected: `{
-			"any nil bytes":null
-		}`,
-	},
-	{
-		line:  line(),
 		input: map[string]json.Marshaler{"reflect bytes": logastic.Reflect([]byte("Hello, World!"))},
 		expected: `{
 			"reflect bytes":"SGVsbG8sIFdvcmxkIQ=="
@@ -167,13 +153,6 @@ var MarshalTestCases = []struct {
 		input: map[string]json.Marshaler{"reflect empty bytes": logastic.Reflect([]byte{})},
 		expected: `{
 			"reflect empty bytes":""
-		}`,
-	},
-	{
-		line:  line(),
-		input: map[string]json.Marshaler{"reflect nil bytes": logastic.Reflect(nil)},
-		expected: `{
-			"reflect nil bytes":null
 		}`,
 	},
 	{
@@ -224,13 +203,6 @@ var MarshalTestCases = []struct {
 		}`,
 	},
 	{
-		line:  line(),
-		input: map[string]json.Marshaler{"any nil bytes pointer": logastic.Any(nil)},
-		expected: `{
-			"any nil bytes pointer":null
-		}`,
-	},
-	{
 		line: line(),
 		input: func() map[string]json.Marshaler {
 			p := []byte("Hello, World!")
@@ -252,13 +224,6 @@ var MarshalTestCases = []struct {
 	},
 	{
 		line:  line(),
-		input: map[string]json.Marshaler{"reflect nil bytes pointer": logastic.Reflect(nil)},
-		expected: `{
-			"reflect nil bytes pointer":null
-		}`,
-	},
-	{
-		line:  line(),
 		input: map[string]json.Marshaler{"complex128": logastic.Complex128(complex(1, 23))},
 		expected: `{
 			"complex128":"1+23i"
@@ -274,6 +239,41 @@ var MarshalTestCases = []struct {
 	{
 		line:  line(),
 		input: map[string]json.Marshaler{"reflect complex128": logastic.Reflect(complex(1, 23))},
+		error: errors.New("json: error calling MarshalJSON for type json.Marshaler: json: unsupported type: complex128"),
+	},
+	{
+		line: line(),
+		input: func() map[string]json.Marshaler {
+			var c complex128 = complex(1, 23)
+			return map[string]json.Marshaler{"complex128 pointer": logastic.Complex128p(&c)}
+		}(),
+		expected: `{
+			"complex128 pointer":"1+23i"
+		}`,
+	},
+	{
+		line:  line(),
+		input: map[string]json.Marshaler{"nil complex128 pointer": logastic.Complex128p(nil)},
+		expected: `{
+			"nil complex128 pointer":null
+		}`,
+	},
+	{
+		line: line(),
+		input: func() map[string]json.Marshaler {
+			var c complex128 = complex(1, 23)
+			return map[string]json.Marshaler{"any complex128 pointer": logastic.Any(&c)}
+		}(),
+		expected: `{
+			"any complex128 pointer":"1+23i"
+		}`,
+	},
+	{
+		line: line(),
+		input: func() map[string]json.Marshaler {
+			var c complex128 = complex(1, 23)
+			return map[string]json.Marshaler{"reflect complex128 pointer": logastic.Reflect(&c)}
+		}(),
 		error: errors.New("json: error calling MarshalJSON for type json.Marshaler: json: unsupported type: complex128"),
 	},
 	{
@@ -308,6 +308,41 @@ var MarshalTestCases = []struct {
 		expected: `{
 			"any error":"something went wrong"
 		}`,
+	},
+	{
+		line: line(),
+		input: func() map[string]json.Marshaler {
+			var c complex64 = complex(1, 23)
+			return map[string]json.Marshaler{"complex64 pointer": logastic.Complex64p(&c)}
+		}(),
+		expected: `{
+			"complex64 pointer":"1+23i"
+		}`,
+	},
+	{
+		line:  line(),
+		input: map[string]json.Marshaler{"nil complex64 pointer": logastic.Complex64p(nil)},
+		expected: `{
+			"nil complex64 pointer":null
+		}`,
+	},
+	{
+		line: line(),
+		input: func() map[string]json.Marshaler {
+			var c complex64 = complex(1, 23)
+			return map[string]json.Marshaler{"any complex64 pointer": logastic.Any(&c)}
+		}(),
+		expected: `{
+			"any complex64 pointer":"1+23i"
+		}`,
+	},
+	{
+		line: line(),
+		input: func() map[string]json.Marshaler {
+			var c complex64 = complex(1, 23)
+			return map[string]json.Marshaler{"reflect complex64 pointer": logastic.Reflect(&c)}
+		}(),
+		error: errors.New("json: error calling MarshalJSON for type json.Marshaler: json: unsupported type: complex64"),
 	},
 	{
 		line:  line(),
@@ -407,13 +442,6 @@ var MarshalTestCases = []struct {
 		}(),
 		expected: `{
 			"any float32 pointer":4.2
-		}`,
-	},
-	{
-		line:  line(),
-		input: map[string]json.Marshaler{"any float32 nil pointer": logastic.Any(nil)},
-		expected: `{
-			"any float32 nil pointer":null
 		}`,
 	},
 	{
@@ -517,13 +545,6 @@ var MarshalTestCases = []struct {
 		}(),
 		expected: `{
 			"any float64 pointer":4.2
-		}`,
-	},
-	{
-		line:  line(),
-		input: map[string]json.Marshaler{"any float64 nil pointer": logastic.Any(nil)},
-		expected: `{
-			"any float64 nil pointer":null
 		}`,
 	},
 	{
@@ -842,13 +863,6 @@ var MarshalTestCases = []struct {
 	},
 	{
 		line:  line(),
-		input: map[string]json.Marshaler{"any nil runes": logastic.Any(nil)},
-		expected: `{
-			"any nil runes":null
-		}`,
-	},
-	{
-		line:  line(),
 		input: map[string]json.Marshaler{"any rune slice with zero rune": logastic.Any([]rune{rune(0)})},
 		expected: `{
 			"any rune slice with zero rune":"\u0000"
@@ -870,16 +884,76 @@ var MarshalTestCases = []struct {
 	},
 	{
 		line:  line(),
-		input: map[string]json.Marshaler{"reflect nil runes": logastic.Reflect(nil)},
+		input: map[string]json.Marshaler{"reflect rune slice with zero rune": logastic.Reflect([]rune{rune(0)})},
 		expected: `{
-			"reflect nil runes":null
+			"reflect rune slice with zero rune":[0]
+		}`,
+	},
+	{
+		line: line(),
+		input: func() map[string]json.Marshaler {
+			p := []rune("Hello, World!")
+			return map[string]json.Marshaler{"runes pointer": logastic.Runesp(&p)}
+		}(),
+		expected: `{
+			"runes pointer":"Hello, World!"
+		}`,
+	},
+	{
+		line: line(),
+		input: func() map[string]json.Marshaler {
+			p := []rune{}
+			return map[string]json.Marshaler{"empty runes pointer": logastic.Runesp(&p)}
+		}(),
+		expected: `{
+			"empty runes pointer":""
 		}`,
 	},
 	{
 		line:  line(),
-		input: map[string]json.Marshaler{"reflect rune slice with zero rune": logastic.Reflect([]rune{rune(0)})},
+		input: map[string]json.Marshaler{"nil runes pointer": logastic.Runesp(nil)},
 		expected: `{
-			"reflect rune slice with zero rune":[0]
+			"nil runes pointer":null
+		}`,
+	},
+	{
+		line: line(),
+		input: func() map[string]json.Marshaler {
+			p := []rune("Hello, World!")
+			return map[string]json.Marshaler{"any runes pointer": logastic.Any(&p)}
+		}(),
+		expected: `{
+			"any runes pointer":"Hello, World!"
+		}`,
+	},
+	{
+		line: line(),
+		input: func() map[string]json.Marshaler {
+			p := []rune{}
+			return map[string]json.Marshaler{"any empty runes pointer": logastic.Any(&p)}
+		}(),
+		expected: `{
+			"any empty runes pointer":""
+		}`,
+	},
+	{
+		line: line(),
+		input: func() map[string]json.Marshaler {
+			p := []rune("Hello, World!")
+			return map[string]json.Marshaler{"reflect runes pointer": logastic.Reflect(&p)}
+		}(),
+		expected: `{
+			"reflect runes pointer":[72,101,108,108,111,44,32,87,111,114,108,100,33]
+		}`,
+	},
+	{
+		line: line(),
+		input: func() map[string]json.Marshaler {
+			p := []rune{}
+			return map[string]json.Marshaler{"reflect empty runes pointer": logastic.Reflect(&p)}
+		}(),
+		expected: `{
+			"reflect empty runes pointer":[]
 		}`,
 	},
 	{
@@ -946,6 +1020,73 @@ var MarshalTestCases = []struct {
 		}`,
 	},
 	{
+		line: line(),
+		input: func() map[string]json.Marshaler {
+			p := "Hello, World!"
+			return map[string]json.Marshaler{"string pointer": logastic.Stringp(&p)}
+		}(),
+		expected: `{
+			"string pointer":"Hello, World!"
+		}`,
+	},
+	{
+		line: line(),
+		input: func() map[string]json.Marshaler {
+			p := ""
+			return map[string]json.Marshaler{"empty string pointer": logastic.Stringp(&p)}
+		}(),
+		expected: `{
+			"empty string pointer":""
+		}`,
+	},
+	{
+		line:  line(),
+		input: map[string]json.Marshaler{"nil string pointer": logastic.Stringp(nil)},
+		expected: `{
+			"nil string pointer":null
+		}`,
+	},
+	{
+		line: line(),
+		input: func() map[string]json.Marshaler {
+			p := "Hello, World!"
+			return map[string]json.Marshaler{"any string pointer": logastic.Any(&p)}
+		}(),
+		expected: `{
+			"any string pointer":"Hello, World!"
+		}`,
+	},
+	{
+		line: line(),
+		input: func() map[string]json.Marshaler {
+			p := ""
+			return map[string]json.Marshaler{"any empty string pointer": logastic.Any(&p)}
+		}(),
+		expected: `{
+			"any empty string pointer":""
+		}`,
+	},
+	{
+		line: line(),
+		input: func() map[string]json.Marshaler {
+			p := "Hello, World!"
+			return map[string]json.Marshaler{"reflect string pointer": logastic.Reflect(&p)}
+		}(),
+		expected: `{
+			"reflect string pointer":"Hello, World!"
+		}`,
+	},
+	{
+		line: line(),
+		input: func() map[string]json.Marshaler {
+			p := ""
+			return map[string]json.Marshaler{"reflect empty string pointer": logastic.Reflect(&p)}
+		}(),
+		expected: `{
+			"reflect empty string pointer":""
+		}`,
+	},
+	{
 		line:  line(),
 		input: map[string]json.Marshaler{"uint": logastic.Uint(42)},
 		expected: `{
@@ -994,13 +1135,6 @@ var MarshalTestCases = []struct {
 		}`,
 	},
 	{
-		line:  line(),
-		input: map[string]json.Marshaler{"any nil uint pointer": logastic.Any(nil)},
-		expected: `{
-			"any nil uint pointer":null
-		}`,
-	},
-	{
 		line: line(),
 		input: func() map[string]json.Marshaler {
 			var i uint = 42
@@ -1008,13 +1142,6 @@ var MarshalTestCases = []struct {
 		}(),
 		expected: `{
 			"reflect uint pointer":42
-		}`,
-	},
-	{
-		line:  line(),
-		input: map[string]json.Marshaler{"reflect nil uint pointer": logastic.Reflect(nil)},
-		expected: `{
-			"reflect nil uint pointer":null
 		}`,
 	},
 	{
@@ -1063,13 +1190,6 @@ var MarshalTestCases = []struct {
 		}(),
 		expected: `{
 			"any uint16 pointer":42
-		}`,
-	},
-	{
-		line:  line(),
-		input: map[string]json.Marshaler{"any uint16 pointer": logastic.Any(nil)},
-		expected: `{
-			"any uint16 pointer":null
 		}`,
 	},
 	{
@@ -1138,13 +1258,6 @@ var MarshalTestCases = []struct {
 		}`,
 	},
 	{
-		line:  line(),
-		input: map[string]json.Marshaler{"any nil uint32 pointer": logastic.Any(nil)},
-		expected: `{
-			"any nil uint32 pointer":null
-		}`,
-	},
-	{
 		line: line(),
 		input: func() map[string]json.Marshaler {
 			var i uint32 = 42
@@ -1152,13 +1265,6 @@ var MarshalTestCases = []struct {
 		}(),
 		expected: `{
 			"reflect uint32 pointer":42
-		}`,
-	},
-	{
-		line:  line(),
-		input: map[string]json.Marshaler{"reflect nil uint32 pointer": logastic.Reflect(nil)},
-		expected: `{
-			"reflect nil uint32 pointer":null
 		}`,
 	},
 	{
@@ -1210,13 +1316,6 @@ var MarshalTestCases = []struct {
 		}`,
 	},
 	{
-		line:  line(),
-		input: map[string]json.Marshaler{"any nil uint64 pointer": logastic.Any(nil)},
-		expected: `{
-			"any nil uint64 pointer":null
-		}`,
-	},
-	{
 		line: line(),
 		input: func() map[string]json.Marshaler {
 			var i uint64 = 42
@@ -1224,13 +1323,6 @@ var MarshalTestCases = []struct {
 		}(),
 		expected: `{
 			"reflect uint64 pointer":42
-		}`,
-	},
-	{
-		line:  line(),
-		input: map[string]json.Marshaler{"reflect nil uint64 pointer": logastic.Reflect(nil)},
-		expected: `{
-			"reflect nil uint64 pointer":null
 		}`,
 	},
 	{
@@ -1282,13 +1374,6 @@ var MarshalTestCases = []struct {
 		}`,
 	},
 	{
-		line:  line(),
-		input: map[string]json.Marshaler{"any nil uint8 pointer": logastic.Any(nil)},
-		expected: `{
-			"any nil uint8 pointer":null
-		}`,
-	},
-	{
 		line: line(),
 		input: func() map[string]json.Marshaler {
 			var i uint8 = 42
@@ -1296,13 +1381,6 @@ var MarshalTestCases = []struct {
 		}(),
 		expected: `{
 			"reflect uint8 pointer":42
-		}`,
-	},
-	{
-		line:  line(),
-		input: map[string]json.Marshaler{"reflect nil uint8 pointer": logastic.Reflect(nil)},
-		expected: `{
-			"reflect nil uint8 pointer":null
 		}`,
 	},
 	{
@@ -1354,13 +1432,6 @@ var MarshalTestCases = []struct {
 		}`,
 	},
 	{
-		line:  line(),
-		input: map[string]json.Marshaler{"any nil uintptr pointer": logastic.Any(nil)},
-		expected: `{
-			"any nil uintptr pointer":null
-		}`,
-	},
-	{
 		line: line(),
 		input: func() map[string]json.Marshaler {
 			var i uintptr = 42
@@ -1368,13 +1439,6 @@ var MarshalTestCases = []struct {
 		}(),
 		expected: `{
 			"reflect uintptr pointer":42
-		}`,
-	},
-	{
-		line:  line(),
-		input: map[string]json.Marshaler{"reflect nil uintptr pointer": logastic.Reflect(nil)},
-		expected: `{
-			"reflect nil uintptr pointer":null
 		}`,
 	},
 	{
@@ -1421,6 +1485,20 @@ var MarshalTestCases = []struct {
 				"Name":"John Doe",
 				"Age":42
 			}
+		}`,
+	},
+	{
+		line:  line(),
+		input: map[string]json.Marshaler{"any nil": logastic.Any(nil)},
+		expected: `{
+			"any nil":null
+		}`,
+	},
+	{
+		line:  line(),
+		input: map[string]json.Marshaler{"reflect nil": logastic.Reflect(nil)},
+		expected: `{
+			"reflect nil":null
 		}`,
 	},
 }
