@@ -20,7 +20,7 @@ var (
 		Keys:    [4]string{"message", "excerpt", "file", "host"},
 		Key:     logastic.Original,
 		Marks:   [3][]byte{[]byte("…"), []byte("_EMPTY_"), []byte("_BLANK_")},
-		Replace: [][]byte{[]byte("\n"), []byte(" ")},
+		Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 	}
 
 	gelf = func() logastic.Log {
@@ -61,7 +61,7 @@ var WriteTestCases = []struct {
 			Trunc:   12,
 			Keys:    [4]string{"message", "excerpt"},
 			Marks:   [3][]byte{[]byte("…")},
-			Replace: [][]byte{[]byte("\n"), []byte(" ")},
+			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 		},
 		line:  line(),
 		input: "Hello,\nWorld!",
@@ -443,7 +443,7 @@ var WriteTestCases = []struct {
 		log: logastic.Log{
 			Trunc:   120,
 			Keys:    [4]string{"message", "excerpt"},
-			Replace: [][]byte{[]byte("\n"), []byte(" ")},
+			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 		},
 		input: "Hello,\nWorld!",
 		expected: `{
@@ -452,17 +452,57 @@ var WriteTestCases = []struct {
 		}`,
 	},
 	{
-		name: `remove tab characters`,
+		name: `remove exclamation marks`,
 		line: line(),
 		log: logastic.Log{
 			Trunc:   120,
 			Keys:    [4]string{"message", "excerpt"},
-			Replace: [][]byte{[]byte("\t"), []byte("\t")},
+			Replace: [][2][]byte{[2][]byte{[]byte("!")}},
 		},
-		input: "Hello,\tWorld!",
+		input: "Hello, World!!!",
 		expected: `{
-			"message":"Hello,\tWorld!",
-			"excerpt":"Hello,World!"
+			"message":"Hello, World!!!",
+			"excerpt":"Hello, World"
+		}`,
+	},
+	{
+		name: `replace word "World" by world "Work"`,
+		line: line(),
+		log: logastic.Log{
+			Trunc:   120,
+			Keys:    [4]string{"message", "excerpt"},
+			Replace: [][2][]byte{[2][]byte{[]byte("World"), []byte("Work")}},
+		},
+		input: "Hello, World!",
+		expected: `{
+			"message":"Hello, World!",
+			"excerpt":"Hello, Work!"
+		}`,
+	},
+	{
+		name: "ignore pointless replace",
+		line: line(),
+		log: logastic.Log{
+			Trunc:   120,
+			Keys:    [4]string{"message"},
+			Replace: [][2][]byte{[2][]byte{[]byte("!"), []byte("!")}},
+		},
+		input: "Hello, World!",
+		expected: `{
+			"message":"Hello, World!"
+		}`,
+	},
+	{
+		name: "ignore empty replace",
+		line: line(),
+		log: logastic.Log{
+			Trunc:   120,
+			Keys:    [4]string{"message"},
+			Replace: [][2][]byte{[2][]byte{}},
+		},
+		input: "Hello, World!",
+		expected: `{
+			"message":"Hello, World!"
 		}`,
 	},
 	{
@@ -649,7 +689,7 @@ var LogTestCases = []struct {
 			KV:      map[string]json.Marshaler{"message": logastic.String("string value")},
 			Trunc:   120,
 			Keys:    [4]string{"message", "excerpt"},
-			Replace: [][]byte{[]byte("\n"), []byte(" ")},
+			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 		},
 		bytes: []byte("\nHello, World!"),
 		expected: `{

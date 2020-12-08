@@ -34,7 +34,7 @@ type Log struct {
 	Keys    [4]string                        // 0 = original message; 1 = message excerpt; 2 = file; 3 = host;
 	Key     uint8                            // sticky message key: all except 1 = original message; 1 = message excerpt;
 	Marks   [3][]byte                        // 0 = truncate; 1 = empty; 2 = blank;
-	Replace [][]byte                         // pairs of byte slices to replace in the message excerpt
+	Replace [][2][]byte                      // pairs of byte slices to replace in the message excerpt
 }
 
 func (l Log) Write(p []byte) (int, error) {
@@ -70,7 +70,7 @@ func logastic(
 	keys [4]string,
 	key uint8,
 	marks [3][]byte,
-	replace [][]byte,
+	replace [][2][]byte,
 	original ...byte,
 ) ([]byte, error) {
 	tempKV := *kvP.Get().(*map[string]json.Marshaler)
@@ -199,23 +199,20 @@ func logastic(
 			excerpt = append(excerpt[:0], original[tail:end]...)
 
 		replace:
-			for n := 0; n < len(replace); n += 2 {
-				for i := 0; ; {
-					j := bytes.Index(original[tail+i:end], replace[n])
-					if j == -1 {
+			for _, rep := range replace {
+				for offset := 0; ; {
+					if len(rep[0]) == 0 || bytes.Equal(rep[0], rep[1]) {
 						continue replace
 					}
 
-					j += i
-					i = j + len(replace[n+1])
-
-					if bytes.Equal(replace[n], replace[n+1]) {
-						// Removing.
-						excerpt = append(excerpt[:j], excerpt[i:]...)
-					} else {
-						// Replacing.
-						excerpt = append(excerpt[:j], append(replace[n+1], excerpt[i:]...)...)
+					idx := bytes.Index(excerpt, rep[0])
+					if idx == -1 {
+						continue replace
 					}
+
+					offset += idx + len(rep[0])
+
+					excerpt = append(excerpt[:idx], append(rep[1], excerpt[idx+len(rep[0]):]...)...)
 				}
 			}
 
@@ -307,6 +304,6 @@ func GELF() Log {
 		Keys:    [4]string{"full_message", "short_message", "_file", "host"},
 		Key:     Excerpt,
 		Marks:   [3][]byte{[]byte("…"), []byte("_EMPTY_"), []byte("_BLANK_")},
-		Replace: [][]byte{[]byte("\n"), []byte(" ")},
+		Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 	}
 }
