@@ -12,10 +12,15 @@ func TestBytes(t *testing.T) {
 		t.Run(string(in), func(t *testing.T) {
 			t.Parallel()
 
-			out := Bytes([]byte(string(in)))
+			var buf bytes.Buffer
 
-			if !bytes.Equal(out, expected) {
-				t.Fatalf("expected: %s, recieved: %s", expected, out)
+			err := Bytes(&buf, []byte(string(in)))
+			if err != nil {
+				t.Fatalf("encode bytes write error: %s", err)
+			}
+
+			if !bytes.Equal(buf.Bytes(), expected) {
+				t.Errorf("expected: %s, recieved: %s", expected, buf.String())
 			}
 		})
 	}
@@ -28,10 +33,15 @@ func TestRunes(t *testing.T) {
 		t.Run(string(in), func(t *testing.T) {
 			t.Parallel()
 
-			out := Runes([]rune{in})
+			var buf bytes.Buffer
 
-			if !bytes.Equal(out, expected) {
-				t.Fatalf("expected: %s, recieved: %s", expected, out)
+			err := Runes(&buf, []rune{in})
+			if err != nil {
+				t.Fatalf("encode runes write error: %s", err)
+			}
+
+			if !bytes.Equal(buf.Bytes(), expected) {
+				t.Errorf("expected: %s, recieved: %s", expected, buf.String())
 			}
 		})
 	}
@@ -44,10 +54,15 @@ func TestString(t *testing.T) {
 		t.Run(string(in), func(t *testing.T) {
 			t.Parallel()
 
-			out := String(string(in))
+			var buf bytes.Buffer
 
-			if !bytes.Equal(out, expected) {
-				t.Fatalf("expected: %s, recieved: %s", expected, out)
+			err := String(&buf, string(in))
+			if err != nil {
+				t.Fatalf("encode string write error: %s", err)
+			}
+
+			if !bytes.Equal(buf.Bytes(), expected) {
+				t.Errorf("expected: %s, recieved: %s", expected, buf.String())
 			}
 		})
 	}

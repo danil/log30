@@ -1,8 +1,12 @@
 package encode
 
 import (
+	"io"
+	"sync"
 	"unicode/utf8"
 )
+
+var pool = sync.Pool{New: func() interface{} { p := make([]byte, utf8.UTFMax); return &p }}
 
 var codec = map[rune][]byte{
 	'\x00': []byte("\\u0000"),
@@ -39,13 +43,12 @@ var codec = map[rune][]byte{
 	'\x1f': []byte("\\u001f"),
 }
 
-func Bytes(raw []byte) []byte {
-	esc := make([]byte, 0, len(raw))
+func Bytes(dst io.Writer, src []byte) error {
 	idx := 0
 	var oldr rune
 
 	for {
-		r, n := utf8.DecodeRune(raw[idx:])
+		r, n := utf8.DecodeRune(src[idx:])
 		if n == 0 {
 			break
 		}
@@ -53,60 +56,101 @@ func Bytes(raw []byte) []byte {
 		p, ok := codec[r]
 
 		if ok {
-			esc = append(esc, p...)
+			_, err := dst.Write(p)
+			if err != nil {
+				return err
+			}
+
 		} else if r == '"' && oldr != '\\' {
-			esc = append(esc, append([]byte("\\"), raw[idx:idx+n]...)...)
+			_, err := dst.Write(append([]byte("\\"), src[idx:idx+n]...))
+			if err != nil {
+				return err
+			}
+
 		} else {
-			esc = append(esc, raw[idx:idx+n]...)
+			_, err := dst.Write(src[idx : idx+n])
+			if err != nil {
+				return err
+			}
 		}
 
 		oldr = r
 		idx += n
 	}
 
-	return esc
+	return nil
 }
 
-func Runes(raw []rune) []byte {
-	esc := make([]byte, len(raw)*utf8.UTFMax)
+func Runes(dst io.Writer, src []rune) error {
 	idx := 0
-	var oldr rune
 
-	for _, r := range raw {
-		idx, esc = enc(idx, esc, r, oldr)
+	var (
+		oldr rune
+		err  error
+	)
+
+	for _, r := range src {
+		idx, err = enc(dst, idx, r, oldr)
+		if err != nil {
+			return err
+		}
+
 		oldr = r
 	}
 
-	esc = esc[:idx]
-	return esc
+	return nil
 }
 
-func String(raw string) []byte {
-	esc := make([]byte, len(raw)*utf8.UTFMax)
+func String(dst io.Writer, src string) error {
 	idx := 0
-	var oldr rune
 
-	for _, r := range raw {
-		idx, esc = enc(idx, esc, r, oldr)
+	var (
+		oldr rune
+		err  error
+	)
+
+	for _, r := range src {
+		idx, err = enc(dst, idx, r, oldr)
+		if err != nil {
+			return err
+		}
+
 		oldr = r
 	}
 
-	esc = esc[:idx]
-	return esc
+	return nil
 }
 
-func enc(idx int, esc []byte, r, oldr rune) (int, []byte) {
+func enc(dst io.Writer, idx int, r, oldr rune) (int, error) {
 	p, ok := codec[r]
 
 	if ok {
-		esc = append(esc[:idx], p...)
+		_, err := dst.Write(p)
+		if err != nil {
+			return 0, err
+		}
+
 		idx += len(p)
 	} else if r == '"' && oldr != '\\' {
-		esc = append(esc[:idx], append([]byte("\\"), '"')...)
+		_, err := dst.Write(append([]byte("\\"), '"'))
+		if err != nil {
+			return 0, err
+		}
+
 		idx += 2
 	} else {
-		idx += utf8.EncodeRune(esc[idx:], r)
+		p := *pool.Get().(*[]byte)
+		defer pool.Put(&p)
+
+		n := utf8.EncodeRune(p, r)
+
+		_, err := dst.Write(p[:n])
+		if err != nil {
+			return 0, err
+		}
+
+		idx += n
 	}
 
-	return idx, esc
+	return idx, nil
 }

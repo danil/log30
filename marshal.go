@@ -1,12 +1,16 @@
 package logastic
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"strconv"
+	"sync"
 
 	"github.com/danil/logastic/encode"
 )
+
+var pool = sync.Pool{New: func() interface{} { return new(bytes.Buffer) }}
 
 // Bool returns JSON marshaler for the bool type.
 func Bool(v bool) json.Marshaler { return boolV{V: v} }
@@ -42,7 +46,17 @@ func (v bytesV) MarshalJSON() ([]byte, error) {
 	if v.V == nil {
 		return []byte("null"), nil
 	}
-	return append([]byte(`"`), append(encode.Bytes(v.V), []byte(`"`)...)...), nil
+
+	buf := pool.Get().(*bytes.Buffer)
+	buf.Reset()
+	defer pool.Put(buf)
+
+	err := encode.Bytes(buf, v.V)
+	if err != nil {
+		return nil, err
+	}
+
+	return append([]byte(`"`), append(buf.Bytes(), []byte(`"`)...)...), nil
 }
 
 // Bytesp returns JSON marshaler for the pointer to the byte slice type.
@@ -110,7 +124,17 @@ func (v errorV) MarshalJSON() ([]byte, error) {
 	if v.V == nil {
 		return []byte("null"), nil
 	}
-	return append([]byte(`"`), append(encode.String(v.V.Error()), []byte(`"`)...)...), nil
+
+	buf := pool.Get().(*bytes.Buffer)
+	buf.Reset()
+	defer pool.Put(buf)
+
+	err := encode.String(buf, v.V.Error())
+	if err != nil {
+		return nil, err
+	}
+
+	return append([]byte(`"`), append(buf.Bytes(), []byte(`"`)...)...), nil
 }
 
 // Float32 returns JSON marshaler for the float32 type.
@@ -269,7 +293,17 @@ func (v runesV) MarshalJSON() ([]byte, error) {
 	if v.V == nil {
 		return []byte("null"), nil
 	}
-	return append([]byte(`"`), append(encode.Runes(v.V), []byte(`"`)...)...), nil
+
+	buf := pool.Get().(*bytes.Buffer)
+	buf.Reset()
+	defer pool.Put(buf)
+
+	err := encode.Runes(buf, v.V)
+	if err != nil {
+		return nil, err
+	}
+
+	return append([]byte(`"`), append(buf.Bytes(), []byte(`"`)...)...), nil
 }
 
 // Runesp returns JSON marshaler for the pointer to the rune slice type.
@@ -290,7 +324,16 @@ func String(v string) json.Marshaler { return stringV{V: v} }
 type stringV struct{ V string }
 
 func (v stringV) MarshalJSON() ([]byte, error) {
-	return append([]byte(`"`), append(encode.String(v.V), []byte(`"`)...)...), nil
+	buf := pool.Get().(*bytes.Buffer)
+	buf.Reset()
+	defer pool.Put(buf)
+
+	err := encode.String(buf, v.V)
+	if err != nil {
+		return nil, err
+	}
+
+	return append([]byte(`"`), append(buf.Bytes(), []byte(`"`)...)...), nil
 }
 
 // Stringp returns JSON marshaler for the pointer to the string type.
