@@ -205,9 +205,17 @@ func logastic(
 					if j == -1 {
 						continue replace
 					}
+
 					j += i
 					i = j + len(replace[n+1])
-					excerpt = append(excerpt[:j], append(replace[n+1], excerpt[i:]...)...)
+
+					if bytes.Equal(replace[n], replace[n+1]) {
+						// Removing.
+						excerpt = append(excerpt[:j], excerpt[i:]...)
+					} else {
+						// Replacing.
+						excerpt = append(excerpt[:j], append(replace[n+1], excerpt[i:]...)...)
+					}
 				}
 			}
 

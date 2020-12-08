@@ -438,6 +438,34 @@ var WriteTestCases = []struct {
 		}`,
 	},
 	{
+		name: `replace newline character by whitespace character`,
+		line: line(),
+		log: logastic.Log{
+			Trunc:   120,
+			Keys:    [4]string{"message", "excerpt"},
+			Replace: [][]byte{[]byte("\n"), []byte(" ")},
+		},
+		input: "Hello,\nWorld!",
+		expected: `{
+			"message":"Hello,\nWorld!",
+			"excerpt":"Hello, World!"
+		}`,
+	},
+	{
+		name: `remove tab characters`,
+		line: line(),
+		log: logastic.Log{
+			Trunc:   120,
+			Keys:    [4]string{"message", "excerpt"},
+			Replace: [][]byte{[]byte("\t"), []byte("\t")},
+		},
+		input: "Hello,\tWorld!",
+		expected: `{
+			"message":"Hello,\tWorld!",
+			"excerpt":"Hello,World!"
+		}`,
+	},
+	{
 		name: "file path with empty message",
 		line: line(),
 		log: logastic.Log{
