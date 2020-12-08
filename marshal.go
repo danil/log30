@@ -56,6 +56,10 @@ func (v bytesV) MarshalJSON() ([]byte, error) {
 		return nil, err
 	}
 
+	if len(buf.Bytes()) != 0 && buf.Bytes()[0] == '"' {
+		return buf.Bytes(), nil
+	}
+
 	return append([]byte(`"`), append(buf.Bytes(), []byte(`"`)...)...), nil
 }
 
@@ -132,6 +136,10 @@ func (v errorV) MarshalJSON() ([]byte, error) {
 	err := encode.String(buf, v.V.Error())
 	if err != nil {
 		return nil, err
+	}
+
+	if len(buf.Bytes()) != 0 && buf.Bytes()[0] == '"' {
+		return buf.Bytes(), nil
 	}
 
 	return append([]byte(`"`), append(buf.Bytes(), []byte(`"`)...)...), nil
@@ -303,6 +311,10 @@ func (v runesV) MarshalJSON() ([]byte, error) {
 		return nil, err
 	}
 
+	if len(buf.Bytes()) != 0 && buf.Bytes()[0] == '"' {
+		return buf.Bytes(), nil
+	}
+
 	return append([]byte(`"`), append(buf.Bytes(), []byte(`"`)...)...), nil
 }
 
@@ -331,6 +343,10 @@ func (v stringV) MarshalJSON() ([]byte, error) {
 	err := encode.String(buf, v.V)
 	if err != nil {
 		return nil, err
+	}
+
+	if len(buf.Bytes()) != 0 && buf.Bytes()[0] == '"' {
+		return buf.Bytes(), nil
 	}
 
 	return append([]byte(`"`), append(buf.Bytes(), []byte(`"`)...)...), nil
