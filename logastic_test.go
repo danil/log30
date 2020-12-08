@@ -480,7 +480,7 @@ var WriteTestCases = []struct {
 		input: "Hello, World!",
 		expected: `{
 			"message":"Hello, World!",
-			"excerpt":"\"example.tld\" Hello, World!",
+			"excerpt":"example.tld Hello, World!",
 			"host":"example.tld"
 		}`,
 	},
@@ -498,7 +498,7 @@ var WriteTestCases = []struct {
 		input: "Hello, GELF!",
 		expected: `{
 			"version":"1.1",
-			"short_message":"\"example.tld\" Hello, GELF!",
+			"short_message":"example.tld Hello, GELF!",
 			"full_message":"Hello, GELF!",
 			"host":"example.tld",
 			"timestamp":1602785340
@@ -519,7 +519,7 @@ var WriteTestCases = []struct {
 		input: "path/to/file7:89: Hello, GELF!",
 		expected: `{
 			"version":"1.1",
-			"short_message":"\"example.tld\" Hello, GELF!",
+			"short_message":"example.tld Hello, GELF!",
 			"full_message":"path/to/file7:89: Hello, GELF!",
 			"host":"example.tld",
 			"timestamp":1602785340,
@@ -644,10 +644,9 @@ var LogTestCases = []struct {
 		name: `bytes is nil and "message" key with "string value"`,
 		line: line(),
 		log: logastic.Log{
-			KV:      map[string]json.Marshaler{"message": logastic.String("string value")},
-			Trunc:   120,
-			Keys:    [4]string{"message", "excerpt"},
-			Replace: [][]byte{[]byte("\n"), []byte(" ")},
+			KV:    map[string]json.Marshaler{"message": logastic.String("string value")},
+			Trunc: 120,
+			Keys:  [4]string{"message"},
 		},
 		bytes: nil,
 		expected: `{
@@ -716,6 +715,26 @@ var LogTestCases = []struct {
 		kv:    map[string]json.Marshaler{"message": nil},
 		expected: `{
 			"message":"Hello, World!"
+		}`,
+	},
+	{
+		name:  `bytes is nil and bytes "message" key with json`,
+		line:  line(),
+		log:   dummy,
+		bytes: nil,
+		kv:    map[string]json.Marshaler{"message": logastic.Bytes([]byte(`{"foo":"bar"}`))},
+		expected: `{
+			"message":"{\"foo\":\"bar\"}"
+		}`,
+	},
+	{
+		name:  `bytes is nil and raw "message" key with json`,
+		line:  line(),
+		log:   dummy,
+		bytes: nil,
+		kv:    map[string]json.Marshaler{"message": logastic.Raw([]byte(`{"foo":"bar"}`))},
+		expected: `{
+			"message":{"foo":"bar"}
 		}`,
 	},
 }

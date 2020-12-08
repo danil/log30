@@ -474,35 +474,6 @@ func (p uintptrP) MarshalJSON() ([]byte, error) {
 	return uintptrV{V: *p.P}.MarshalJSON()
 }
 
-// Plain returns JSON marshaler for the plain byte slice.
-func Plain(v []byte) json.Marshaler { return plainV{V: v} }
-
-type plainV struct{ V []byte }
-
-func (v plainV) MarshalJSON() ([]byte, error) {
-	if v.V == nil {
-		return []byte("null"), nil
-	}
-
-	buf := pool.Get().(*bytes.Buffer)
-	buf.Reset()
-	defer pool.Put(buf)
-
-	var err error
-
-	if len(v.V) != 0 && v.V[0] == '"' {
-		err = encode.Bytes(buf, v.V[1:len(v.V)-1])
-	} else {
-		err = encode.Bytes(buf, v.V)
-	}
-
-	if err != nil {
-		return nil, err
-	}
-
-	return append([]byte(`"`), append(buf.Bytes(), []byte(`"`)...)...), nil
-}
-
 // Raw returns JSON marshaler for the raw byte slice.
 func Raw(v []byte) json.Marshaler { return rawV{V: v} }
 
@@ -674,8 +645,6 @@ func (v anyV) MarshalJSON() ([]byte, error) {
 	case uintptrV:
 		return x.MarshalJSON()
 	case uintptrP:
-		return x.MarshalJSON()
-	case plainV:
 		return x.MarshalJSON()
 	case rawV:
 		return x.MarshalJSON()

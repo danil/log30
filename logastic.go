@@ -220,6 +220,12 @@ func logastic(
 				if err != nil {
 					return nil, err
 				}
+
+				// NOTE: The assumption of quotes presence is unsophisticated.
+				if len(p) != 0 && p[0] == '"' && p[len(p)-1] == '"' {
+					p = p[1 : len(p)-1]
+				}
+
 				excerpt = append(excerpt[:0], append(p, append([]byte(" "), excerpt...)...)...)
 			}
 

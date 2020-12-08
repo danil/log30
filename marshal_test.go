@@ -115,6 +115,41 @@ var MarshalTestCases = []struct {
 	},
 	{
 		line:  line(),
+		input: map[string]json.Marshaler{"bytes with quote": logastic.Bytes([]byte(`Hello, "World"!`))},
+		expected: `{
+			"bytes with quote":"Hello, \"World\"!"
+		}`,
+	},
+	{
+		line:  line(),
+		input: map[string]json.Marshaler{"bytes quote": logastic.Bytes([]byte(`"Hello, World!"`))},
+		expected: `{
+			"bytes quote":"\"Hello, World!\""
+		}`,
+	},
+	{
+		line:  line(),
+		input: map[string]json.Marshaler{"bytes nested quote": logastic.Bytes([]byte(`"Hello, "World"!"`))},
+		expected: `{
+			"bytes nested quote":"\"Hello, \"World\"!\""
+		}`,
+	},
+	{
+		line:  line(),
+		input: map[string]json.Marshaler{"bytes json": logastic.Bytes([]byte(`{"foo":"bar"}`))},
+		expected: `{
+			"bytes json":"{\"foo\":\"bar\"}"
+		}`,
+	},
+	{
+		line:  line(),
+		input: map[string]json.Marshaler{"bytes json quote": logastic.Bytes([]byte(`"{"foo":"bar"}"`))},
+		expected: `{
+			"bytes json quote":"\"{\"foo\":\"bar\"}\""
+		}`,
+	},
+	{
+		line:  line(),
 		input: map[string]json.Marshaler{"empty bytes": logastic.Bytes([]byte{})},
 		expected: `{
 			"empty bytes":""
@@ -1499,55 +1534,6 @@ var MarshalTestCases = []struct {
 		input: map[string]json.Marshaler{"reflect nil": logastic.Reflect(nil)},
 		expected: `{
 			"reflect nil":null
-		}`,
-	},
-	{
-		line:  line(),
-		input: map[string]json.Marshaler{"plain": logastic.Plain([]byte(`Hello, World!`))},
-		expected: `{
-			"plain":"Hello, World!"
-		}`,
-	},
-	{
-		line:  line(),
-		input: map[string]json.Marshaler{"plain string with quote": logastic.Plain([]byte(`Hello, "World"!`))},
-		expected: `{
-			"plain string with quote":"Hello, \"World\"!"
-		}`,
-	},
-	{
-		line:  line(),
-		input: map[string]json.Marshaler{"plain quote": logastic.Plain([]byte(`"Hello, World!"`))},
-		expected: `{
-			"plain quote":"Hello, World!"
-		}`,
-	},
-	{
-		line:  line(),
-		input: map[string]json.Marshaler{"plain nested quote": logastic.Plain([]byte(`"Hello, "World"!"`))},
-		expected: `{
-			"plain nested quote":"Hello, \"World\"!"
-		}`,
-	},
-	{
-		line:  line(),
-		input: map[string]json.Marshaler{"plain json": logastic.Plain([]byte(`{"foo":"bar"}`))},
-		expected: `{
-			"plain json":"{\"foo\":\"bar\"}"
-		}`,
-	},
-	{
-		line:  line(),
-		input: map[string]json.Marshaler{"plain json quote": logastic.Plain([]byte(`"{"foo":"bar"}"`))},
-		expected: `{
-			"plain json quote":"{\"foo\":\"bar\"}"
-		}`,
-	},
-	{
-		line:  line(),
-		input: map[string]json.Marshaler{"plain nil": logastic.Plain(nil)},
-		expected: `{
-			"plain nil":null
 		}`,
 	},
 	{
