@@ -1501,6 +1501,84 @@ var MarshalTestCases = []struct {
 			"reflect nil":null
 		}`,
 	},
+	{
+		line:  line(),
+		input: map[string]json.Marshaler{"plain": logastic.Plain([]byte(`Hello, World!`))},
+		expected: `{
+			"plain":"Hello, World!"
+		}`,
+	},
+	{
+		line:  line(),
+		input: map[string]json.Marshaler{"plain string with quote": logastic.Plain([]byte(`Hello, "World"!`))},
+		expected: `{
+			"plain string with quote":"Hello, \"World\"!"
+		}`,
+	},
+	{
+		line:  line(),
+		input: map[string]json.Marshaler{"plain quote": logastic.Plain([]byte(`"Hello, World!"`))},
+		expected: `{
+			"plain quote":"Hello, World!"
+		}`,
+	},
+	{
+		line:  line(),
+		input: map[string]json.Marshaler{"plain nested quote": logastic.Plain([]byte(`"Hello, "World"!"`))},
+		expected: `{
+			"plain nested quote":"Hello, \"World\"!"
+		}`,
+	},
+	{
+		line:  line(),
+		input: map[string]json.Marshaler{"plain json": logastic.Plain([]byte(`{"foo":"bar"}`))},
+		expected: `{
+			"plain json":"{\"foo\":\"bar\"}"
+		}`,
+	},
+	{
+		line:  line(),
+		input: map[string]json.Marshaler{"plain json quote": logastic.Plain([]byte(`"{"foo":"bar"}"`))},
+		expected: `{
+			"plain json quote":"{\"foo\":\"bar\"}"
+		}`,
+	},
+	{
+		line:  line(),
+		input: map[string]json.Marshaler{"plain nil": logastic.Plain(nil)},
+		expected: `{
+			"plain nil":null
+		}`,
+	},
+	{
+		line:  line(),
+		input: map[string]json.Marshaler{"raw json": logastic.Raw([]byte(`{"foo":"bar"}`))},
+		expected: `{
+			"raw json":{"foo":"bar"}
+		}`,
+	},
+	{
+		line:  line(),
+		input: map[string]json.Marshaler{"raw malformed json object": logastic.Raw([]byte(`xyz{"foo":"bar"}`))},
+		error: errors.New("json: error calling MarshalJSON for type json.Marshaler: invalid character 'x' looking for beginning of value"),
+	},
+	{
+		line:  line(),
+		input: map[string]json.Marshaler{"raw malformed json key/value": logastic.Raw([]byte(`{"foo":"bar""}`))},
+		error: errors.New(`json: error calling MarshalJSON for type json.Marshaler: invalid character '"' after object key:value pair`),
+	},
+	{
+		line:  line(),
+		input: map[string]json.Marshaler{"raw json with unescaped null byte": logastic.Raw(append([]byte(`{"foo":"`), append([]byte{0}, []byte(`xyz"}`)...)...))},
+		error: errors.New("json: error calling MarshalJSON for type json.Marshaler: invalid character '\\x00' in string literal"),
+	},
+	{
+		line:  line(),
+		input: map[string]json.Marshaler{"raw nil": logastic.Raw(nil)},
+		expected: `{
+			"raw nil":null
+		}`,
+	},
 }
 
 func TestMarshal(t *testing.T) {

@@ -56,10 +56,6 @@ func (v bytesV) MarshalJSON() ([]byte, error) {
 		return nil, err
 	}
 
-	if len(buf.Bytes()) != 0 && buf.Bytes()[0] == '"' {
-		return buf.Bytes(), nil
-	}
-
 	return append([]byte(`"`), append(buf.Bytes(), []byte(`"`)...)...), nil
 }
 
@@ -136,10 +132,6 @@ func (v errorV) MarshalJSON() ([]byte, error) {
 	err := encode.String(buf, v.V.Error())
 	if err != nil {
 		return nil, err
-	}
-
-	if len(buf.Bytes()) != 0 && buf.Bytes()[0] == '"' {
-		return buf.Bytes(), nil
 	}
 
 	return append([]byte(`"`), append(buf.Bytes(), []byte(`"`)...)...), nil
@@ -311,10 +303,6 @@ func (v runesV) MarshalJSON() ([]byte, error) {
 		return nil, err
 	}
 
-	if len(buf.Bytes()) != 0 && buf.Bytes()[0] == '"' {
-		return buf.Bytes(), nil
-	}
-
 	return append([]byte(`"`), append(buf.Bytes(), []byte(`"`)...)...), nil
 }
 
@@ -343,10 +331,6 @@ func (v stringV) MarshalJSON() ([]byte, error) {
 	err := encode.String(buf, v.V)
 	if err != nil {
 		return nil, err
-	}
-
-	if len(buf.Bytes()) != 0 && buf.Bytes()[0] == '"' {
-		return buf.Bytes(), nil
 	}
 
 	return append([]byte(`"`), append(buf.Bytes(), []byte(`"`)...)...), nil
@@ -488,6 +472,47 @@ func (p uintptrP) MarshalJSON() ([]byte, error) {
 		return []byte("null"), nil
 	}
 	return uintptrV{V: *p.P}.MarshalJSON()
+}
+
+// Plain returns JSON marshaler for the plain byte slice.
+func Plain(v []byte) json.Marshaler { return plainV{V: v} }
+
+type plainV struct{ V []byte }
+
+func (v plainV) MarshalJSON() ([]byte, error) {
+	if v.V == nil {
+		return []byte("null"), nil
+	}
+
+	buf := pool.Get().(*bytes.Buffer)
+	buf.Reset()
+	defer pool.Put(buf)
+
+	var err error
+
+	if len(v.V) != 0 && v.V[0] == '"' {
+		err = encode.Bytes(buf, v.V[1:len(v.V)-1])
+	} else {
+		err = encode.Bytes(buf, v.V)
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	return append([]byte(`"`), append(buf.Bytes(), []byte(`"`)...)...), nil
+}
+
+// Raw returns JSON marshaler for the raw byte slice.
+func Raw(v []byte) json.Marshaler { return rawV{V: v} }
+
+type rawV struct{ V []byte }
+
+func (v rawV) MarshalJSON() ([]byte, error) {
+	if v.V == nil {
+		return []byte("null"), nil
+	}
+	return v.V, nil
 }
 
 func Any(v interface{}) json.Marshaler { return anyV{V: v} }
