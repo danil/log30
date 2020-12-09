@@ -11,7 +11,7 @@ its extremely slow and allocates a lots of memory)
 
 ## Install
 
-    go get github.com/danil/logastic@v0.44.0
+    go get github.com/danil/logastic@v0.45.0
 
 ## Usage
 
