@@ -210,9 +210,11 @@ func logastic(
 						continue replace
 					}
 
-					excerpt = append(excerpt[:idx+offset], append(rep[1], excerpt[idx+offset+len(rep[0]):]...)...)
+					offset += idx
 
-					offset += idx + len(rep[1])
+					excerpt = append(excerpt[:offset], append(rep[1], excerpt[offset+len(rep[0]):]...)...)
+
+					offset += len(rep[1])
 				}
 			}
 
