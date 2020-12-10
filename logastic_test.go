@@ -17,7 +17,7 @@ import (
 var (
 	dummy = logastic.Log{
 		Trunc:   120,
-		Keys:    [4]string{"message", "excerpt", "entire", "file"},
+		Keys:    [4]string{"message", "excerpt", "trail", "file"},
 		Key:     logastic.Original,
 		Marks:   [3][]byte{[]byte("…"), []byte("_EMPTY_"), []byte("_BLANK_")},
 		Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
@@ -428,7 +428,7 @@ var WriteTestCases = []struct {
 		log: logastic.Log{
 			Flag:  log.Llongfile,
 			Trunc: 120,
-			Keys:  [4]string{"message", "excerpt", "entire", "file"},
+			Keys:  [4]string{"message", "excerpt", "trail", "file"},
 		},
 		input: "path/to/file1:23: Hello, World!",
 		expected: `{
@@ -511,7 +511,7 @@ var WriteTestCases = []struct {
 		log: logastic.Log{
 			Flag:  log.Llongfile,
 			Trunc: 120,
-			Keys:  [4]string{"message", "excerpt", "entire", "file"},
+			Keys:  [4]string{"message", "excerpt", "trail", "file"},
 			Marks: [3][]byte{[]byte("…"), []byte("_EMPTY_")},
 		},
 		input: "path/to/file1:23:",
@@ -527,7 +527,7 @@ var WriteTestCases = []struct {
 		log: logastic.Log{
 			Flag:  log.Llongfile,
 			Trunc: 120,
-			Keys:  [4]string{"message", "excerpt", "entire", "file"},
+			Keys:  [4]string{"message", "excerpt", "trail", "file"},
 			Marks: [3][]byte{[]byte("…"), []byte("_EMPTY_"), []byte("_BLANK_")},
 		},
 		input: "path/to/file4:56:  ",
