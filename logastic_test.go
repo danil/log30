@@ -17,7 +17,7 @@ import (
 var (
 	dummy = logastic.Log{
 		Trunc:   120,
-		Keys:    [5]string{"message", "excerpt", "entire", "file", "host"},
+		Keys:    [4]string{"message", "excerpt", "entire", "file"},
 		Key:     logastic.Original,
 		Marks:   [3][]byte{[]byte("…"), []byte("_EMPTY_"), []byte("_BLANK_")},
 		Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
@@ -59,7 +59,7 @@ var WriteTestCases = []struct {
 		name: "readme example 1",
 		log: logastic.Log{
 			Trunc:   12,
-			Keys:    [5]string{"message", "excerpt"},
+			Keys:    [4]string{"message", "excerpt"},
 			Marks:   [3][]byte{[]byte("…")},
 			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 		},
@@ -85,7 +85,7 @@ var WriteTestCases = []struct {
 	{
 		name: "readme example 3.1",
 		log: logastic.Log{
-			Keys: [5]string{"message"},
+			Keys: [4]string{"message"},
 		},
 		line:  line(),
 		input: 3.21,
@@ -96,7 +96,7 @@ var WriteTestCases = []struct {
 	{
 		name: "readme example 3.2",
 		log: logastic.Log{
-			Keys: [5]string{"message"},
+			Keys: [4]string{"message"},
 		},
 		line:  line(),
 		input: 123,
@@ -193,7 +193,7 @@ var WriteTestCases = []struct {
 		line: line(),
 		log: logastic.Log{
 			KV:   map[string]json.Marshaler{"string": logastic.String("foo")},
-			Keys: [5]string{"message"},
+			Keys: [4]string{"message"},
 		},
 		input: "Hello, World!",
 		expected: `{
@@ -206,7 +206,7 @@ var WriteTestCases = []struct {
 		line: line(),
 		log: logastic.Log{
 			KV:   map[string]json.Marshaler{"integer": logastic.Int(123)},
-			Keys: [5]string{"message"},
+			Keys: [4]string{"message"},
 		},
 		input: "Hello, World!",
 		expected: `{
@@ -219,7 +219,7 @@ var WriteTestCases = []struct {
 		line: line(),
 		log: logastic.Log{
 			KV:   map[string]json.Marshaler{"float": logastic.Float32(3.21)},
-			Keys: [5]string{"message"},
+			Keys: [4]string{"message"},
 		},
 		input: "Hello, World!",
 		expected: `{
@@ -280,7 +280,7 @@ var WriteTestCases = []struct {
 	{
 		name: "zero maximum length",
 		log: logastic.Log{
-			Keys:  [5]string{"message"},
+			Keys:  [4]string{"message"},
 			Trunc: 0,
 		},
 		line:  line(),
@@ -292,7 +292,7 @@ var WriteTestCases = []struct {
 	{
 		name: "without message key names",
 		log: logastic.Log{
-			Keys: [5]string{},
+			Keys: [4]string{},
 		},
 		line:  line(),
 		input: "Hello, World!",
@@ -303,7 +303,7 @@ var WriteTestCases = []struct {
 	{
 		name: "only original message key name",
 		log: logastic.Log{
-			Keys: [5]string{"message"},
+			Keys: [4]string{"message"},
 		},
 		line:  line(),
 		input: "Hello, World!",
@@ -317,7 +317,7 @@ var WriteTestCases = []struct {
 		log: logastic.Log{
 			KV:    map[string]json.Marshaler{"excerpt": logastic.Bytes([]byte("Explicit byte slice"))},
 			Trunc: 120,
-			Keys:  [5]string{"message", "excerpt"},
+			Keys:  [4]string{"message", "excerpt"},
 		},
 		input: "Hello, World!",
 		expected: `{
@@ -331,7 +331,7 @@ var WriteTestCases = []struct {
 		log: logastic.Log{
 			KV:    map[string]json.Marshaler{"excerpt": logastic.String("Explicit string")},
 			Trunc: 120,
-			Keys:  [5]string{"message", "excerpt"},
+			Keys:  [4]string{"message", "excerpt"},
 		},
 		input: "Hello, World!",
 		expected: `{
@@ -345,7 +345,7 @@ var WriteTestCases = []struct {
 		log: logastic.Log{
 			KV:    map[string]json.Marshaler{"excerpt": logastic.Int(42)},
 			Trunc: 120,
-			Keys:  [5]string{"message", "excerpt"},
+			Keys:  [4]string{"message", "excerpt"},
 		},
 		input: "Hello, World!",
 		expected: `{
@@ -359,7 +359,7 @@ var WriteTestCases = []struct {
 		log: logastic.Log{
 			KV:    map[string]json.Marshaler{"excerpt": logastic.Float32(4.2)},
 			Trunc: 120,
-			Keys:  [5]string{"message", "excerpt"},
+			Keys:  [4]string{"message", "excerpt"},
 		},
 		input: "Hello, World!",
 		expected: `{
@@ -373,7 +373,7 @@ var WriteTestCases = []struct {
 		log: logastic.Log{
 			KV:    map[string]json.Marshaler{"excerpt": logastic.Bool(true)},
 			Trunc: 120,
-			Keys:  [5]string{"message", "excerpt"},
+			Keys:  [4]string{"message", "excerpt"},
 		},
 		input: "Hello, World!",
 		expected: `{
@@ -387,7 +387,7 @@ var WriteTestCases = []struct {
 		log: logastic.Log{
 			KV:    map[string]json.Marshaler{"excerpt": logastic.Runes([]rune("Explicit rune slice"))},
 			Trunc: 120,
-			Keys:  [5]string{"message", "excerpt"},
+			Keys:  [4]string{"message", "excerpt"},
 		},
 		input: "Hello, World!",
 		expected: `{
@@ -402,7 +402,7 @@ var WriteTestCases = []struct {
 			Funcs: map[string]func() json.Marshaler{"time": func() json.Marshaler {
 				return logastic.String(time.Date(2020, time.October, 15, 18, 9, 0, 0, time.UTC).String())
 			}},
-			Keys: [5]string{"message"},
+			Keys: [4]string{"message"},
 		},
 		input: "Hello, World!",
 		expected: `{
@@ -415,7 +415,7 @@ var WriteTestCases = []struct {
 		line: line(),
 		log: logastic.Log{
 			Flag: log.LstdFlags,
-			Keys: [5]string{"message"},
+			Keys: [4]string{"message"},
 		},
 		input: "path/to/file1:23: Hello, World!",
 		expected: `{
@@ -428,7 +428,7 @@ var WriteTestCases = []struct {
 		log: logastic.Log{
 			Flag:  log.Llongfile,
 			Trunc: 120,
-			Keys:  [5]string{"message", "excerpt", "entire", "file"},
+			Keys:  [4]string{"message", "excerpt", "entire", "file"},
 		},
 		input: "path/to/file1:23: Hello, World!",
 		expected: `{
@@ -442,7 +442,7 @@ var WriteTestCases = []struct {
 		line: line(),
 		log: logastic.Log{
 			Trunc:   120,
-			Keys:    [5]string{"message", "excerpt"},
+			Keys:    [4]string{"message", "excerpt"},
 			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 		},
 		input: "Hello,\nWorld!",
@@ -456,7 +456,7 @@ var WriteTestCases = []struct {
 		line: line(),
 		log: logastic.Log{
 			Trunc:   120,
-			Keys:    [5]string{"message", "excerpt"},
+			Keys:    [4]string{"message", "excerpt"},
 			Replace: [][2][]byte{[2][]byte{[]byte("!")}},
 		},
 		input: "Hello, World!!!",
@@ -470,7 +470,7 @@ var WriteTestCases = []struct {
 		line: line(),
 		log: logastic.Log{
 			Trunc:   120,
-			Keys:    [5]string{"message", "excerpt"},
+			Keys:    [4]string{"message", "excerpt"},
 			Replace: [][2][]byte{[2][]byte{[]byte("World"), []byte("Work")}},
 		},
 		input: "Hello, World!",
@@ -484,7 +484,7 @@ var WriteTestCases = []struct {
 		line: line(),
 		log: logastic.Log{
 			Trunc:   120,
-			Keys:    [5]string{"message"},
+			Keys:    [4]string{"message"},
 			Replace: [][2][]byte{[2][]byte{[]byte("!"), []byte("!")}},
 		},
 		input: "Hello, World!",
@@ -497,7 +497,7 @@ var WriteTestCases = []struct {
 		line: line(),
 		log: logastic.Log{
 			Trunc:   120,
-			Keys:    [5]string{"message"},
+			Keys:    [4]string{"message"},
 			Replace: [][2][]byte{[2][]byte{}},
 		},
 		input: "Hello, World!",
@@ -511,7 +511,7 @@ var WriteTestCases = []struct {
 		log: logastic.Log{
 			Flag:  log.Llongfile,
 			Trunc: 120,
-			Keys:  [5]string{"message", "excerpt", "entire", "file"},
+			Keys:  [4]string{"message", "excerpt", "entire", "file"},
 			Marks: [3][]byte{[]byte("…"), []byte("_EMPTY_")},
 		},
 		input: "path/to/file1:23:",
@@ -527,7 +527,7 @@ var WriteTestCases = []struct {
 		log: logastic.Log{
 			Flag:  log.Llongfile,
 			Trunc: 120,
-			Keys:  [5]string{"message", "excerpt", "entire", "file"},
+			Keys:  [4]string{"message", "excerpt", "entire", "file"},
 			Marks: [3][]byte{[]byte("…"), []byte("_EMPTY_"), []byte("_BLANK_")},
 		},
 		input: "path/to/file4:56:  ",
@@ -535,21 +535,6 @@ var WriteTestCases = []struct {
 			"message":"path/to/file4:56:  ",
 			"excerpt":"_BLANK_",
 			"file":"path/to/file4:56"
-		}`,
-	},
-	{
-		name: `"magic" host key`,
-		line: line(),
-		log: logastic.Log{
-			KV:    map[string]json.Marshaler{"host": logastic.String("example.tld")},
-			Trunc: 120,
-			Keys:  [5]string{"message", "excerpt", "entire", "file", "host"},
-		},
-		input: "Hello, World!",
-		expected: `{
-			"message":"Hello, World!",
-			"excerpt":"example.tld Hello, World!",
-			"host":"example.tld"
 		}`,
 	},
 	{
@@ -566,8 +551,7 @@ var WriteTestCases = []struct {
 		input: "Hello, GELF!",
 		expected: `{
 			"version":"1.1",
-			"short_message":"example.tld Hello, GELF!",
-			"full_message":"Hello, GELF!",
+			"short_message":"Hello, GELF!",
 			"host":"example.tld",
 			"timestamp":1602785340
 		}`,
@@ -587,7 +571,7 @@ var WriteTestCases = []struct {
 		input: "path/to/file7:89: Hello, GELF!",
 		expected: `{
 			"version":"1.1",
-			"short_message":"example.tld Hello, GELF!",
+			"short_message":"Hello, GELF!",
 			"full_message":"path/to/file7:89: Hello, GELF!",
 			"host":"example.tld",
 			"timestamp":1602785340,
@@ -663,7 +647,7 @@ var LogTestCases = []struct {
 		log: logastic.Log{
 			Trunc: 120,
 			KV:    map[string]json.Marshaler{"string": logastic.String("foo")},
-			Keys:  [5]string{"message"},
+			Keys:  [4]string{"message"},
 		},
 		bytes: []byte("Hello, World!"),
 		kv:    map[string]json.Marshaler{"string": logastic.String("bar")},
@@ -688,7 +672,7 @@ var LogTestCases = []struct {
 		log: logastic.Log{
 			KV:      map[string]json.Marshaler{"message": logastic.String("string value")},
 			Trunc:   120,
-			Keys:    [5]string{"message", "excerpt"},
+			Keys:    [4]string{"message", "excerpt"},
 			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 		},
 		bytes: []byte("\nHello, World!"),
@@ -714,7 +698,7 @@ var LogTestCases = []struct {
 		log: logastic.Log{
 			KV:    map[string]json.Marshaler{"message": logastic.String("string value")},
 			Trunc: 120,
-			Keys:  [5]string{"message"},
+			Keys:  [4]string{"message"},
 		},
 		bytes: nil,
 		expected: `{
@@ -790,7 +774,7 @@ var LogTestCases = []struct {
 		line: line(),
 		log: logastic.Log{
 			Trunc: 120,
-			Keys:  [5]string{"message"},
+			Keys:  [4]string{"message"},
 			Key:   logastic.Original,
 		},
 		bytes: nil,
@@ -804,7 +788,7 @@ var LogTestCases = []struct {
 		line: line(),
 		log: logastic.Log{
 			Trunc: 120,
-			Keys:  [5]string{"message", "excerpt"},
+			Keys:  [4]string{"message", "excerpt"},
 			Key:   logastic.Excerpt,
 		},
 		bytes: nil,
