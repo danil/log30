@@ -786,6 +786,20 @@ var LogTestCases = []struct {
 		}`,
 	},
 	{
+		name: `bytes is nil and string "message" key and default key is excerpt`,
+		line: line(),
+		log: logastic.Log{
+			Trunc: 120,
+			Keys:  [4]string{"message", "excerpt"},
+			Key:   logastic.Excerpt,
+		},
+		bytes: nil,
+		kv:    map[string]json.Marshaler{"message": logastic.String("Hello, World!")},
+		expected: `{
+			"excerpt":"\"Hello, World!\""
+		}`,
+	},
+	{
 		name:  `bytes is nil and bytes "message" key with json`,
 		line:  line(),
 		log:   dummy,
