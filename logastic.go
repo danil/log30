@@ -14,6 +14,7 @@ import (
 const (
 	Original = iota
 	Excerpt
+	Entire
 	File
 	Host
 )
@@ -31,7 +32,7 @@ type Log struct {
 	KV      map[string]json.Marshaler        // key-values
 	Funcs   map[string]func() json.Marshaler // dynamically calculated key-values
 	Trunc   int                              // maximum length of the message excerpt after which the message excerpt is truncated
-	Keys    [4]string                        // 0 = original message; 1 = message excerpt; 2 = file; 3 = host;
+	Keys    [5]string                        // 0 = original message; 1 = message excerpt; 2 = message entire ; 3 = file; 4 = host;
 	Key     uint8                            // default/sticky message key: all except 1 = original message; 1 = message excerpt;
 	Marks   [3][]byte                        // 0 = truncate; 1 = empty; 2 = blank;
 	Replace [][2][]byte                      // pairs of byte slices to replace in the message excerpt
@@ -67,7 +68,7 @@ func logastic(
 	optKV map[string]json.Marshaler, // optKV is a optional key-value map in addition to the permanent kv key-value map
 	fns map[string]func() json.Marshaler,
 	trunc int,
-	keys [4]string,
+	keys [5]string,
 	key uint8,
 	marks [3][]byte,
 	replace [][2][]byte,
@@ -303,7 +304,7 @@ func GELF() Log {
 			"timestamp": func() json.Marshaler { return Int64(time.Now().Unix()) },
 		},
 		Trunc:   120,
-		Keys:    [4]string{"full_message", "short_message", "_file", "host"},
+		Keys:    [5]string{"full_message", "short_message", "_entire", "_file", "host"},
 		Key:     Excerpt,
 		Marks:   [3][]byte{[]byte("…"), []byte("_EMPTY_"), []byte("_BLANK_")},
 		Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
