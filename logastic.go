@@ -98,22 +98,6 @@ func logastic(
 		tempKV[k] = fn()
 	}
 
-	if v, ok := tempKV[keys[Original]]; ok {
-		p := *originalP.Get().(*[]byte)
-		p = p[:0]
-		defer originalP.Put(&p)
-
-		if v != nil {
-			j, err := v.MarshalJSON()
-			if err != nil {
-				return nil, err
-			}
-			p = append(p, j...)
-		}
-
-		original = append(p, original...)
-	}
-
 	var tail, file int
 
 	switch flg {
@@ -135,9 +119,9 @@ func logastic(
 	end := tail
 
 	if tempKV[keys[Excerpt]] == nil {
-		if tail == len(original) {
+		if tail == len(original) && tempKV[keys[Original]] == nil {
 			excerpt = append(excerpt[:0], marks[emptyMark]...)
-		} else {
+		} else if tail != len(original) {
 			beg := true
 
 			for {
@@ -229,22 +213,24 @@ func logastic(
 		}
 	}
 
-	if bytes.Equal(original, excerpt) {
-		if key != Excerpt {
-			key = Original
-		}
+	if bytes.Equal(original, excerpt) && original != nil {
+		if key == Excerpt {
+			tempKV[keys[Excerpt]] = Bytes(original)
 
-		if key == Original {
-			delete(tempKV, keys[Excerpt])
 		} else {
-			delete(tempKV, keys[Original])
+			if tempKV[keys[Original]] == nil {
+				tempKV[keys[Original]] = Bytes(original)
+			} else if len(original) != 0 {
+				tempKV[keys[Trail]] = Bytes(original)
+			}
 		}
 
-		if tempKV[keys[key]] == nil {
-			tempKV[keys[key]] = Bytes(original)
+	} else if !bytes.Equal(original, excerpt) {
+		if tempKV[keys[Original]] == nil {
+			tempKV[keys[Original]] = Bytes(original)
+		} else if tempKV[keys[Original]] != nil && len(original) != 0 {
+			tempKV[keys[Trail]] = Bytes(original)
 		}
-	} else {
-		tempKV[keys[Original]] = Bytes(original)
 
 		if tempKV[keys[Excerpt]] == nil && len(excerpt) != 0 {
 			tempKV[keys[Excerpt]] = Bytes(excerpt)

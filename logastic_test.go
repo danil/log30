@@ -672,24 +672,26 @@ var LogTestCases = []struct {
 		log: logastic.Log{
 			KV:      map[string]json.Marshaler{"message": logastic.String("string value")},
 			Trunc:   120,
-			Keys:    [4]string{"message", "excerpt"},
+			Keys:    [4]string{"message", "excerpt", "trail"},
 			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 		},
-		bytes: []byte("\nHello, World!"),
+		bytes: []byte("Hello,\nWorld!"),
 		expected: `{
-			"message":"\"string value\"\nHello, World!",
-			"excerpt":"\"string value\" Hello, World!"
+			"message":"string value",
+			"excerpt":"Hello, World!",
+			"trail":"Hello,\nWorld!"
 		}`,
 	},
 	{
 		name:  `bytes appends to the "message" key with "string value"`,
 		line:  line(),
 		log:   dummy,
-		bytes: []byte("\nHello, World!"),
+		bytes: []byte("Hello,\nWorld!"),
 		kv:    map[string]json.Marshaler{"message": logastic.String("string value")},
 		expected: `{
-			"message":"\"string value\"\nHello, World!",
-			"excerpt":"\"string value\" Hello, World!"
+			"message":"string value",
+			"excerpt":"Hello, World!",
+			"trail":"Hello,\nWorld!"
 		}`,
 	},
 	{
@@ -719,44 +721,48 @@ var LogTestCases = []struct {
 		name:  `bytes appends to the integer key "message"`,
 		line:  line(),
 		log:   dummy,
-		bytes: []byte("\nHello, World!"),
+		bytes: []byte("Hello, World!\n"),
 		kv:    map[string]json.Marshaler{"message": logastic.Int(1)},
 		expected: `{
-			"message":"1\nHello, World!",
-			"excerpt":"1 Hello, World!"
+			"message":1,
+			"excerpt":"Hello, World!",
+			"trail":"Hello, World!\n"
 		}`,
 	},
 	{
 		name:  `bytes appends to the float 32 bit key "message"`,
 		line:  line(),
 		log:   dummy,
-		bytes: []byte("\nHello, World!"),
+		bytes: []byte("Hello,\nWorld!"),
 		kv:    map[string]json.Marshaler{"message": logastic.Float32(4.2)},
 		expected: `{
-			"message":"4.2\nHello, World!",
-			"excerpt":"4.2 Hello, World!"
+			"message":4.2,
+			"excerpt":"Hello, World!",
+			"trail":"Hello,\nWorld!"
 		}`,
 	},
 	{
 		name:  `bytes appends to the float 64 bit key "message"`,
 		line:  line(),
 		log:   dummy,
-		bytes: []byte("\nHello, World!"),
+		bytes: []byte("Hello,\nWorld!"),
 		kv:    map[string]json.Marshaler{"message": logastic.Float64(4.2)},
 		expected: `{
-			"message":"4.2\nHello, World!",
-			"excerpt":"4.2 Hello, World!"
+			"message":4.2,
+			"excerpt":"Hello, World!",
+			"trail":"Hello,\nWorld!"
 		}`,
 	},
 	{
 		name:  `bytes appends to the boolean key "message"`,
 		line:  line(),
 		log:   dummy,
-		bytes: []byte("\nHello, World!"),
+		bytes: []byte("Hello,\nWorld!"),
 		kv:    map[string]json.Marshaler{"message": logastic.Bool(true)},
 		expected: `{
-			"message":"true\nHello, World!",
-			"excerpt":"true Hello, World!"
+			"message":true,
+			"excerpt":"Hello, World!",
+			"trail":"Hello,\nWorld!"
 		}`,
 	},
 	{
@@ -770,7 +776,7 @@ var LogTestCases = []struct {
 		}`,
 	},
 	{
-		name: `bytes is nil and string "message" key and default key is original`,
+		name: `default key is original and bytes is nil and "message" key is present`,
 		line: line(),
 		log: logastic.Log{
 			Trunc: 120,
@@ -778,13 +784,328 @@ var LogTestCases = []struct {
 			Key:   logastic.Original,
 		},
 		bytes: nil,
-		kv:    map[string]json.Marshaler{"message": logastic.String("Hello, World!")},
+		kv:    map[string]json.Marshaler{"message": logastic.String("foo")},
 		expected: `{
-			"message":"Hello, World!"
+			"message":"foo"
 		}`,
 	},
 	{
-		name: `bytes is nil and string "message" key and default key is excerpt`,
+		name: `default key is original and bytes is nil and "message" key is present and with replace`,
+		line: line(),
+		log: logastic.Log{
+			Trunc:   120,
+			Keys:    [4]string{"message"},
+			Key:     logastic.Original,
+			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
+		},
+		bytes: nil,
+		kv:    map[string]json.Marshaler{"message": logastic.String("foo\n")},
+		expected: `{
+			"message":"foo\n"
+		}`,
+	},
+	{
+		name: `default key is original and bytes is present and "message" key is present`,
+		line: line(),
+		log: logastic.Log{
+			Trunc:   120,
+			Keys:    [4]string{"message", "excerpt", "trail"},
+			Key:     logastic.Original,
+			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
+		},
+		bytes: []byte("foo"),
+		kv:    map[string]json.Marshaler{"message": logastic.String("bar")},
+		expected: `{
+			"message":"bar",
+			"trail":"foo"
+		}`,
+	},
+	{
+		name: `default key is original and bytes is present and "message" key is present and with replace intput bytes`,
+		line: line(),
+		log: logastic.Log{
+			Trunc: 120,
+			Keys:  [4]string{"message", "excerpt", "trail"},
+			Key:   logastic.Original,
+		},
+		bytes: []byte("foo\n"),
+		kv:    map[string]json.Marshaler{"message": logastic.String("bar")},
+		expected: `{
+			"message":"bar",
+			"excerpt":"foo",
+			"trail":"foo\n"
+		}`,
+	},
+	{
+		name: `default key is original and bytes is present and "message" key is present and with replace intput bytes and key`,
+		line: line(),
+		log: logastic.Log{
+			Trunc:   120,
+			Keys:    [4]string{"message", "excerpt", "trail"},
+			Key:     logastic.Original,
+			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
+		},
+		bytes: []byte("foo\n"),
+		kv:    map[string]json.Marshaler{"message": logastic.String("bar\n")},
+		expected: `{
+			"message":"bar\n",
+			"excerpt":"foo",
+			"trail":"foo\n"
+		}`,
+	},
+	{
+		name: `default key is original and bytes is nil and "excerpt" key is present`,
+		line: line(),
+		log: logastic.Log{
+			Trunc: 120,
+			Keys:  [4]string{"message", "excerpt"},
+			Key:   logastic.Original,
+		},
+		bytes: nil,
+		kv:    map[string]json.Marshaler{"excerpt": logastic.String("foo")},
+		expected: `{
+			"excerpt":"foo"
+		}`,
+	},
+	{
+		name: `default key is original and bytes is nil and "excerpt" key is present and with replace`,
+		line: line(),
+		log: logastic.Log{
+			Trunc:   120,
+			Keys:    [4]string{"message", "excerpt"},
+			Key:     logastic.Original,
+			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
+		},
+		bytes: nil,
+		kv:    map[string]json.Marshaler{"excerpt": logastic.String("foo\n")},
+		expected: `{
+			"excerpt":"foo\n"
+		}`,
+	},
+	{
+		name: `default key is original and bytes is present and "excerpt" key is present`,
+		line: line(),
+		log: logastic.Log{
+			Trunc: 120,
+			Keys:  [4]string{"message", "excerpt"},
+			Key:   logastic.Original,
+		},
+		bytes: []byte("foo"),
+		kv:    map[string]json.Marshaler{"excerpt": logastic.String("bar")},
+		expected: `{
+			"message":"foo",
+			"excerpt":"bar"
+		}`,
+	},
+	{
+		name: `default key is original and bytes is present and "excerpt" key is present and with replace input bytes`,
+		line: line(),
+		log: logastic.Log{
+			Trunc:   120,
+			Keys:    [4]string{"message", "excerpt"},
+			Key:     logastic.Original,
+			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
+		},
+		bytes: []byte("foo\n"),
+		kv:    map[string]json.Marshaler{"excerpt": logastic.String("bar")},
+		expected: `{
+			"message":"foo\n",
+			"excerpt":"bar"
+		}`,
+	},
+	{
+		name: `default key is original and bytes is present and "excerpt" key is present and with replace input bytes`,
+		line: line(),
+		log: logastic.Log{
+			Trunc:   120,
+			Keys:    [4]string{"message", "excerpt"},
+			Key:     logastic.Original,
+			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
+		},
+		bytes: []byte("foo\n"),
+		kv:    map[string]json.Marshaler{"excerpt": logastic.String("bar")},
+		expected: `{
+			"message":"foo\n",
+			"excerpt":"bar"
+		}`,
+	},
+	{
+		name: `default key is original and bytes is present and "excerpt" key is present and with replace input bytes and rey`,
+		line: line(),
+		log: logastic.Log{
+			Trunc:   120,
+			Keys:    [4]string{"message", "excerpt"},
+			Key:     logastic.Original,
+			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
+		},
+		bytes: []byte("foo\n"),
+		kv:    map[string]json.Marshaler{"excerpt": logastic.String("bar\n")},
+		expected: `{
+			"message":"foo\n",
+			"excerpt":"bar\n"
+		}`,
+	},
+	{
+		name: `default key is original and bytes is nil and "excerpt" and "message" keys is present`,
+		line: line(),
+		log: logastic.Log{
+			Trunc: 120,
+			Keys:  [4]string{"message", "excerpt"},
+			Key:   logastic.Original,
+		},
+		bytes: nil,
+		kv:    map[string]json.Marshaler{"message": logastic.String("foo"), "excerpt": logastic.String("bar")},
+		expected: `{
+			"message":"foo",
+			"excerpt":"bar"
+		}`,
+	},
+	{
+		name: `default key is original and bytes is nil and "excerpt" and "message" keys is present and replace keys`,
+		line: line(),
+		log: logastic.Log{
+			Trunc:   120,
+			Keys:    [4]string{"message", "excerpt"},
+			Key:     logastic.Original,
+			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
+		},
+		bytes: nil,
+		kv:    map[string]json.Marshaler{"message": logastic.String("foo\n"), "excerpt": logastic.String("bar\n")},
+		expected: `{
+			"message":"foo\n",
+			"excerpt":"bar\n"
+		}`,
+	},
+	{
+		name: `default key is original and bytes is present and "excerpt" and "message" keys is present`,
+		line: line(),
+		log: logastic.Log{
+			Trunc: 120,
+			Keys:  [4]string{"message", "excerpt", "trail"},
+			Key:   logastic.Original,
+		},
+		bytes: []byte("foo"),
+		kv:    map[string]json.Marshaler{"message": logastic.String("bar"), "excerpt": logastic.String("xyz")},
+		expected: `{
+			"message":"bar",
+			"excerpt":"xyz",
+			"trail":"foo"
+		}`,
+	},
+	{
+		name: `default key is original and bytes is present and "excerpt" and "message" keys is present and replace input bytes`,
+		line: line(),
+		log: logastic.Log{
+			Trunc:   120,
+			Keys:    [4]string{"message", "excerpt", "trail"},
+			Key:     logastic.Original,
+			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
+		},
+		bytes: []byte("foo\n"),
+		kv:    map[string]json.Marshaler{"message": logastic.String("bar"), "excerpt": logastic.String("xyz")},
+		expected: `{
+			"message":"bar",
+			"excerpt":"xyz",
+			"trail":"foo\n"
+		}`,
+	},
+	{
+		name: `default key is original and bytes is present and "excerpt" and "message" keys is present and replace input bytes and keys`,
+		line: line(),
+		log: logastic.Log{
+			Trunc:   120,
+			Keys:    [4]string{"message", "excerpt", "trail"},
+			Key:     logastic.Original,
+			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
+		},
+		bytes: []byte("foo\n"),
+		kv:    map[string]json.Marshaler{"message": logastic.String("bar\n"), "excerpt": logastic.String("xyz\n")},
+		expected: `{
+			"message":"bar\n",
+			"excerpt":"xyz\n",
+			"trail":"foo\n"
+		}`,
+	},
+	{
+		name: `default key is excerpt and bytes is nil and "message" key is present`,
+		line: line(),
+		log: logastic.Log{
+			Trunc: 120,
+			Keys:  [4]string{"message"},
+			Key:   logastic.Excerpt,
+		},
+		bytes: nil,
+		kv:    map[string]json.Marshaler{"message": logastic.String("foo")},
+		expected: `{
+			"message":"foo"
+		}`,
+	},
+	{
+		name: `default key is excerpt and bytes is nil and "message" key is present and with replace`,
+		line: line(),
+		log: logastic.Log{
+			Trunc:   120,
+			Keys:    [4]string{"message"},
+			Key:     logastic.Excerpt,
+			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
+		},
+		bytes: nil,
+		kv:    map[string]json.Marshaler{"message": logastic.String("foo\n")},
+		expected: `{
+			"message":"foo\n"
+		}`,
+	},
+	{
+		name: `default key is excerpt and bytes is present and "message" key is present`,
+		line: line(),
+		log: logastic.Log{
+			Trunc:   120,
+			Keys:    [4]string{"message", "excerpt", "trail"},
+			Key:     logastic.Excerpt,
+			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
+		},
+		bytes: []byte("foo"),
+		kv:    map[string]json.Marshaler{"message": logastic.String("bar")},
+		expected: `{
+			"message":"bar",
+			"excerpt":"foo"
+		}`,
+	},
+	{
+		name: `default key is excerpt and bytes is present and "message" key is present and with replace intput bytes`,
+		line: line(),
+		log: logastic.Log{
+			Trunc: 120,
+			Keys:  [4]string{"message", "excerpt", "trail"},
+			Key:   logastic.Excerpt,
+		},
+		bytes: []byte("foo\n"),
+		kv:    map[string]json.Marshaler{"message": logastic.String("bar")},
+		expected: `{
+			"message":"bar",
+			"excerpt":"foo",
+			"trail":"foo\n"
+		}`,
+	},
+	{
+		name: `default key is excerpt and bytes is present and "message" key is present and with replace intput bytes and key`,
+		line: line(),
+		log: logastic.Log{
+			Trunc:   120,
+			Keys:    [4]string{"message", "excerpt", "trail"},
+			Key:     logastic.Excerpt,
+			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
+		},
+		bytes: []byte("foo\n"),
+		kv:    map[string]json.Marshaler{"message": logastic.String("bar\n")},
+		expected: `{
+			"message":"bar\n",
+			"excerpt":"foo",
+			"trail":"foo\n"
+		}`,
+	},
+	{
+		name: `default key is excerpt and bytes is nil and "excerpt" key is present`,
 		line: line(),
 		log: logastic.Log{
 			Trunc: 120,
@@ -792,9 +1113,168 @@ var LogTestCases = []struct {
 			Key:   logastic.Excerpt,
 		},
 		bytes: nil,
-		kv:    map[string]json.Marshaler{"message": logastic.String("Hello, World!")},
+		kv:    map[string]json.Marshaler{"excerpt": logastic.String("foo")},
 		expected: `{
-			"excerpt":"\"Hello, World!\""
+			"excerpt":"foo"
+		}`,
+	},
+	{
+		name: `default key is excerpt and bytes is nil and "excerpt" key is present and with replace`,
+		line: line(),
+		log: logastic.Log{
+			Trunc:   120,
+			Keys:    [4]string{"message", "excerpt"},
+			Key:     logastic.Excerpt,
+			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
+		},
+		bytes: nil,
+		kv:    map[string]json.Marshaler{"excerpt": logastic.String("foo\n")},
+		expected: `{
+			"excerpt":"foo\n"
+		}`,
+	},
+	{
+		name: `default key is excerpt and bytes is present and "excerpt" key is present`,
+		line: line(),
+		log: logastic.Log{
+			Trunc: 120,
+			Keys:  [4]string{"message", "excerpt"},
+			Key:   logastic.Excerpt,
+		},
+		bytes: []byte("foo"),
+		kv:    map[string]json.Marshaler{"excerpt": logastic.String("bar")},
+		expected: `{
+			"message":"foo",
+			"excerpt":"bar"
+		}`,
+	},
+	{
+		name: `default key is excerpt and bytes is present and "excerpt" key is present and with replace input bytes`,
+		line: line(),
+		log: logastic.Log{
+			Trunc:   120,
+			Keys:    [4]string{"message", "excerpt"},
+			Key:     logastic.Excerpt,
+			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
+		},
+		bytes: []byte("foo\n"),
+		kv:    map[string]json.Marshaler{"excerpt": logastic.String("bar")},
+		expected: `{
+			"message":"foo\n",
+			"excerpt":"bar"
+		}`,
+	},
+	{
+		name: `default key is excerpt and bytes is present and "excerpt" key is present and with replace input bytes`,
+		line: line(),
+		log: logastic.Log{
+			Trunc:   120,
+			Keys:    [4]string{"message", "excerpt"},
+			Key:     logastic.Excerpt,
+			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
+		},
+		bytes: []byte("foo\n"),
+		kv:    map[string]json.Marshaler{"excerpt": logastic.String("bar")},
+		expected: `{
+			"message":"foo\n",
+			"excerpt":"bar"
+		}`,
+	},
+	{
+		name: `default key is excerpt and bytes is present and "excerpt" key is present and with replace input bytes and rey`,
+		line: line(),
+		log: logastic.Log{
+			Trunc:   120,
+			Keys:    [4]string{"message", "excerpt"},
+			Key:     logastic.Excerpt,
+			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
+		},
+		bytes: []byte("foo\n"),
+		kv:    map[string]json.Marshaler{"excerpt": logastic.String("bar\n")},
+		expected: `{
+			"message":"foo\n",
+			"excerpt":"bar\n"
+		}`,
+	},
+	{
+		name: `default key is excerpt and bytes is nil and "excerpt" and "message" keys is present`,
+		line: line(),
+		log: logastic.Log{
+			Trunc: 120,
+			Keys:  [4]string{"message", "excerpt"},
+			Key:   logastic.Excerpt,
+		},
+		bytes: nil,
+		kv:    map[string]json.Marshaler{"message": logastic.String("foo"), "excerpt": logastic.String("bar")},
+		expected: `{
+			"message":"foo",
+			"excerpt":"bar"
+		}`,
+	},
+	{
+		name: `default key is excerpt and bytes is nil and "excerpt" and "message" keys is present and replace keys`,
+		line: line(),
+		log: logastic.Log{
+			Trunc:   120,
+			Keys:    [4]string{"message", "excerpt"},
+			Key:     logastic.Excerpt,
+			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
+		},
+		bytes: nil,
+		kv:    map[string]json.Marshaler{"message": logastic.String("foo\n"), "excerpt": logastic.String("bar\n")},
+		expected: `{
+			"message":"foo\n",
+			"excerpt":"bar\n"
+		}`,
+	},
+	{
+		name: `default key is excerpt and bytes is present and "excerpt" and "message" keys is present`,
+		line: line(),
+		log: logastic.Log{
+			Trunc: 120,
+			Keys:  [4]string{"message", "excerpt", "trail"},
+			Key:   logastic.Excerpt,
+		},
+		bytes: []byte("foo"),
+		kv:    map[string]json.Marshaler{"message": logastic.String("bar"), "excerpt": logastic.String("xyz")},
+		expected: `{
+			"message":"bar",
+			"excerpt":"xyz",
+			"trail":"foo"
+		}`,
+	},
+	{
+		name: `default key is excerpt and bytes is present and "excerpt" and "message" keys is present and replace input bytes`,
+		line: line(),
+		log: logastic.Log{
+			Trunc:   120,
+			Keys:    [4]string{"message", "excerpt", "trail"},
+			Key:     logastic.Excerpt,
+			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
+		},
+		bytes: []byte("foo\n"),
+		kv:    map[string]json.Marshaler{"message": logastic.String("bar"), "excerpt": logastic.String("xyz")},
+		expected: `{
+			"message":"bar",
+			"excerpt":"xyz",
+			"trail":"foo\n"
+		}`,
+	},
+	{
+		name: `default key is excerpt and bytes is present and "excerpt" and "message" keys is present and replace input bytes and keys`,
+		line: line(),
+		log: logastic.Log{
+			Trunc:   120,
+			Keys:    [4]string{"message", "excerpt", "trail"},
+			Key:     logastic.Excerpt,
+			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
+		},
+		bytes: []byte("foo\n"),
+		kv:    map[string]json.Marshaler{"message": logastic.String("bar\n"), "excerpt": logastic.String("xyz\n")},
+		expected: `{
+			"message":"bar\n",
+			"excerpt":"xyz\n",
+			"trail":"foo\n"
 		}`,
 	},
 	{
