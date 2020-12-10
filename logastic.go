@@ -57,9 +57,8 @@ func (l Log) Log(kv map[string]json.Marshaler, p ...byte) (int, error) {
 var asciiSpace = [256]uint8{'\t': 1, '\n': 1, '\v': 1, '\f': 1, '\r': 1, ' ': 1}
 
 var (
-	originalP = sync.Pool{New: func() interface{} { return new([]byte) }}
-	excerptP  = sync.Pool{New: func() interface{} { return new([]byte) }}
-	kvP       = sync.Pool{New: func() interface{} { m := make(map[string]json.Marshaler); return &m }}
+	excerptP = sync.Pool{New: func() interface{} { return new([]byte) }}
+	kvP      = sync.Pool{New: func() interface{} { m := make(map[string]json.Marshaler); return &m }}
 )
 
 func logastic(
