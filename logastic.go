@@ -52,7 +52,7 @@ type Log struct {
 	kv  map[string]json.Marshaler
 }
 
-func (l Logger) Log(kv map[string]json.Marshaler) Log {
+func (l Logger) With(kv map[string]json.Marshaler) Log {
 	return Log{log: l, kv: kv}
 }
 

@@ -1311,7 +1311,7 @@ func TestLog(t *testing.T) {
 
 			tc.log.Output = &buf
 
-			_, err := tc.log.Log(tc.kv).Write(tc.bytes)
+			_, err := tc.log.With(tc.kv).Write(tc.bytes)
 			if err != nil {
 				t.Fatalf("write error: %s", err)
 			}
