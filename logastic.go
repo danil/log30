@@ -25,7 +25,7 @@ const (
 	blankMark
 )
 
-// Log is a Multiline JSON Log and formatter and writer.
+// Log is a JSON Logger.
 type Log struct {
 	Output  io.Writer                        // destination for output
 	Flag    int                              // log properties
@@ -63,8 +63,8 @@ var (
 
 func logastic(
 	flg int,
-	permKV,
-	optKV map[string]json.Marshaler, // optKV is a optional key-value map in addition to the permanent kv key-value map
+	permKV, // permKV is a permanent key-value map
+	optKV map[string]json.Marshaler, // optKV is a optional key-value map in addition to the permanent key-value map
 	fns map[string]func() json.Marshaler,
 	trunc int,
 	keys [4]string,
@@ -73,28 +73,28 @@ func logastic(
 	replace [][2][]byte,
 	original ...byte,
 ) ([]byte, error) {
-	tempKV := *kvP.Get().(*map[string]json.Marshaler)
-	for k := range tempKV {
-		delete(tempKV, k)
+	tmpKV := *kvP.Get().(*map[string]json.Marshaler)
+	for k := range tmpKV {
+		delete(tmpKV, k)
 	}
-	defer kvP.Put(&tempKV)
+	defer kvP.Put(&tmpKV)
 
 	for k, v := range optKV {
-		tempKV[k] = v
+		tmpKV[k] = v
 	}
 
 	for k, v := range permKV {
-		if _, ok := tempKV[k]; ok {
+		if _, ok := tmpKV[k]; ok {
 			continue
 		}
-		tempKV[k] = v
+		tmpKV[k] = v
 	}
 
 	for k, fn := range fns {
-		if _, ok := tempKV[k]; ok {
+		if _, ok := tmpKV[k]; ok {
 			continue
 		}
-		tempKV[k] = fn()
+		tmpKV[k] = fn()
 	}
 
 	var tail, file int
@@ -117,8 +117,8 @@ func logastic(
 
 	end := tail
 
-	if tempKV[keys[Excerpt]] == nil {
-		if tail == len(original) && tempKV[keys[Original]] == nil {
+	if tmpKV[keys[Excerpt]] == nil {
+		if tail == len(original) && tmpKV[keys[Original]] == nil {
 			excerpt = append(excerpt[:0], marks[emptyMark]...)
 		} else if tail != len(original) {
 			beg := true
@@ -214,33 +214,33 @@ func logastic(
 
 	if bytes.Equal(original, excerpt) && original != nil {
 		if key == Excerpt {
-			tempKV[keys[Excerpt]] = Bytes(original)
+			tmpKV[keys[Excerpt]] = Bytes(original)
 
 		} else {
-			if tempKV[keys[Original]] == nil {
-				tempKV[keys[Original]] = Bytes(original)
+			if tmpKV[keys[Original]] == nil {
+				tmpKV[keys[Original]] = Bytes(original)
 			} else if len(original) != 0 {
-				tempKV[keys[Trail]] = Bytes(original)
+				tmpKV[keys[Trail]] = Bytes(original)
 			}
 		}
 
 	} else if !bytes.Equal(original, excerpt) {
-		if tempKV[keys[Original]] == nil {
-			tempKV[keys[Original]] = Bytes(original)
-		} else if tempKV[keys[Original]] != nil && len(original) != 0 {
-			tempKV[keys[Trail]] = Bytes(original)
+		if tmpKV[keys[Original]] == nil {
+			tmpKV[keys[Original]] = Bytes(original)
+		} else if tmpKV[keys[Original]] != nil && len(original) != 0 {
+			tmpKV[keys[Trail]] = Bytes(original)
 		}
 
-		if tempKV[keys[Excerpt]] == nil && len(excerpt) != 0 {
-			tempKV[keys[Excerpt]] = Bytes(excerpt)
+		if tmpKV[keys[Excerpt]] == nil && len(excerpt) != 0 {
+			tmpKV[keys[Excerpt]] = Bytes(excerpt)
 		}
 	}
 
 	if file != 0 {
-		tempKV[keys[File]] = Bytes(original[:file])
+		tmpKV[keys[File]] = Bytes(original[:file])
 	}
 
-	p, err := json.Marshal(tempKV)
+	p, err := json.Marshal(tmpKV)
 	if err != nil {
 		return nil, err
 	}
