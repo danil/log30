@@ -1297,6 +1297,57 @@ var LogTestCases = []struct {
 			"message":{"foo":"bar"}
 		}`,
 	},
+	{
+		name: `bytes is nil and flag is long file`,
+		line: line(),
+		log: logastic.Logger{
+			Flag: log.Llongfile,
+			Keys: [4]string{"message"},
+		},
+		bytes: nil,
+		kv:    map[string]json.Marshaler{"foo": logastic.String("bar")},
+		expected: `{
+			"foo":"bar"
+		}`,
+	},
+	{
+		name: `bytes is one char and flag is long file`,
+		line: line(),
+		log: logastic.Logger{
+			Flag: log.Llongfile,
+			Keys: [4]string{"message"},
+		},
+		bytes: []byte("a"),
+		expected: `{
+			"message":"a"
+		}`,
+	},
+	{
+		name: `bytes is two chars and flag is long file`,
+		line: line(),
+		log: logastic.Logger{
+			Flag: log.Llongfile,
+			Keys: [4]string{"message", "excerpt", "trail", "file"},
+		},
+		bytes: []byte("ab"),
+		expected: `{
+			"message":"ab",
+			"file":"a"
+		}`,
+	},
+	{
+		name: `bytes is three chars and flag is long file`,
+		line: line(),
+		log: logastic.Logger{
+			Flag: log.Llongfile,
+			Keys: [4]string{"message", "excerpt", "trail", "file"},
+		},
+		bytes: []byte("abc"),
+		expected: `{
+			"message":"abc",
+			"file":"ab"
+		}`,
+	},
 }
 
 func TestLog(t *testing.T) {

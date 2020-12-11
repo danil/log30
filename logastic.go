@@ -109,15 +109,17 @@ func logastic(
 
 	var tail, file int
 
-	switch flg {
-	case log.Lshortfile, log.Llongfile:
-		i := bytes.Index(original, []byte(": "))
-		if i == -1 {
-			file = len(original) - 1
-			tail = file + 1
-		} else {
-			file = i
-			tail = i + 2
+	if len(original) != 0 {
+		switch flg {
+		case log.Lshortfile, log.Llongfile:
+			i := bytes.Index(original, []byte(": "))
+			if i == -1 {
+				file = len(original) - 1
+				tail = file + 1
+			} else {
+				file = i
+				tail = i + 2
+			}
 		}
 	}
 
