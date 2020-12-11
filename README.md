@@ -11,7 +11,7 @@ its extremely slow and allocates a lots of memory)
 
 ## Install
 
-    go get github.com/danil/logastic@v0.49.0
+    go get github.com/danil/logastic@v0.50.0
 
 ## Usage
 
@@ -28,7 +28,7 @@ import (
 )
 
 func main() {
-    l := logastic.Log{
+    l := logastic.Logger{
         Output: os.Stdout,
         Trunc: 12,
         Keys: [4]string{"message", "excerpt"},
@@ -96,7 +96,7 @@ import (
 )
 
 func main() {
-    l := logastic.Log{
+    l := logastic.Logger{
         Output: os.Stdout,
         Keys: [4]string{"message"},
     }

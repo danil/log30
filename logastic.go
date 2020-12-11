@@ -25,8 +25,8 @@ const (
 	blankMark
 )
 
-// Log is a JSON Logger.
-type Log struct {
+// Logger is a JSON logger/writer.
+type Logger struct {
 	Output  io.Writer                        // destination for output
 	Flag    int                              // log properties
 	KV      map[string]json.Marshaler        // key-values
@@ -38,20 +38,30 @@ type Log struct {
 	Replace [][2][]byte                      // pairs of byte slices to replace in the message excerpt
 }
 
-func (l Log) Write(p []byte) (int, error) {
-	j, err := logastic(l.Flag, l.KV, nil, l.Funcs, l.Trunc, l.Keys, l.Key, l.Marks, l.Replace, p...)
+func (l Logger) Write(p []byte) (int, error) {
+	j, err := logastic(l.Flag, l.KV, nil, l.Funcs, l.Trunc, l.Keys, l.Key, l.Marks, l.Replace, p)
 	if err != nil {
 		return 0, err
 	}
 	return l.Output.Write(j)
 }
 
-func (l Log) Log(kv map[string]json.Marshaler, p ...byte) (int, error) {
-	j, err := logastic(0, l.KV, kv, l.Funcs, l.Trunc, l.Keys, l.Key, l.Marks, l.Replace, p...)
+// Log is a JSON writer with additional key-value map.
+type Log struct {
+	log Logger
+	kv  map[string]json.Marshaler
+}
+
+func (l Logger) Log(kv map[string]json.Marshaler) Log {
+	return Log{log: l, kv: kv}
+}
+
+func (l Log) Write(p []byte) (int, error) {
+	j, err := logastic(l.log.Flag, l.log.KV, l.kv, l.log.Funcs, l.log.Trunc, l.log.Keys, l.log.Key, l.log.Marks, l.log.Replace, p)
 	if err != nil {
 		return 0, err
 	}
-	return l.Output.Write(j)
+	return l.log.Output.Write(j)
 }
 
 var asciiSpace = [256]uint8{'\t': 1, '\n': 1, '\v': 1, '\f': 1, '\r': 1, ' ': 1}
@@ -71,7 +81,7 @@ func logastic(
 	key uint8,
 	marks [3][]byte,
 	replace [][2][]byte,
-	original ...byte,
+	original []byte,
 ) ([]byte, error) {
 	tmpKV := *kvP.Get().(*map[string]json.Marshaler)
 	for k := range tmpKV {
@@ -266,8 +276,8 @@ func lastIndexFunc(s []byte, f func(r rune) bool, truth bool) int {
 	return -1
 }
 
-func GELF() Log {
-	return Log{
+func GELF() Logger {
+	return Logger{
 		KV: map[string]json.Marshaler{
 			"version": String("1.1"),
 		},
