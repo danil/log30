@@ -48,20 +48,20 @@ func (l Logger) Write(p []byte) (int, error) {
 
 // Log is a JSON writer with additional key-value map.
 type Log struct {
-	log Logger
-	kv  map[string]json.Marshaler
+	Logger
+	kv map[string]json.Marshaler
 }
 
 func (l Logger) With(kv map[string]json.Marshaler) Log {
-	return Log{log: l, kv: kv}
+	return Log{Logger: l, kv: kv}
 }
 
 func (l Log) Write(p []byte) (int, error) {
-	j, err := logastic(l.log.Flag, l.log.KV, l.kv, l.log.Funcs, l.log.Trunc, l.log.Keys, l.log.Key, l.log.Marks, l.log.Replace, p)
+	j, err := logastic(l.Flag, l.KV, l.kv, l.Funcs, l.Trunc, l.Keys, l.Key, l.Marks, l.Replace, p)
 	if err != nil {
 		return 0, err
 	}
-	return l.log.Output.Write(j)
+	return l.Output.Write(j)
 }
 
 var asciiSpace = [256]uint8{'\t': 1, '\n': 1, '\v': 1, '\f': 1, '\r': 1, ' ': 1}
