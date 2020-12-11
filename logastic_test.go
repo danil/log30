@@ -822,9 +822,16 @@ var FprintWriteTestCases = []struct {
 		}`,
 	},
 	{
-		name:  "readme example 2",
-		line:  line(),
-		log:   gelf,
+		name: "readme example 2",
+		line: line(),
+		log: func() logastic.Logger {
+			l := logastic.GELF()
+			l.Funcs = map[string]func() json.Marshaler{"timestamp": func() json.Marshaler {
+				return logastic.Int64(time.Date(2020, time.October, 15, 18, 9, 0, 0, time.UTC).Unix())
+			}}
+			l.KV = map[string]json.Marshaler{"version": logastic.String("1.1")}
+			return l
+		}(),
 		input: "Hello,\nGELF!",
 		expected: `{
 			"version":"1.1",

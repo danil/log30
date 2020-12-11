@@ -278,11 +278,9 @@ func lastIndexFunc(s []byte, f func(r rune) bool, truth bool) int {
 	return -1
 }
 
+// GELF returns a GELF formater <https://docs.graylog.org/en/latest/pages/gelf.html>.
 func GELF() Logger {
 	return Logger{
-		KV: map[string]json.Marshaler{
-			"version": String("1.1"),
-		},
 		Funcs: map[string]func() json.Marshaler{
 			"timestamp": func() json.Marshaler { return Int64(time.Now().Unix()) },
 		},
