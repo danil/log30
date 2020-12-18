@@ -1,5 +1,6 @@
 # Logastic
 
+[![Go Reference](https://pkg.go.dev/badge/github.com/danil/logastic.svg)](https://pkg.go.dev/github.com/danil/logastic)
 [![Build Status](https://cloud.drone.io/api/badges/danil/logastic/status.svg)](https://cloud.drone.io/danil/logastic)
 
 JSON logging for Go.
@@ -11,7 +12,7 @@ its extremely slow and allocates a lots of memory)
 
 ## Install
 
-    go get github.com/danil/logastic@v0.55.0
+    go get github.com/danil/logastic@v0.56.0
 
 ## Usage
 
@@ -124,3 +125,8 @@ Output 2:
     "message":"3.21"
 }
 ```
+
+## License
+
+Copyright (C) 2020 Danil Kutkevich <danil@kutkevich.org>  
+See the [LICENSE](./LICENSE) file for license rights and limitations (MIT)
