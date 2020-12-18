@@ -13,23 +13,13 @@ import (
 	"github.com/kinbiko/jsonassert"
 )
 
-var (
-	dummy = logastic.Logger{
-		Trunc:   120,
-		Keys:    [4]string{"message", "excerpt", "trail", "file"},
-		Key:     logastic.Original,
-		Marks:   [3][]byte{[]byte("…"), []byte("_EMPTY_"), []byte("_BLANK_")},
-		Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
-	}
-
-	gelf = func() logastic.Logger {
-		l := logastic.GELF()
-		l.Funcs = map[string]func() json.Marshaler{"timestamp": func() json.Marshaler {
-			return logastic.Int64(time.Date(2020, time.October, 15, 18, 9, 0, 0, time.UTC).Unix())
-		}}
-		return l
-	}()
-)
+var dummy = logastic.Logger{
+	Trunc:   120,
+	Keys:    [4]string{"message", "excerpt", "trail", "file"},
+	Key:     logastic.Original,
+	Marks:   [3][]byte{[]byte("…"), []byte("_EMPTY_"), []byte("_BLANK_")},
+	Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
+}
 
 func TestWriteTrailingNewLine(t *testing.T) {
 	var buf bytes.Buffer

@@ -39,7 +39,7 @@ type Logger struct {
 }
 
 func (l Logger) Write(p []byte) (int, error) {
-	j, err := logastic(l.Flag, l.KV, nil, l.Funcs, l.Trunc, l.Keys, l.Key, l.Marks, l.Replace, p)
+	j, err := logastic(p, l.Flag, l.KV, nil, l.Funcs, l.Trunc, l.Keys, l.Key, l.Marks, l.Replace)
 	if err != nil {
 		return 0, err
 	}
@@ -57,7 +57,7 @@ func (l Logger) With(kv map[string]json.Marshaler) Log {
 }
 
 func (l Log) Write(p []byte) (int, error) {
-	j, err := logastic(l.Flag, l.KV, l.kv, l.Funcs, l.Trunc, l.Keys, l.Key, l.Marks, l.Replace, p)
+	j, err := logastic(p, l.Flag, l.KV, l.kv, l.Funcs, l.Trunc, l.Keys, l.Key, l.Marks, l.Replace)
 	if err != nil {
 		return 0, err
 	}
@@ -72,16 +72,25 @@ var (
 )
 
 func logastic(
+	src []byte,
+	// flg is a log properties.
 	flg int,
-	permKV, // permKV is a permanent key-value map
-	optKV map[string]json.Marshaler, // optKV is a optional key-value map in addition to the permanent key-value map
+	// permKV is a permanent key-value map.
+	permKV,
+	// optKV is a optional key-value map in addition to the permanent key-value map.
+	optKV map[string]json.Marshaler,
+	// fns is a dynamically calculated key-values.
 	fns map[string]func() json.Marshaler,
+	// trunc is a maximum length of the message excerpt after which the message excerpt is truncated.
 	trunc int,
+	// keys: 0 = original message; 1 = message excerpt; 2 = message trail; 3 = file path.
 	keys [4]string,
+	// default/sticky message key: all except 1 = original message; 1 = message excerpt.
 	key uint8,
+	// marks: 0 = truncate; 1 = empty; 2 = blank.
 	marks [3][]byte,
-	replace [][2][]byte,
-	original []byte,
+	// rplc is a pairs of byte slices to replace in the message excerpt.
+	rplc [][2][]byte,
 ) ([]byte, error) {
 	tmpKV := *kvP.Get().(*map[string]json.Marshaler)
 	for k := range tmpKV {
@@ -109,12 +118,12 @@ func logastic(
 
 	var tail, file int
 
-	if len(original) != 0 {
+	if len(src) != 0 {
 		switch flg {
 		case log.Lshortfile, log.Llongfile:
-			i := bytes.Index(original, []byte(": "))
+			i := bytes.Index(src, []byte(": "))
 			if i == -1 {
-				file = len(original) - 1
+				file = len(src) - 1
 				tail = file + 1
 			} else {
 				file = i
@@ -130,20 +139,20 @@ func logastic(
 	end := tail
 
 	if tmpKV[keys[Excerpt]] == nil {
-		if tail == len(original) && tmpKV[keys[Original]] == nil {
+		if tail == len(src) && tmpKV[keys[Original]] == nil {
 			excerpt = append(excerpt[:0], marks[emptyMark]...)
-		} else if tail != len(original) {
+		} else if tail != len(src) {
 			beg := true
 
 			for {
-				r, n := utf8.DecodeRune(original[end:])
+				r, n := utf8.DecodeRune(src[end:])
 				if n == 0 {
 					break
 				}
 
 				// Rids of off all leading space, as defined by Unicode.
 				if beg {
-					c := original[end]
+					c := src[end]
 
 					// Fast path for ASCII: look for the first ASCII non-space byte or
 					// if we run into a non-ASCII byte, fall back
@@ -170,17 +179,17 @@ func logastic(
 				end += n
 			}
 
-			truncate := end-tail < len(original[tail:])
+			truncate := end-tail < len(src[tail:])
 
 			// Rids of off all trailing white space,
 			// as defined by Unicode.
 			// Look for the first ASCII non-space byte from the end.
 			for ; end > tail; end-- {
-				c := original[end-1]
+				c := src[end-1]
 				if c >= utf8.RuneSelf {
-					end = lastIndexFunc(original[:end], unicode.IsSpace, false)
-					if end >= 0 && original[end] >= utf8.RuneSelf {
-						_, wid := utf8.DecodeRune(original[end:])
+					end = lastIndexFunc(src[:end], unicode.IsSpace, false)
+					if end >= 0 && src[end] >= utf8.RuneSelf {
+						_, wid := utf8.DecodeRune(src[end:])
 						end += wid
 					} else {
 						end++
@@ -192,25 +201,25 @@ func logastic(
 				}
 			}
 
-			excerpt = append(excerpt[:0], original[tail:end]...)
+			excerpt = append(excerpt[:0], src[tail:end]...)
 
 		replace:
-			for _, rep := range replace {
+			for _, r := range rplc {
 				for offset := 0; ; {
-					if len(rep[0]) == 0 || bytes.Equal(rep[0], rep[1]) {
+					if len(r[0]) == 0 || bytes.Equal(r[0], r[1]) {
 						continue replace
 					}
 
-					idx := bytes.Index(excerpt[offset:], rep[0])
+					idx := bytes.Index(excerpt[offset:], r[0])
 					if idx == -1 {
 						continue replace
 					}
 
 					offset += idx
 
-					excerpt = append(excerpt[:offset], append(rep[1], excerpt[offset+len(rep[0]):]...)...)
+					excerpt = append(excerpt[:offset], append(r[1], excerpt[offset+len(r[0]):]...)...)
 
-					offset += len(rep[1])
+					offset += len(r[1])
 				}
 			}
 
@@ -224,23 +233,23 @@ func logastic(
 		}
 	}
 
-	if bytes.Equal(original, excerpt) && original != nil {
+	if bytes.Equal(src, excerpt) && src != nil {
 		if key == Excerpt {
-			tmpKV[keys[Excerpt]] = Bytes(original)
+			tmpKV[keys[Excerpt]] = Bytes(src)
 
 		} else {
 			if tmpKV[keys[Original]] == nil {
-				tmpKV[keys[Original]] = Bytes(original)
-			} else if len(original) != 0 {
-				tmpKV[keys[Trail]] = Bytes(original)
+				tmpKV[keys[Original]] = Bytes(src)
+			} else if len(src) != 0 {
+				tmpKV[keys[Trail]] = Bytes(src)
 			}
 		}
 
-	} else if !bytes.Equal(original, excerpt) {
+	} else if !bytes.Equal(src, excerpt) {
 		if tmpKV[keys[Original]] == nil {
-			tmpKV[keys[Original]] = Bytes(original)
-		} else if tmpKV[keys[Original]] != nil && len(original) != 0 {
-			tmpKV[keys[Trail]] = Bytes(original)
+			tmpKV[keys[Original]] = Bytes(src)
+		} else if tmpKV[keys[Original]] != nil && len(src) != 0 {
+			tmpKV[keys[Trail]] = Bytes(src)
 		}
 
 		if tmpKV[keys[Excerpt]] == nil && len(excerpt) != 0 {
@@ -249,7 +258,7 @@ func logastic(
 	}
 
 	if file != 0 {
-		tmpKV[keys[File]] = Bytes(original[:file])
+		tmpKV[keys[File]] = Bytes(src[:file])
 	}
 
 	p, err := json.Marshal(tmpKV)
