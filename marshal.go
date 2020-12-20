@@ -475,27 +475,6 @@ func (p uintptrP) MarshalJSON() ([]byte, error) {
 	return uintptrV{V: *p.P}.MarshalJSON()
 }
 
-// Time returns JSON marshaler for the time type.
-func Time(v time.Time) json.Marshaler { return timeV{V: v} }
-
-type timeV struct{ V time.Time }
-
-func (v timeV) MarshalJSON() ([]byte, error) {
-	return append([]byte(`"`), append([]byte(v.V.Format(time.RFC3339Nano)), []byte(`"`)...)...), nil
-}
-
-// Timep returns JSON marshaler for the pointer to the time type.
-func Timep(p *time.Time) json.Marshaler { return timeP{P: p} }
-
-type timeP struct{ P *time.Time }
-
-func (p timeP) MarshalJSON() ([]byte, error) {
-	if p.P == nil {
-		return []byte("null"), nil
-	}
-	return timeV{V: *p.P}.MarshalJSON()
-}
-
 // Duration returns JSON marshaler for the time duration type.
 func Duration(v time.Duration) json.Marshaler { return durationV{V: v} }
 
@@ -613,10 +592,6 @@ func (v anyV) MarshalJSON() ([]byte, error) {
 		return Uintptr(x).MarshalJSON()
 	case *uintptr:
 		return Uintptrp(x).MarshalJSON()
-	case time.Time:
-		return Time(x).MarshalJSON()
-	case *time.Time:
-		return Timep(x).MarshalJSON()
 	case time.Duration:
 		return Duration(x).MarshalJSON()
 	case *time.Duration:

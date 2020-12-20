@@ -1479,7 +1479,7 @@ var MarshalTestCases = []struct {
 	},
 	{
 		line:  line(),
-		input: map[string]json.Marshaler{"time": logastic.Time(time.Date(1970, time.January, 1, 0, 0, 0, 42, time.UTC))},
+		input: map[string]json.Marshaler{"time": time.Date(1970, time.January, 1, 0, 0, 0, 42, time.UTC)},
 		expected: `{
 			"time":"1970-01-01T00:00:00.000000042Z"
 		}`,
@@ -1502,17 +1502,20 @@ var MarshalTestCases = []struct {
 		line: line(),
 		input: func() map[string]json.Marshaler {
 			t := time.Date(1970, time.January, 1, 0, 0, 0, 42, time.UTC)
-			return map[string]json.Marshaler{"time pointer": logastic.Timep(&t)}
+			return map[string]json.Marshaler{"time pointer": &t}
 		}(),
 		expected: `{
 			"time pointer":"1970-01-01T00:00:00.000000042Z"
 		}`,
 	},
 	{
-		line:  line(),
-		input: map[string]json.Marshaler{"nil time pointer": logastic.Timep(nil)},
+		line: line(),
+		input: func() map[string]json.Marshaler {
+			var t time.Time
+			return map[string]json.Marshaler{"nil time pointer": t}
+		}(),
 		expected: `{
-			"nil time pointer":null
+			"nil time pointer":"0001-01-01T00:00:00Z"
 		}`,
 	},
 	{
@@ -1537,7 +1540,7 @@ var MarshalTestCases = []struct {
 	},
 	{
 		line:  line(),
-		input: map[string]json.Marshaler{"duration": logastic.Duration(42)},
+		input: map[string]json.Marshaler{"duration": logastic.Duration(42 * time.Nanosecond)},
 		expected: `{
 			"duration":"42ns"
 		}`,
