@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strconv"
 	"sync"
+	"time"
 
 	"github.com/danil/logastic/encode"
 )
@@ -474,6 +475,48 @@ func (p uintptrP) MarshalJSON() ([]byte, error) {
 	return uintptrV{V: *p.P}.MarshalJSON()
 }
 
+// Time returns JSON marshaler for the time type.
+func Time(v time.Time) json.Marshaler { return timeV{V: v} }
+
+type timeV struct{ V time.Time }
+
+func (v timeV) MarshalJSON() ([]byte, error) {
+	return append([]byte(`"`), append([]byte(v.V.Format(time.RFC3339Nano)), []byte(`"`)...)...), nil
+}
+
+// Timep returns JSON marshaler for the pointer to the time type.
+func Timep(p *time.Time) json.Marshaler { return timeP{P: p} }
+
+type timeP struct{ P *time.Time }
+
+func (p timeP) MarshalJSON() ([]byte, error) {
+	if p.P == nil {
+		return []byte("null"), nil
+	}
+	return timeV{V: *p.P}.MarshalJSON()
+}
+
+// Duration returns JSON marshaler for the time duration type.
+func Duration(v time.Duration) json.Marshaler { return durationV{V: v} }
+
+type durationV struct{ V time.Duration }
+
+func (v durationV) MarshalJSON() ([]byte, error) {
+	return append([]byte(`"`), append([]byte(v.V.String()), []byte(`"`)...)...), nil
+}
+
+// Durationp returns JSON marshaler for the pointer to the time duration type.
+func Durationp(p *time.Duration) json.Marshaler { return durationP{P: p} }
+
+type durationP struct{ P *time.Duration }
+
+func (p durationP) MarshalJSON() ([]byte, error) {
+	if p.P == nil {
+		return []byte("null"), nil
+	}
+	return durationV{V: *p.P}.MarshalJSON()
+}
+
 // Raw returns JSON marshaler for the raw byte slice.
 func Raw(v []byte) json.Marshaler { return rawV{V: v} }
 
@@ -570,6 +613,14 @@ func (v anyV) MarshalJSON() ([]byte, error) {
 		return Uintptr(x).MarshalJSON()
 	case *uintptr:
 		return Uintptrp(x).MarshalJSON()
+	case time.Time:
+		return Time(x).MarshalJSON()
+	case *time.Time:
+		return Timep(x).MarshalJSON()
+	case time.Duration:
+		return Duration(x).MarshalJSON()
+	case *time.Duration:
+		return Durationp(x).MarshalJSON()
 	case json.Marshaler:
 		return x.MarshalJSON()
 	default:

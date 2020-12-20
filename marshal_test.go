@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"runtime"
 	"testing"
+	"time"
 
 	"github.com/danil/equalastic"
 	"github.com/danil/logastic"
@@ -1474,6 +1475,122 @@ var MarshalTestCases = []struct {
 		}(),
 		expected: `{
 			"reflect uintptr pointer":42
+		}`,
+	},
+	{
+		line:  line(),
+		input: map[string]json.Marshaler{"time": logastic.Time(time.Date(1970, time.January, 1, 0, 0, 0, 42, time.UTC))},
+		expected: `{
+			"time":"1970-01-01T00:00:00.000000042Z"
+		}`,
+	},
+	{
+		line:  line(),
+		input: map[string]json.Marshaler{"any time": logastic.Any(time.Date(1970, time.January, 1, 0, 0, 0, 42, time.UTC))},
+		expected: `{
+			"any time":"1970-01-01T00:00:00.000000042Z"
+		}`,
+	},
+	{
+		line:  line(),
+		input: map[string]json.Marshaler{"reflect time": logastic.Reflect(time.Date(1970, time.January, 1, 0, 0, 0, 42, time.UTC))},
+		expected: `{
+			"reflect time":"1970-01-01T00:00:00.000000042Z"
+		}`,
+	},
+	{
+		line: line(),
+		input: func() map[string]json.Marshaler {
+			t := time.Date(1970, time.January, 1, 0, 0, 0, 42, time.UTC)
+			return map[string]json.Marshaler{"time pointer": logastic.Timep(&t)}
+		}(),
+		expected: `{
+			"time pointer":"1970-01-01T00:00:00.000000042Z"
+		}`,
+	},
+	{
+		line:  line(),
+		input: map[string]json.Marshaler{"nil time pointer": logastic.Timep(nil)},
+		expected: `{
+			"nil time pointer":null
+		}`,
+	},
+	{
+		line: line(),
+		input: func() map[string]json.Marshaler {
+			t := time.Date(1970, time.January, 1, 0, 0, 0, 42, time.UTC)
+			return map[string]json.Marshaler{"any time pointer": logastic.Any(&t)}
+		}(),
+		expected: `{
+			"any time pointer":"1970-01-01T00:00:00.000000042Z"
+		}`,
+	},
+	{
+		line: line(),
+		input: func() map[string]json.Marshaler {
+			t := time.Date(1970, time.January, 1, 0, 0, 0, 42, time.UTC)
+			return map[string]json.Marshaler{"reflect time pointer": logastic.Reflect(&t)}
+		}(),
+		expected: `{
+			"reflect time pointer":"1970-01-01T00:00:00.000000042Z"
+		}`,
+	},
+	{
+		line:  line(),
+		input: map[string]json.Marshaler{"duration": logastic.Duration(42)},
+		expected: `{
+			"duration":"42ns"
+		}`,
+	},
+	{
+		line:  line(),
+		input: map[string]json.Marshaler{"any duration": logastic.Any(42 * time.Nanosecond)},
+		expected: `{
+			"any duration":"42ns"
+		}`,
+	},
+	{
+		line:  line(),
+		input: map[string]json.Marshaler{"reflect duration": logastic.Reflect(42 * time.Nanosecond)},
+		expected: `{
+			"reflect duration":42
+		}`,
+	},
+	{
+		line: line(),
+		input: func() map[string]json.Marshaler {
+			d := 42 * time.Nanosecond
+			return map[string]json.Marshaler{"duration pointer": logastic.Durationp(&d)}
+		}(),
+		expected: `{
+			"duration pointer":"42ns"
+		}`,
+	},
+	{
+		line:  line(),
+		input: map[string]json.Marshaler{"nil duration pointer": logastic.Durationp(nil)},
+		expected: `{
+			"nil duration pointer":null
+		}`,
+	},
+	{
+		line: line(),
+		input: func() map[string]json.Marshaler {
+			d := 42 * time.Nanosecond
+			return map[string]json.Marshaler{"any duration pointer": logastic.Any(&d)}
+		}(),
+		expected: `{
+			"any duration pointer":"42ns"
+		}`,
+	},
+	{
+		line: line(),
+		input: func() map[string]json.Marshaler {
+			d := 42 * time.Nanosecond
+			return map[string]json.Marshaler{"reflect duration pointer": logastic.Reflect(&d)}
+		}(),
+		expected: `{
+			"reflect duration pointer":42
 		}`,
 	},
 	{
