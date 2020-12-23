@@ -1392,14 +1392,22 @@ func TestLogWriteTrailingNewLine(t *testing.T) {
 func TestKVWrite(t *testing.T) {
 	var buf bytes.Buffer
 
-	l := logastic.Log{Output: &buf}
+	l := logastic.Log{
+		Output: &buf,
+		Keys:   [4]string{"message"},
+	}
 
-	_, err := l.Write([]byte("Hello, Wrold!"))
+	m := map[string]json.Marshaler{"foo": logastic.String("bar")}
+	kv := logastic.KV{Log: l, KV: m}
+
+	_, err := kv.Write([]byte("Hello, Wrold!"))
 	if err != nil {
 		t.Fatalf("write error: %s", err)
 	}
 
-	if buf.Bytes()[len(buf.Bytes())-1] != '\n' {
-		t.Errorf("trailing new line expected but not present: %q", buf.String())
+	expected := `{"foo":"bar","message":"Hello, Wrold!"}` + "\n"
+
+	if buf.String() != expected {
+		t.Errorf("unexpected log, expected: %s, recieved: %s", expected, buf.String())
 	}
 }
