@@ -25,8 +25,8 @@ const (
 	blankMark
 )
 
-// Logger is a JSON logger/writer.
-type Logger struct {
+// Log is a JSON logger/writer.
+type Log struct {
 	Output  io.Writer                        // destination for output
 	Flag    int                              // log properties
 	KV      map[string]json.Marshaler        // key-values
@@ -38,7 +38,7 @@ type Logger struct {
 	Replace [][2][]byte                      // pairs of byte slices to replace in the message excerpt
 }
 
-func (l Logger) Write(p []byte) (int, error) {
+func (l Log) Write(p []byte) (int, error) {
 	j, err := logastic(p, l.Flag, l.KV, nil, l.Funcs, l.Trunc, l.Keys, l.Key, l.Marks, l.Replace)
 	if err != nil {
 		return 0, err
@@ -46,17 +46,17 @@ func (l Logger) Write(p []byte) (int, error) {
 	return l.Output.Write(j)
 }
 
-// Log is a JSON writer with additional key-value map.
-type Log struct {
-	Logger
+// KV is a JSON writer with additional key-value map.
+type KV struct {
+	Log
 	kv map[string]json.Marshaler
 }
 
-func (l Logger) With(kv map[string]json.Marshaler) Log {
-	return Log{Logger: l, kv: kv}
+func (l Log) With(kv map[string]json.Marshaler) KV {
+	return KV{Log: l, kv: kv}
 }
 
-func (l Log) Write(p []byte) (int, error) {
+func (l KV) Write(p []byte) (int, error) {
 	j, err := logastic(p, l.Flag, l.KV, l.kv, l.Funcs, l.Trunc, l.Keys, l.Key, l.Marks, l.Replace)
 	if err != nil {
 		return 0, err
@@ -288,8 +288,8 @@ func lastIndexFunc(s []byte, f func(r rune) bool, truth bool) int {
 }
 
 // GELF returns a GELF formater <https://docs.graylog.org/en/latest/pages/gelf.html>.
-func GELF() Logger {
-	return Logger{
+func GELF() Log {
+	return Log{
 		Funcs: map[string]func() json.Marshaler{
 			"timestamp": func() json.Marshaler { return Int64(time.Now().Unix()) },
 		},

@@ -13,7 +13,7 @@ import (
 	"github.com/kinbiko/jsonassert"
 )
 
-var dummy = logastic.Logger{
+var dummy = logastic.Log{
 	Trunc:   120,
 	Keys:    [4]string{"message", "excerpt", "trail", "file"},
 	Key:     logastic.Original,
@@ -24,7 +24,7 @@ var dummy = logastic.Logger{
 func TestWriteTrailingNewLine(t *testing.T) {
 	var buf bytes.Buffer
 
-	l := logastic.Logger{Output: &buf}
+	l := logastic.Log{Output: &buf}
 
 	_, err := l.Write([]byte("Hello, Wrold!"))
 	if err != nil {
@@ -39,7 +39,7 @@ func TestWriteTrailingNewLine(t *testing.T) {
 var WriteTestCases = []struct {
 	name      string
 	line      int
-	log       logastic.Logger
+	log       logastic.Log
 	bytes     []byte
 	kv        map[string]json.Marshaler
 	expected  string
@@ -58,7 +58,7 @@ var WriteTestCases = []struct {
 	{
 		name: `"string" key with "foo" value and "string" key with "bar" value`,
 		line: line(),
-		log: logastic.Logger{
+		log: logastic.Log{
 			Trunc: 120,
 			KV:    map[string]json.Marshaler{"string": logastic.String("foo")},
 			Keys:  [4]string{"message"},
@@ -84,7 +84,7 @@ var WriteTestCases = []struct {
 	{
 		name: `bytes appends to the "message" key with "string value"`,
 		line: line(),
-		log: logastic.Logger{
+		log: logastic.Log{
 			KV:      map[string]json.Marshaler{"message": logastic.String("string value")},
 			Trunc:   120,
 			Keys:    [4]string{"message", "excerpt", "trail"},
@@ -112,7 +112,7 @@ var WriteTestCases = []struct {
 	{
 		name: `bytes is nil and "message" key with "string value"`,
 		line: line(),
-		log: logastic.Logger{
+		log: logastic.Log{
 			KV:    map[string]json.Marshaler{"message": logastic.String("string value")},
 			Trunc: 120,
 			Keys:  [4]string{"message"},
@@ -193,7 +193,7 @@ var WriteTestCases = []struct {
 	{
 		name: `default key is original and bytes is nil and "message" key is present`,
 		line: line(),
-		log: logastic.Logger{
+		log: logastic.Log{
 			Trunc: 120,
 			Keys:  [4]string{"message"},
 			Key:   logastic.Original,
@@ -207,7 +207,7 @@ var WriteTestCases = []struct {
 	{
 		name: `default key is original and bytes is nil and "message" key is present and with replace`,
 		line: line(),
-		log: logastic.Logger{
+		log: logastic.Log{
 			Trunc:   120,
 			Keys:    [4]string{"message"},
 			Key:     logastic.Original,
@@ -222,7 +222,7 @@ var WriteTestCases = []struct {
 	{
 		name: `default key is original and bytes is present and "message" key is present`,
 		line: line(),
-		log: logastic.Logger{
+		log: logastic.Log{
 			Trunc:   120,
 			Keys:    [4]string{"message", "excerpt", "trail"},
 			Key:     logastic.Original,
@@ -238,7 +238,7 @@ var WriteTestCases = []struct {
 	{
 		name: `default key is original and bytes is present and "message" key is present and with replace intput bytes`,
 		line: line(),
-		log: logastic.Logger{
+		log: logastic.Log{
 			Trunc: 120,
 			Keys:  [4]string{"message", "excerpt", "trail"},
 			Key:   logastic.Original,
@@ -254,7 +254,7 @@ var WriteTestCases = []struct {
 	{
 		name: `default key is original and bytes is present and "message" key is present and with replace intput bytes and key`,
 		line: line(),
-		log: logastic.Logger{
+		log: logastic.Log{
 			Trunc:   120,
 			Keys:    [4]string{"message", "excerpt", "trail"},
 			Key:     logastic.Original,
@@ -271,7 +271,7 @@ var WriteTestCases = []struct {
 	{
 		name: `default key is original and bytes is nil and "excerpt" key is present`,
 		line: line(),
-		log: logastic.Logger{
+		log: logastic.Log{
 			Trunc: 120,
 			Keys:  [4]string{"message", "excerpt"},
 			Key:   logastic.Original,
@@ -285,7 +285,7 @@ var WriteTestCases = []struct {
 	{
 		name: `default key is original and bytes is nil and "excerpt" key is present and with replace`,
 		line: line(),
-		log: logastic.Logger{
+		log: logastic.Log{
 			Trunc:   120,
 			Keys:    [4]string{"message", "excerpt"},
 			Key:     logastic.Original,
@@ -300,7 +300,7 @@ var WriteTestCases = []struct {
 	{
 		name: `default key is original and bytes is present and "excerpt" key is present`,
 		line: line(),
-		log: logastic.Logger{
+		log: logastic.Log{
 			Trunc: 120,
 			Keys:  [4]string{"message", "excerpt"},
 			Key:   logastic.Original,
@@ -315,7 +315,7 @@ var WriteTestCases = []struct {
 	{
 		name: `default key is original and bytes is present and "excerpt" key is present and with replace input bytes`,
 		line: line(),
-		log: logastic.Logger{
+		log: logastic.Log{
 			Trunc:   120,
 			Keys:    [4]string{"message", "excerpt"},
 			Key:     logastic.Original,
@@ -331,7 +331,7 @@ var WriteTestCases = []struct {
 	{
 		name: `default key is original and bytes is present and "excerpt" key is present and with replace input bytes`,
 		line: line(),
-		log: logastic.Logger{
+		log: logastic.Log{
 			Trunc:   120,
 			Keys:    [4]string{"message", "excerpt"},
 			Key:     logastic.Original,
@@ -347,7 +347,7 @@ var WriteTestCases = []struct {
 	{
 		name: `default key is original and bytes is present and "excerpt" key is present and with replace input bytes and rey`,
 		line: line(),
-		log: logastic.Logger{
+		log: logastic.Log{
 			Trunc:   120,
 			Keys:    [4]string{"message", "excerpt"},
 			Key:     logastic.Original,
@@ -363,7 +363,7 @@ var WriteTestCases = []struct {
 	{
 		name: `default key is original and bytes is nil and "excerpt" and "message" keys is present`,
 		line: line(),
-		log: logastic.Logger{
+		log: logastic.Log{
 			Trunc: 120,
 			Keys:  [4]string{"message", "excerpt"},
 			Key:   logastic.Original,
@@ -378,7 +378,7 @@ var WriteTestCases = []struct {
 	{
 		name: `default key is original and bytes is nil and "excerpt" and "message" keys is present and replace keys`,
 		line: line(),
-		log: logastic.Logger{
+		log: logastic.Log{
 			Trunc:   120,
 			Keys:    [4]string{"message", "excerpt"},
 			Key:     logastic.Original,
@@ -394,7 +394,7 @@ var WriteTestCases = []struct {
 	{
 		name: `default key is original and bytes is present and "excerpt" and "message" keys is present`,
 		line: line(),
-		log: logastic.Logger{
+		log: logastic.Log{
 			Trunc: 120,
 			Keys:  [4]string{"message", "excerpt", "trail"},
 			Key:   logastic.Original,
@@ -410,7 +410,7 @@ var WriteTestCases = []struct {
 	{
 		name: `default key is original and bytes is present and "excerpt" and "message" keys is present and replace input bytes`,
 		line: line(),
-		log: logastic.Logger{
+		log: logastic.Log{
 			Trunc:   120,
 			Keys:    [4]string{"message", "excerpt", "trail"},
 			Key:     logastic.Original,
@@ -427,7 +427,7 @@ var WriteTestCases = []struct {
 	{
 		name: `default key is original and bytes is present and "excerpt" and "message" keys is present and replace input bytes and keys`,
 		line: line(),
-		log: logastic.Logger{
+		log: logastic.Log{
 			Trunc:   120,
 			Keys:    [4]string{"message", "excerpt", "trail"},
 			Key:     logastic.Original,
@@ -444,7 +444,7 @@ var WriteTestCases = []struct {
 	{
 		name: `default key is excerpt and bytes is nil and "message" key is present`,
 		line: line(),
-		log: logastic.Logger{
+		log: logastic.Log{
 			Trunc: 120,
 			Keys:  [4]string{"message"},
 			Key:   logastic.Excerpt,
@@ -458,7 +458,7 @@ var WriteTestCases = []struct {
 	{
 		name: `default key is excerpt and bytes is nil and "message" key is present and with replace`,
 		line: line(),
-		log: logastic.Logger{
+		log: logastic.Log{
 			Trunc:   120,
 			Keys:    [4]string{"message"},
 			Key:     logastic.Excerpt,
@@ -473,7 +473,7 @@ var WriteTestCases = []struct {
 	{
 		name: `default key is excerpt and bytes is present and "message" key is present`,
 		line: line(),
-		log: logastic.Logger{
+		log: logastic.Log{
 			Trunc:   120,
 			Keys:    [4]string{"message", "excerpt", "trail"},
 			Key:     logastic.Excerpt,
@@ -489,7 +489,7 @@ var WriteTestCases = []struct {
 	{
 		name: `default key is excerpt and bytes is present and "message" key is present and with replace intput bytes`,
 		line: line(),
-		log: logastic.Logger{
+		log: logastic.Log{
 			Trunc: 120,
 			Keys:  [4]string{"message", "excerpt", "trail"},
 			Key:   logastic.Excerpt,
@@ -505,7 +505,7 @@ var WriteTestCases = []struct {
 	{
 		name: `default key is excerpt and bytes is present and "message" key is present and with replace intput bytes and key`,
 		line: line(),
-		log: logastic.Logger{
+		log: logastic.Log{
 			Trunc:   120,
 			Keys:    [4]string{"message", "excerpt", "trail"},
 			Key:     logastic.Excerpt,
@@ -522,7 +522,7 @@ var WriteTestCases = []struct {
 	{
 		name: `default key is excerpt and bytes is nil and "excerpt" key is present`,
 		line: line(),
-		log: logastic.Logger{
+		log: logastic.Log{
 			Trunc: 120,
 			Keys:  [4]string{"message", "excerpt"},
 			Key:   logastic.Excerpt,
@@ -536,7 +536,7 @@ var WriteTestCases = []struct {
 	{
 		name: `default key is excerpt and bytes is nil and "excerpt" key is present and with replace`,
 		line: line(),
-		log: logastic.Logger{
+		log: logastic.Log{
 			Trunc:   120,
 			Keys:    [4]string{"message", "excerpt"},
 			Key:     logastic.Excerpt,
@@ -551,7 +551,7 @@ var WriteTestCases = []struct {
 	{
 		name: `default key is excerpt and bytes is present and "excerpt" key is present`,
 		line: line(),
-		log: logastic.Logger{
+		log: logastic.Log{
 			Trunc: 120,
 			Keys:  [4]string{"message", "excerpt"},
 			Key:   logastic.Excerpt,
@@ -566,7 +566,7 @@ var WriteTestCases = []struct {
 	{
 		name: `default key is excerpt and bytes is present and "excerpt" key is present and with replace input bytes`,
 		line: line(),
-		log: logastic.Logger{
+		log: logastic.Log{
 			Trunc:   120,
 			Keys:    [4]string{"message", "excerpt"},
 			Key:     logastic.Excerpt,
@@ -582,7 +582,7 @@ var WriteTestCases = []struct {
 	{
 		name: `default key is excerpt and bytes is present and "excerpt" key is present and with replace input bytes`,
 		line: line(),
-		log: logastic.Logger{
+		log: logastic.Log{
 			Trunc:   120,
 			Keys:    [4]string{"message", "excerpt"},
 			Key:     logastic.Excerpt,
@@ -598,7 +598,7 @@ var WriteTestCases = []struct {
 	{
 		name: `default key is excerpt and bytes is present and "excerpt" key is present and with replace input bytes and rey`,
 		line: line(),
-		log: logastic.Logger{
+		log: logastic.Log{
 			Trunc:   120,
 			Keys:    [4]string{"message", "excerpt"},
 			Key:     logastic.Excerpt,
@@ -614,7 +614,7 @@ var WriteTestCases = []struct {
 	{
 		name: `default key is excerpt and bytes is nil and "excerpt" and "message" keys is present`,
 		line: line(),
-		log: logastic.Logger{
+		log: logastic.Log{
 			Trunc: 120,
 			Keys:  [4]string{"message", "excerpt"},
 			Key:   logastic.Excerpt,
@@ -629,7 +629,7 @@ var WriteTestCases = []struct {
 	{
 		name: `default key is excerpt and bytes is nil and "excerpt" and "message" keys is present and replace keys`,
 		line: line(),
-		log: logastic.Logger{
+		log: logastic.Log{
 			Trunc:   120,
 			Keys:    [4]string{"message", "excerpt"},
 			Key:     logastic.Excerpt,
@@ -645,7 +645,7 @@ var WriteTestCases = []struct {
 	{
 		name: `default key is excerpt and bytes is present and "excerpt" and "message" keys is present`,
 		line: line(),
-		log: logastic.Logger{
+		log: logastic.Log{
 			Trunc: 120,
 			Keys:  [4]string{"message", "excerpt", "trail"},
 			Key:   logastic.Excerpt,
@@ -661,7 +661,7 @@ var WriteTestCases = []struct {
 	{
 		name: `default key is excerpt and bytes is present and "excerpt" and "message" keys is present and replace input bytes`,
 		line: line(),
-		log: logastic.Logger{
+		log: logastic.Log{
 			Trunc:   120,
 			Keys:    [4]string{"message", "excerpt", "trail"},
 			Key:     logastic.Excerpt,
@@ -678,7 +678,7 @@ var WriteTestCases = []struct {
 	{
 		name: `default key is excerpt and bytes is present and "excerpt" and "message" keys is present and replace input bytes and keys`,
 		line: line(),
-		log: logastic.Logger{
+		log: logastic.Log{
 			Trunc:   120,
 			Keys:    [4]string{"message", "excerpt", "trail"},
 			Key:     logastic.Excerpt,
@@ -715,7 +715,7 @@ var WriteTestCases = []struct {
 	{
 		name: `bytes is nil and flag is long file`,
 		line: line(),
-		log: logastic.Logger{
+		log: logastic.Log{
 			Flag: log.Llongfile,
 			Keys: [4]string{"message"},
 		},
@@ -728,7 +728,7 @@ var WriteTestCases = []struct {
 	{
 		name: `bytes is one char and flag is long file`,
 		line: line(),
-		log: logastic.Logger{
+		log: logastic.Log{
 			Flag: log.Llongfile,
 			Keys: [4]string{"message"},
 		},
@@ -740,7 +740,7 @@ var WriteTestCases = []struct {
 	{
 		name: `bytes is two chars and flag is long file`,
 		line: line(),
-		log: logastic.Logger{
+		log: logastic.Log{
 			Flag: log.Llongfile,
 			Keys: [4]string{"message", "excerpt", "trail", "file"},
 		},
@@ -753,7 +753,7 @@ var WriteTestCases = []struct {
 	{
 		name: `bytes is three chars and flag is long file`,
 		line: line(),
-		log: logastic.Logger{
+		log: logastic.Log{
 			Flag: log.Llongfile,
 			Keys: [4]string{"message", "excerpt", "trail", "file"},
 		},
@@ -791,14 +791,14 @@ func TestWrite(t *testing.T) {
 var FprintWriteTestCases = []struct {
 	name      string
 	line      int
-	log       logastic.Logger
+	log       logastic.Log
 	input     interface{}
 	expected  string
 	benchmark bool
 }{
 	{
 		name: "readme example 1",
-		log: logastic.Logger{
+		log: logastic.Log{
 			Trunc:   12,
 			Keys:    [4]string{"message", "excerpt"},
 			Marks:   [3][]byte{[]byte("…")},
@@ -814,7 +814,7 @@ var FprintWriteTestCases = []struct {
 	{
 		name: "readme example 2",
 		line: line(),
-		log: func() logastic.Logger {
+		log: func() logastic.Log {
 			l := logastic.GELF()
 			l.Funcs = map[string]func() json.Marshaler{"timestamp": func() json.Marshaler {
 				return logastic.Int64(time.Date(2020, time.October, 15, 18, 9, 0, 0, time.UTC).Unix())
@@ -832,7 +832,7 @@ var FprintWriteTestCases = []struct {
 	},
 	{
 		name: "readme example 3.1",
-		log: logastic.Logger{
+		log: logastic.Log{
 			Keys: [4]string{"message"},
 		},
 		line:  line(),
@@ -843,7 +843,7 @@ var FprintWriteTestCases = []struct {
 	},
 	{
 		name: "readme example 3.2",
-		log: logastic.Logger{
+		log: logastic.Log{
 			Keys: [4]string{"message"},
 		},
 		line:  line(),
@@ -939,7 +939,7 @@ var FprintWriteTestCases = []struct {
 	{
 		name: `"string" key with "foo" value`,
 		line: line(),
-		log: logastic.Logger{
+		log: logastic.Log{
 			KV:   map[string]json.Marshaler{"string": logastic.String("foo")},
 			Keys: [4]string{"message"},
 		},
@@ -952,7 +952,7 @@ var FprintWriteTestCases = []struct {
 	{
 		name: `"integer" key with 123 value`,
 		line: line(),
-		log: logastic.Logger{
+		log: logastic.Log{
 			KV:   map[string]json.Marshaler{"integer": logastic.Int(123)},
 			Keys: [4]string{"message"},
 		},
@@ -965,7 +965,7 @@ var FprintWriteTestCases = []struct {
 	{
 		name: `"float" key with 3.21 value`,
 		line: line(),
-		log: logastic.Logger{
+		log: logastic.Log{
 			KV:   map[string]json.Marshaler{"float": logastic.Float32(3.21)},
 			Keys: [4]string{"message"},
 		},
@@ -1027,7 +1027,7 @@ var FprintWriteTestCases = []struct {
 	},
 	{
 		name: "zero maximum length",
-		log: logastic.Logger{
+		log: logastic.Log{
 			Keys:  [4]string{"message"},
 			Trunc: 0,
 		},
@@ -1039,7 +1039,7 @@ var FprintWriteTestCases = []struct {
 	},
 	{
 		name: "without message key names",
-		log: logastic.Logger{
+		log: logastic.Log{
 			Keys: [4]string{},
 		},
 		line:  line(),
@@ -1050,7 +1050,7 @@ var FprintWriteTestCases = []struct {
 	},
 	{
 		name: "only original message key name",
-		log: logastic.Logger{
+		log: logastic.Log{
 			Keys: [4]string{"message"},
 		},
 		line:  line(),
@@ -1062,7 +1062,7 @@ var FprintWriteTestCases = []struct {
 	{
 		name: `explicit byte slice as message excerpt key`,
 		line: line(),
-		log: logastic.Logger{
+		log: logastic.Log{
 			KV:    map[string]json.Marshaler{"excerpt": logastic.Bytes([]byte("Explicit byte slice"))},
 			Trunc: 120,
 			Keys:  [4]string{"message", "excerpt"},
@@ -1076,7 +1076,7 @@ var FprintWriteTestCases = []struct {
 	{
 		name: `explicit string as message excerpt key`,
 		line: line(),
-		log: logastic.Logger{
+		log: logastic.Log{
 			KV:    map[string]json.Marshaler{"excerpt": logastic.String("Explicit string")},
 			Trunc: 120,
 			Keys:  [4]string{"message", "excerpt"},
@@ -1090,7 +1090,7 @@ var FprintWriteTestCases = []struct {
 	{
 		name: `explicit integer as message excerpt key`,
 		line: line(),
-		log: logastic.Logger{
+		log: logastic.Log{
 			KV:    map[string]json.Marshaler{"excerpt": logastic.Int(42)},
 			Trunc: 120,
 			Keys:  [4]string{"message", "excerpt"},
@@ -1104,7 +1104,7 @@ var FprintWriteTestCases = []struct {
 	{
 		name: `explicit float as message excerpt key`,
 		line: line(),
-		log: logastic.Logger{
+		log: logastic.Log{
 			KV:    map[string]json.Marshaler{"excerpt": logastic.Float32(4.2)},
 			Trunc: 120,
 			Keys:  [4]string{"message", "excerpt"},
@@ -1118,7 +1118,7 @@ var FprintWriteTestCases = []struct {
 	{
 		name: `explicit boolean as message excerpt key`,
 		line: line(),
-		log: logastic.Logger{
+		log: logastic.Log{
 			KV:    map[string]json.Marshaler{"excerpt": logastic.Bool(true)},
 			Trunc: 120,
 			Keys:  [4]string{"message", "excerpt"},
@@ -1132,7 +1132,7 @@ var FprintWriteTestCases = []struct {
 	{
 		name: `explicit rune slice as messages excerpt key`,
 		line: line(),
-		log: logastic.Logger{
+		log: logastic.Log{
 			KV:    map[string]json.Marshaler{"excerpt": logastic.Runes([]rune("Explicit rune slice"))},
 			Trunc: 120,
 			Keys:  [4]string{"message", "excerpt"},
@@ -1146,7 +1146,7 @@ var FprintWriteTestCases = []struct {
 	{
 		name: `dynamic "time" key`,
 		line: line(),
-		log: logastic.Logger{
+		log: logastic.Log{
 			Funcs: map[string]func() json.Marshaler{"time": func() json.Marshaler {
 				return logastic.String(time.Date(2020, time.October, 15, 18, 9, 0, 0, time.UTC).String())
 			}},
@@ -1161,7 +1161,7 @@ var FprintWriteTestCases = []struct {
 	{
 		name: `"standard flag" do not respects file path`,
 		line: line(),
-		log: logastic.Logger{
+		log: logastic.Log{
 			Flag: log.LstdFlags,
 			Keys: [4]string{"message"},
 		},
@@ -1173,7 +1173,7 @@ var FprintWriteTestCases = []struct {
 	{
 		name: `"long file" flag respects file path`,
 		line: line(),
-		log: logastic.Logger{
+		log: logastic.Log{
 			Flag:  log.Llongfile,
 			Trunc: 120,
 			Keys:  [4]string{"message", "excerpt", "trail", "file"},
@@ -1188,7 +1188,7 @@ var FprintWriteTestCases = []struct {
 	{
 		name: `replace newline character by whitespace character`,
 		line: line(),
-		log: logastic.Logger{
+		log: logastic.Log{
 			Trunc:   120,
 			Keys:    [4]string{"message", "excerpt"},
 			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
@@ -1202,7 +1202,7 @@ var FprintWriteTestCases = []struct {
 	{
 		name: `remove exclamation marks`,
 		line: line(),
-		log: logastic.Logger{
+		log: logastic.Log{
 			Trunc:   120,
 			Keys:    [4]string{"message", "excerpt"},
 			Replace: [][2][]byte{[2][]byte{[]byte("!")}},
@@ -1216,7 +1216,7 @@ var FprintWriteTestCases = []struct {
 	{
 		name: `replace word "World" by world "Work"`,
 		line: line(),
-		log: logastic.Logger{
+		log: logastic.Log{
 			Trunc:   120,
 			Keys:    [4]string{"message", "excerpt"},
 			Replace: [][2][]byte{[2][]byte{[]byte("World"), []byte("Work")}},
@@ -1230,7 +1230,7 @@ var FprintWriteTestCases = []struct {
 	{
 		name: "ignore pointless replace",
 		line: line(),
-		log: logastic.Logger{
+		log: logastic.Log{
 			Trunc:   120,
 			Keys:    [4]string{"message"},
 			Replace: [][2][]byte{[2][]byte{[]byte("!"), []byte("!")}},
@@ -1243,7 +1243,7 @@ var FprintWriteTestCases = []struct {
 	{
 		name: "ignore empty replace",
 		line: line(),
-		log: logastic.Logger{
+		log: logastic.Log{
 			Trunc:   120,
 			Keys:    [4]string{"message"},
 			Replace: [][2][]byte{[2][]byte{}},
@@ -1256,7 +1256,7 @@ var FprintWriteTestCases = []struct {
 	{
 		name: "file path with empty message",
 		line: line(),
-		log: logastic.Logger{
+		log: logastic.Log{
 			Flag:  log.Llongfile,
 			Trunc: 120,
 			Keys:  [4]string{"message", "excerpt", "trail", "file"},
@@ -1272,7 +1272,7 @@ var FprintWriteTestCases = []struct {
 	{
 		name: "file path with blank message",
 		line: line(),
-		log: logastic.Logger{
+		log: logastic.Log{
 			Flag:  log.Llongfile,
 			Trunc: 120,
 			Keys:  [4]string{"message", "excerpt", "trail", "file"},
@@ -1288,7 +1288,7 @@ var FprintWriteTestCases = []struct {
 	{
 		name: "GELF",
 		line: line(),
-		log: func() logastic.Logger {
+		log: func() logastic.Log {
 			l := logastic.GELF()
 			l.Funcs = map[string]func() json.Marshaler{"timestamp": func() json.Marshaler {
 				return logastic.Int64(time.Date(2020, time.October, 15, 18, 9, 0, 0, time.UTC).Unix())
@@ -1307,7 +1307,7 @@ var FprintWriteTestCases = []struct {
 	{
 		name: "GELF with file path",
 		line: line(),
-		log: func() logastic.Logger {
+		log: func() logastic.Log {
 			l := logastic.GELF()
 			l.Flag = log.Llongfile
 			l.Funcs = map[string]func() json.Marshaler{"timestamp": func() json.Marshaler {
