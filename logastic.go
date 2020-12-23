@@ -110,6 +110,10 @@ func logastic(
 		tmpKV[k] = v
 	}
 
+	if optKV != nil {
+		defer PutKV(optKV)
+	}
+
 	for k, v := range permKV {
 		if _, ok := tmpKV[k]; ok {
 			continue

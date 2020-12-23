@@ -12,7 +12,7 @@ its extremely slow and allocates a lots of memory)
 
 ## Install
 
-    go get github.com/danil/logastic@v0.62.0
+    go get github.com/danil/logastic@v0.63.0
 
 ## Usage
 
