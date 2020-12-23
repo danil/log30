@@ -13,29 +13,6 @@ import (
 	"github.com/kinbiko/jsonassert"
 )
 
-var dummy = logastic.Log{
-	Trunc:   120,
-	Keys:    [4]string{"message", "excerpt", "trail", "file"},
-	Key:     logastic.Original,
-	Marks:   [3][]byte{[]byte("…"), []byte("_EMPTY_"), []byte("_BLANK_")},
-	Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
-}
-
-func TestLogWriteTrailingNewLine(t *testing.T) {
-	var buf bytes.Buffer
-
-	l := logastic.Log{Output: &buf}
-
-	_, err := l.Write([]byte("Hello, Wrold!"))
-	if err != nil {
-		t.Fatalf("write error: %s", err)
-	}
-
-	if buf.Bytes()[len(buf.Bytes())-1] != '\n' {
-		t.Errorf("trailing new line expected but not present: %q", buf.String())
-	}
-}
-
 var LogWriteTestCases = []struct {
 	name      string
 	line      int
@@ -1386,5 +1363,43 @@ func BenchmarkLogastic(b *testing.B) {
 				}
 			}
 		})
+	}
+}
+
+var dummy = logastic.Log{
+	Trunc:   120,
+	Keys:    [4]string{"message", "excerpt", "trail", "file"},
+	Key:     logastic.Original,
+	Marks:   [3][]byte{[]byte("…"), []byte("_EMPTY_"), []byte("_BLANK_")},
+	Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
+}
+
+func TestLogWriteTrailingNewLine(t *testing.T) {
+	var buf bytes.Buffer
+
+	l := logastic.Log{Output: &buf}
+
+	_, err := l.Write([]byte("Hello, Wrold!"))
+	if err != nil {
+		t.Fatalf("write error: %s", err)
+	}
+
+	if buf.Bytes()[len(buf.Bytes())-1] != '\n' {
+		t.Errorf("trailing new line expected but not present: %q", buf.String())
+	}
+}
+
+func TestKVWrite(t *testing.T) {
+	var buf bytes.Buffer
+
+	l := logastic.Log{Output: &buf}
+
+	_, err := l.Write([]byte("Hello, Wrold!"))
+	if err != nil {
+		t.Fatalf("write error: %s", err)
+	}
+
+	if buf.Bytes()[len(buf.Bytes())-1] != '\n' {
+		t.Errorf("trailing new line expected but not present: %q", buf.String())
 	}
 }
