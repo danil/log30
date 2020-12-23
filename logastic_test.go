@@ -21,7 +21,7 @@ var dummy = logastic.Log{
 	Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 }
 
-func TestWriteTrailingNewLine(t *testing.T) {
+func TestLogWriteTrailingNewLine(t *testing.T) {
 	var buf bytes.Buffer
 
 	l := logastic.Log{Output: &buf}
@@ -36,7 +36,7 @@ func TestWriteTrailingNewLine(t *testing.T) {
 	}
 }
 
-var WriteTestCases = []struct {
+var LogWriteTestCases = []struct {
 	name      string
 	line      int
 	log       logastic.Log
@@ -765,9 +765,9 @@ var WriteTestCases = []struct {
 	},
 }
 
-func TestWrite(t *testing.T) {
+func TestLogWrite(t *testing.T) {
 	_, testFile, _, _ := runtime.Caller(0)
-	for _, tc := range WriteTestCases {
+	for _, tc := range LogWriteTestCases {
 		tc := tc
 		t.Run(fmt.Sprintf("io.Writer %s %d", tc.name, tc.line), func(t *testing.T) {
 			t.Parallel()
@@ -788,7 +788,7 @@ func TestWrite(t *testing.T) {
 	}
 }
 
-var FprintWriteTestCases = []struct {
+var LogFprintWriteTestCases = []struct {
 	name      string
 	line      int
 	log       logastic.Log
@@ -1328,9 +1328,9 @@ var FprintWriteTestCases = []struct {
 	},
 }
 
-func TestFprintWrite(t *testing.T) {
+func TestLogFprintWrite(t *testing.T) {
 	_, testFile, _, _ := runtime.Caller(0)
-	for _, tc := range FprintWriteTestCases {
+	for _, tc := range LogFprintWriteTestCases {
 		tc := tc
 		t.Run(fmt.Sprintf("fmt.Fprint io.Writer %s %d", tc.name, tc.line), func(t *testing.T) {
 			t.Parallel()
@@ -1352,7 +1352,7 @@ func TestFprintWrite(t *testing.T) {
 }
 
 func BenchmarkLogastic(b *testing.B) {
-	for _, tc := range WriteTestCases {
+	for _, tc := range LogWriteTestCases {
 		if !tc.benchmark {
 			continue
 		}
@@ -1370,7 +1370,7 @@ func BenchmarkLogastic(b *testing.B) {
 		})
 	}
 
-	for _, tc := range FprintWriteTestCases {
+	for _, tc := range LogFprintWriteTestCases {
 		if !tc.benchmark {
 			continue
 		}
