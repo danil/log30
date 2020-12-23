@@ -46,14 +46,14 @@ func (l Log) Write(p []byte) (int, error) {
 	return l.Output.Write(j)
 }
 
+func (l Log) With(kv map[string]json.Marshaler) KV {
+	return KV{Log: l, kv: kv}
+}
+
 // KV is a JSON writer with additional key-value map.
 type KV struct {
 	Log
 	kv map[string]json.Marshaler
-}
-
-func (l Log) With(kv map[string]json.Marshaler) KV {
-	return KV{Log: l, kv: kv}
 }
 
 func (l KV) Write(p []byte) (int, error) {
