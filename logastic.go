@@ -50,6 +50,20 @@ func (l Log) With(kv map[string]json.Marshaler) KV {
 	return KV{Log: l, KV: kv}
 }
 
+var kvPool = sync.Pool{New: func() interface{} { return make(map[string]json.Marshaler) }}
+
+func GetKV() map[string]json.Marshaler {
+	kv := kvPool.Get().(map[string]json.Marshaler)
+	for k := range kv {
+		delete(kv, k)
+	}
+	return kv
+}
+
+func PutKV(kv map[string]json.Marshaler) {
+	kvPool.Put(kv)
+}
+
 // KV is a JSON writer with additional key-value map.
 type KV struct {
 	Log Log
@@ -66,10 +80,7 @@ func (l KV) Write(p []byte) (int, error) {
 
 var asciiSpace = [256]uint8{'\t': 1, '\n': 1, '\v': 1, '\f': 1, '\r': 1, ' ': 1}
 
-var (
-	excerptP = sync.Pool{New: func() interface{} { return new([]byte) }}
-	kvP      = sync.Pool{New: func() interface{} { m := make(map[string]json.Marshaler); return &m }}
-)
+var excerptPool = sync.Pool{New: func() interface{} { return new([]byte) }}
 
 func logastic(
 	src []byte,
@@ -92,11 +103,8 @@ func logastic(
 	// rplc is a pairs of byte slices to replace in the message excerpt.
 	rplc [][2][]byte,
 ) ([]byte, error) {
-	tmpKV := *kvP.Get().(*map[string]json.Marshaler)
-	for k := range tmpKV {
-		delete(tmpKV, k)
-	}
-	defer kvP.Put(&tmpKV)
+	tmpKV := GetKV()
+	defer PutKV(tmpKV)
 
 	for k, v := range optKV {
 		tmpKV[k] = v
@@ -132,9 +140,9 @@ func logastic(
 		}
 	}
 
-	excerpt := *excerptP.Get().(*[]byte)
+	excerpt := *excerptPool.Get().(*[]byte)
 	excerpt = excerpt[:0]
-	defer excerptP.Put(&excerpt)
+	defer excerptPool.Put(&excerpt)
 
 	end := tail
 
