@@ -51,7 +51,7 @@ var WriteTestCases = []struct {
 		benchmark: true,
 	},
 	{
-		name:  `key-values is nil`,
+		name:  "key-values is nil",
 		line:  line(),
 		log:   dummy,
 		bytes: []byte("Hello, World!"),
@@ -692,7 +692,7 @@ var WriteTestCases = []struct {
 		}`,
 	},
 	{
-		name: `bytes is nil and flag is long file`,
+		name: "bytes is nil and flag is long file",
 		line: line(),
 		log: logastic.Log{
 			Flag: log.Llongfile,
@@ -705,7 +705,7 @@ var WriteTestCases = []struct {
 		}`,
 	},
 	{
-		name: `bytes is one char and flag is long file`,
+		name: "bytes is one char and flag is long file",
 		line: line(),
 		log: logastic.Log{
 			Flag: log.Llongfile,
@@ -717,7 +717,7 @@ var WriteTestCases = []struct {
 		}`,
 	},
 	{
-		name: `bytes is two chars and flag is long file`,
+		name: "bytes is two chars and flag is long file",
 		line: line(),
 		log: logastic.Log{
 			Flag: log.Llongfile,
@@ -730,7 +730,7 @@ var WriteTestCases = []struct {
 		}`,
 	},
 	{
-		name: `bytes is three chars and flag is long file`,
+		name: "bytes is three chars and flag is long file",
 		line: line(),
 		log: logastic.Log{
 			Flag: log.Llongfile,
@@ -743,7 +743,7 @@ var WriteTestCases = []struct {
 		}`,
 	},
 	{
-		name: `permanent kv overwritten by the additional kv`,
+		name: "permanent kv overwritten by the additional kv",
 		line: line(),
 		log: logastic.Log{
 			KV: map[string]json.Marshaler{"foo": logastic.String("bar")},
@@ -757,7 +757,7 @@ var WriteTestCases = []struct {
 		}`,
 	},
 	{
-		name: `permanent kv and first additional kv overwritten by the second additional kv`,
+		name: "permanent kv and first additional kv overwritten by the second additional kv",
 		line: line(),
 		log: logastic.Log{
 			KV: map[string]json.Marshaler{"foo": logastic.String("bar")},
@@ -1072,7 +1072,7 @@ var FprintWriteTestCases = []struct {
 		}`,
 	},
 	{
-		name: `explicit byte slice as message excerpt key`,
+		name: "explicit byte slice as message excerpt key",
 		line: line(),
 		log: logastic.Log{
 			KV:    map[string]json.Marshaler{"excerpt": logastic.Bytes([]byte("Explicit byte slice"))},
@@ -1086,7 +1086,7 @@ var FprintWriteTestCases = []struct {
 		}`,
 	},
 	{
-		name: `explicit string as message excerpt key`,
+		name: "explicit string as message excerpt key",
 		line: line(),
 		log: logastic.Log{
 			KV:    map[string]json.Marshaler{"excerpt": logastic.String("Explicit string")},
@@ -1100,7 +1100,7 @@ var FprintWriteTestCases = []struct {
 		}`,
 	},
 	{
-		name: `explicit integer as message excerpt key`,
+		name: "explicit integer as message excerpt key",
 		line: line(),
 		log: logastic.Log{
 			KV:    map[string]json.Marshaler{"excerpt": logastic.Int(42)},
@@ -1114,7 +1114,7 @@ var FprintWriteTestCases = []struct {
 		}`,
 	},
 	{
-		name: `explicit float as message excerpt key`,
+		name: "explicit float as message excerpt key",
 		line: line(),
 		log: logastic.Log{
 			KV:    map[string]json.Marshaler{"excerpt": logastic.Float32(4.2)},
@@ -1128,7 +1128,7 @@ var FprintWriteTestCases = []struct {
 		}`,
 	},
 	{
-		name: `explicit boolean as message excerpt key`,
+		name: "explicit boolean as message excerpt key",
 		line: line(),
 		log: logastic.Log{
 			KV:    map[string]json.Marshaler{"excerpt": logastic.Bool(true)},
@@ -1142,7 +1142,7 @@ var FprintWriteTestCases = []struct {
 		}`,
 	},
 	{
-		name: `explicit rune slice as messages excerpt key`,
+		name: "explicit rune slice as messages excerpt key",
 		line: line(),
 		log: logastic.Log{
 			KV:    map[string]json.Marshaler{"excerpt": logastic.Runes([]rune("Explicit rune slice"))},
@@ -1198,7 +1198,7 @@ var FprintWriteTestCases = []struct {
 		}`,
 	},
 	{
-		name: `replace newline character by whitespace character`,
+		name: "replace newline character by whitespace character",
 		line: line(),
 		log: logastic.Log{
 			Trunc:   120,
@@ -1212,7 +1212,7 @@ var FprintWriteTestCases = []struct {
 		}`,
 	},
 	{
-		name: `remove exclamation marks`,
+		name: "remove exclamation marks",
 		line: line(),
 		log: logastic.Log{
 			Trunc:   120,
