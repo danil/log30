@@ -297,7 +297,15 @@ func lastIndexFunc(s []byte, f func(r rune) bool, truth bool) int {
 
 // GELF returns a GELF formater <https://docs.graylog.org/en/latest/pages/gelf.html>.
 func GELF() Log {
+	kv := GetKV()
+
+	// GELF spec version – "1.1"; Must be set by client library.
+	// <https://docs.graylog.org/en/latest/pages/gelf.html#gelf-payload-specification>,
+	// <https://github.com/graylog-labs/gelf-rb/issues/41#issuecomment-198266505>.
+	kv["version"] = String("1.1")
+
 	return Log{
+		KV: kv,
 		Funcs: map[string]func() json.Marshaler{
 			"timestamp": func() json.Marshaler { return Int64(time.Now().Unix()) },
 		},
