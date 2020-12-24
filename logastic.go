@@ -39,15 +39,26 @@ type Log struct {
 }
 
 func (l Log) Write(p []byte) (int, error) {
-	j, err := logastic(p, l.Flag, l.KV, nil, l.Funcs, l.Trunc, l.Keys, l.Key, l.Marks, l.Replace)
+	j, err := logastic(p, l.Flag, l.KV, l.Funcs, l.Trunc, l.Keys, l.Key, l.Marks, l.Replace)
 	if err != nil {
 		return 0, err
 	}
 	return l.Output.Write(j)
 }
 
-func (l Log) With(kv map[string]json.Marshaler) KV {
-	return KV{Log: l, KV: kv}
+// With returns copy of the logger with additional key-values.
+// Original key-values will copy, existenting keys-values in the copy
+// will overwritten by the additional key-values.
+func (l Log) With(add map[string]json.Marshaler) Log {
+	orig := GetKV()
+	for k, v := range l.KV {
+		orig[k] = v
+	}
+	for k, v := range add {
+		orig[k] = v
+	}
+	l.KV = orig
+	return l
 }
 
 var kvPool = sync.Pool{New: func() interface{} { return make(map[string]json.Marshaler) }}
@@ -64,20 +75,6 @@ func PutKV(kv map[string]json.Marshaler) {
 	kvPool.Put(kv)
 }
 
-// KV is a JSON writer with additional key-value map.
-type KV struct {
-	Log Log
-	KV  map[string]json.Marshaler
-}
-
-func (l KV) Write(p []byte) (int, error) {
-	j, err := logastic(p, l.Log.Flag, l.Log.KV, l.KV, l.Log.Funcs, l.Log.Trunc, l.Log.Keys, l.Log.Key, l.Log.Marks, l.Log.Replace)
-	if err != nil {
-		return 0, err
-	}
-	return l.Log.Output.Write(j)
-}
-
 var asciiSpace = [256]uint8{'\t': 1, '\n': 1, '\v': 1, '\f': 1, '\r': 1, ' ': 1}
 
 var excerptPool = sync.Pool{New: func() interface{} { return new([]byte) }}
@@ -86,11 +83,10 @@ func logastic(
 	src []byte,
 	// flg is a log properties.
 	flg int,
-	// permKV is a permanent key-value map.
-	permKV,
-	// optKV is a optional key-value map in addition to the permanent key-value map.
-	optKV map[string]json.Marshaler,
+	// kv is a key-value map.
+	kv map[string]json.Marshaler,
 	// fns is a dynamically calculated key-values.
+	// Existing kv will not overwritten by the dynamically calculated key-values.
 	fns map[string]func() json.Marshaler,
 	// trunc is a maximum length of the message excerpt after which the message excerpt is truncated.
 	trunc int,
@@ -106,14 +102,7 @@ func logastic(
 	tmpKV := GetKV()
 	defer PutKV(tmpKV)
 
-	for k, v := range optKV {
-		tmpKV[k] = v
-	}
-
-	for k, v := range permKV {
-		if _, ok := tmpKV[k]; ok {
-			continue
-		}
+	for k, v := range kv {
 		tmpKV[k] = v
 	}
 
