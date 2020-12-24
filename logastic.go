@@ -27,15 +27,15 @@ const (
 
 // Log is a JSON logger/writer.
 type Log struct {
-	Output  io.Writer                        // destination for output
-	Flag    int                              // log properties
-	KV      map[string]json.Marshaler        // key-values
-	Funcs   map[string]func() json.Marshaler // dynamically calculated key-values
-	Trunc   int                              // maximum length of the message excerpt after which the message excerpt is truncated
-	Keys    [4]string                        // 0 = original message; 1 = message excerpt; 2 = message trail; 3 = file path;
-	Key     uint8                            // default/sticky message key: all except 1 = original message; 1 = message excerpt;
-	Marks   [3][]byte                        // 0 = truncate; 1 = empty; 2 = blank;
-	Replace [][2][]byte                      // pairs of byte slices to replace in the message excerpt
+	Output  io.Writer                        // Destination for output.
+	Flag    int                              // Log properties.
+	KV      map[string]json.Marshaler        // Key-values.
+	Funcs   map[string]func() json.Marshaler // Dynamically calculated key-values.
+	Trunc   int                              // Maximum length of the message excerpt after which the message excerpt is truncated.
+	Keys    [4]string                        // 0 = original message; 1 = message excerpt; 2 = message trail; 3 = file path.
+	Key     uint8                            // Default/sticky message key: all except 1 = original message; 1 = message excerpt.
+	Marks   [3][]byte                        // 0 = truncate; 1 = empty; 2 = blank.
+	Replace [][2][]byte                      // Pairs of byte slices to replace in the message excerpt.
 }
 
 func (l Log) Write(p []byte) (int, error) {
