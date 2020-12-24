@@ -12,7 +12,7 @@ its extremely slow and allocates a lots of memory)
 
 ## Install
 
-    go get github.com/danil/logastic@v0.65.0
+    go get github.com/danil/logastic@v0.66.0
 
 ## Usage
 
@@ -67,7 +67,6 @@ import (
 func main() {
     l := logastic.GELF()
     l.Output = os.Stdout
-    l.KV["version"] = logastic.String("1.1")
     log.SetFlags(0)
     log.SetOutput(l)
     log.Print("Hello,\nGELF!")
