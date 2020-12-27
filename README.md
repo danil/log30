@@ -125,6 +125,19 @@ Output 2:
 }
 ```
 
+## Benchmark
+
+```
+go test -bench=.
+goos: linux
+goarch: amd64
+pkg: github.com/danil/logastic
+BenchmarkLogastic/io.Writer_36-8              454818          2596 ns/op
+BenchmarkLogastic/fmt.Fprint_io.Writer_1011-8             132300          8783 ns/op
+PASS
+ok      github.com/danil/logastic   2.471s
+```
+
 ## License
 
 Copyright (C) 2020 Danil Kutkevich <danil@kutkevich.org>  
