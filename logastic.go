@@ -50,7 +50,7 @@ func (l Log) Write(p []byte) (int, error) {
 // Original key-values will copy, existenting keys-values in the copy
 // will overwritten by the additional key-values.
 func (l Log) With(add map[string]json.Marshaler) Log {
-	orig := GetKV()
+	orig := getKV()
 	for k, v := range l.KV {
 		orig[k] = v
 	}
@@ -63,7 +63,7 @@ func (l Log) With(add map[string]json.Marshaler) Log {
 
 var kvPool = sync.Pool{New: func() interface{} { return make(map[string]json.Marshaler) }}
 
-func GetKV() map[string]json.Marshaler {
+func getKV() map[string]json.Marshaler {
 	kv := kvPool.Get().(map[string]json.Marshaler)
 	for k := range kv {
 		delete(kv, k)
@@ -71,7 +71,7 @@ func GetKV() map[string]json.Marshaler {
 	return kv
 }
 
-func PutKV(kv map[string]json.Marshaler) {
+func putKV(kv map[string]json.Marshaler) {
 	kvPool.Put(kv)
 }
 
@@ -99,8 +99,8 @@ func logastic(
 	// rplc is a pairs of byte slices to replace in the message excerpt.
 	rplc [][2][]byte,
 ) ([]byte, error) {
-	tmpKV := GetKV()
-	defer PutKV(tmpKV)
+	tmpKV := getKV()
+	defer putKV(tmpKV)
 
 	for k, v := range kv {
 		tmpKV[k] = v
@@ -286,7 +286,7 @@ func lastIndexFunc(s []byte, f func(r rune) bool, truth bool) int {
 
 // GELF returns a GELF formater <https://docs.graylog.org/en/latest/pages/gelf.html>.
 func GELF() Log {
-	kv := GetKV()
+	kv := getKV()
 
 	// GELF spec version – "1.1"; Must be set by client library.
 	// <https://docs.graylog.org/en/latest/pages/gelf.html#gelf-payload-specification>,
