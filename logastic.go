@@ -48,8 +48,7 @@ func (l Log) Write(p []byte) (int, error) {
 }
 
 // With returns copy of the logger with additional key-values.
-// Original key-values will copy, existenting keys-values in the copy
-// will overwritten by the additional key-values.
+// Copy of the original key-values overwritten by the additional key-values.
 func (l Log) With(kv ...json.Marshaler) Log {
 	l.KV = append(l.KV, kv...)
 	return l
