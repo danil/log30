@@ -55,11 +55,12 @@ func (l Log) With(kv ...json.Marshaler) Log {
 	return l
 }
 
-var mapPool = sync.Pool{New: func() interface{} { return make(map[json.Marshaler]json.Marshaler) }}
-
 var asciiSpace = [256]uint8{'\t': 1, '\n': 1, '\v': 1, '\f': 1, '\r': 1, ' ': 1}
 
-var excerptPool = sync.Pool{New: func() interface{} { return new([]byte) }}
+var (
+	excerptPool = sync.Pool{New: func() interface{} { return new([]byte) }}
+	mapPool     = sync.Pool{New: func() interface{} { return make(map[json.Marshaler]json.Marshaler) }}
+)
 
 func logastic(
 	src []byte,
