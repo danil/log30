@@ -9,6 +9,8 @@ import (
 	"time"
 	"unicode"
 	"unicode/utf8"
+
+	jsoniter "github.com/json-iterator/go"
 )
 
 const (
@@ -16,7 +18,6 @@ const (
 	Excerpt
 	Trail
 	File
-	Host
 )
 
 const (
@@ -27,15 +28,15 @@ const (
 
 // Log is a JSON logger/writer.
 type Log struct {
-	Output  io.Writer                        // Destination for output.
-	Flag    int                              // Log properties.
-	KV      map[string]json.Marshaler        // Key-values.
-	Funcs   map[string]func() json.Marshaler // Dynamically calculated key-values.
-	Trunc   int                              // Maximum length of the message excerpt after which the message excerpt is truncated.
-	Keys    [4]string                        // 0 = original message; 1 = message excerpt; 2 = message trail; 3 = file path.
-	Key     uint8                            // Default/sticky message key: all except 1 = original message; 1 = message excerpt.
-	Marks   [3][]byte                        // 0 = truncate; 1 = empty; 2 = blank.
-	Replace [][2][]byte                      // Pairs of byte slices to replace in the message excerpt.
+	Output  io.Writer                                 // Destination for output.
+	Flag    int                                       // Log properties.
+	KV      []json.Marshaler                          // Key-values.
+	Funcs   []func() (json.Marshaler, json.Marshaler) // Dynamically calculated key-values.
+	Trunc   int                                       // Maximum length of the message excerpt after which the message excerpt is truncated.
+	Keys    [4]json.Marshaler                         // 0 = original message; 1 = message excerpt; 2 = message trail; 3 = file path.
+	Key     uint8                                     // Default/sticky message key: all except 1 = original message; 1 = message excerpt.
+	Marks   [3][]byte                                 // 0 = truncate; 1 = empty; 2 = blank.
+	Replace [][2][]byte                               // Pairs of byte slices to replace in the message excerpt.
 }
 
 func (l Log) Write(p []byte) (int, error) {
@@ -49,31 +50,12 @@ func (l Log) Write(p []byte) (int, error) {
 // With returns copy of the logger with additional key-values.
 // Original key-values will copy, existenting keys-values in the copy
 // will overwritten by the additional key-values.
-func (l Log) With(add map[string]json.Marshaler) Log {
-	orig := getKV()
-	for k, v := range l.KV {
-		orig[k] = v
-	}
-	for k, v := range add {
-		orig[k] = v
-	}
-	l.KV = orig
+func (l Log) With(kv ...json.Marshaler) Log {
+	l.KV = append(l.KV, kv...)
 	return l
 }
 
-var kvPool = sync.Pool{New: func() interface{} { return make(map[string]json.Marshaler) }}
-
-func getKV() map[string]json.Marshaler {
-	kv := kvPool.Get().(map[string]json.Marshaler)
-	for k := range kv {
-		delete(kv, k)
-	}
-	return kv
-}
-
-func putKV(kv map[string]json.Marshaler) {
-	kvPool.Put(kv)
-}
+var mapPool = sync.Pool{New: func() interface{} { return make(map[json.Marshaler]json.Marshaler) }}
 
 var asciiSpace = [256]uint8{'\t': 1, '\n': 1, '\v': 1, '\f': 1, '\r': 1, ' ': 1}
 
@@ -83,15 +65,15 @@ func logastic(
 	src []byte,
 	// flg is a log properties.
 	flg int,
-	// kv is a key-value map.
-	kv map[string]json.Marshaler,
+	// kv is a key-values.
+	kv []json.Marshaler,
 	// fns is a dynamically calculated key-values.
 	// Existing kv will not overwritten by the dynamically calculated key-values.
-	fns map[string]func() json.Marshaler,
+	fns []func() (json.Marshaler, json.Marshaler),
 	// trunc is a maximum length of the message excerpt after which the message excerpt is truncated.
 	trunc int,
 	// keys: 0 = original message; 1 = message excerpt; 2 = message trail; 3 = file path.
-	keys [4]string,
+	keys [4]json.Marshaler,
 	// default/sticky message key: all except 1 = original message; 1 = message excerpt.
 	key uint8,
 	// marks: 0 = truncate; 1 = empty; 2 = blank.
@@ -99,18 +81,22 @@ func logastic(
 	// rplc is a pairs of byte slices to replace in the message excerpt.
 	rplc [][2][]byte,
 ) ([]byte, error) {
-	tmpKV := getKV()
-	defer putKV(tmpKV)
+	tmpKV := mapPool.Get().(map[json.Marshaler]json.Marshaler)
+	for k := range tmpKV {
+		delete(tmpKV, k)
+	}
+	defer mapPool.Put(tmpKV)
 
-	for k, v := range kv {
-		tmpKV[k] = v
+	for i := 0; i < len(kv); i += 2 {
+		tmpKV[kv[i]] = kv[i+1]
 	}
 
-	for k, fn := range fns {
+	for _, fn := range fns {
+		k, v := fn()
 		if _, ok := tmpKV[k]; ok {
 			continue
 		}
-		tmpKV[k] = fn()
+		tmpKV[k] = v
 	}
 
 	var tail, file int
@@ -127,6 +113,14 @@ func logastic(
 				tail = i + 2
 			}
 		}
+	}
+
+	if keys[Original] == nil {
+		keys[Original] = String("")
+	}
+
+	if keys[Excerpt] == nil {
+		keys[Excerpt] = String("")
 	}
 
 	excerpt := *excerptPool.Get().(*[]byte)
@@ -230,6 +224,10 @@ func logastic(
 		}
 	}
 
+	if keys[Trail] == nil {
+		keys[Trail] = String("")
+	}
+
 	if bytes.Equal(src, excerpt) && src != nil {
 		if key == Excerpt {
 			tmpKV[keys[Excerpt]] = Bytes(src)
@@ -254,11 +252,15 @@ func logastic(
 		}
 	}
 
+	if keys[File] == nil {
+		keys[File] = String("")
+	}
+
 	if file != 0 {
 		tmpKV[keys[File]] = Bytes(src[:file])
 	}
 
-	p, err := json.Marshal(tmpKV)
+	p, err := jsoniter.ConfigCompatibleWithStandardLibrary.Marshal(tmpKV)
 	if err != nil {
 		return nil, err
 	}
@@ -286,20 +288,23 @@ func lastIndexFunc(s []byte, f func(r rune) bool, truth bool) int {
 
 // GELF returns a GELF formater <https://docs.graylog.org/en/latest/pages/gelf.html>.
 func GELF() Log {
-	kv := getKV()
-
-	// GELF spec version – "1.1"; Must be set by client library.
-	// <https://docs.graylog.org/en/latest/pages/gelf.html#gelf-payload-specification>,
-	// <https://github.com/graylog-labs/gelf-rb/issues/41#issuecomment-198266505>.
-	kv["version"] = String("1.1")
-
 	return Log{
-		KV: kv,
-		Funcs: map[string]func() json.Marshaler{
-			"timestamp": func() json.Marshaler { return Int64(time.Now().Unix()) },
+		// GELF spec version – "1.1"; Must be set by client library.
+		// <https://docs.graylog.org/en/latest/pages/gelf.html#gelf-payload-specification>,
+		// <https://github.com/graylog-labs/gelf-rb/issues/41#issuecomment-198266505>.
+		KV: []json.Marshaler{String("version"), String("1.1")},
+		Funcs: []func() (json.Marshaler, json.Marshaler){
+			func() (json.Marshaler, json.Marshaler) {
+				return String("timestamp"), Int64(time.Now().Unix())
+			},
 		},
-		Trunc:   120,
-		Keys:    [4]string{"full_message", "short_message", "_trail", "_file"},
+		Trunc: 120,
+		Keys: [4]json.Marshaler{
+			String("full_message"),
+			String("short_message"),
+			String("_trail"),
+			String("_file"),
+		},
 		Key:     Excerpt,
 		Marks:   [3][]byte{[]byte("…"), []byte("_EMPTY_"), []byte("_BLANK_")},
 		Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},

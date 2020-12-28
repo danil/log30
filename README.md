@@ -1,7 +1,7 @@
 # Logastic
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/danil/logastic.svg)](https://pkg.go.dev/github.com/danil/logastic)
 [![Build Status](https://cloud.drone.io/api/badges/danil/logastic/status.svg)](https://cloud.drone.io/danil/logastic)
+[![Go Reference](https://pkg.go.dev/badge/github.com/danil/logastic.svg)](https://pkg.go.dev/github.com/danil/logastic)
 
 JSON logging for Go.
 
@@ -12,7 +12,7 @@ its extremely slow and allocates a lots of memory)
 
 ## Install
 
-    go get github.com/danil/logastic@v0.69.0
+    go get github.com/danil/logastic@v0.70.0
 
 ## Usage
 
@@ -32,7 +32,7 @@ func main() {
     l := logastic.Log{
         Output: os.Stdout,
         Trunc: 12,
-        Keys: [4]string{"message", "excerpt"},
+        Keys: [4]json.Marshaler{logastic.String("message"), logastic.String("excerpt")},
         Marks: [3][]byte{[]byte("…")},
         Replace: [][]byte{[]byte("\n"), []byte(" ")},
     }
@@ -99,7 +99,7 @@ import (
 func main() {
     l := logastic.Log{
         Output: os.Stdout,
-        Keys: [4]string{"message"},
+        Keys: [4]json.Marshaler{logastic.String("message")},
     }
     log.SetFlags(0)
     log.SetOutput(l)
@@ -132,10 +132,10 @@ go test -bench=.
 goos: linux
 goarch: amd64
 pkg: github.com/danil/logastic
-BenchmarkLogastic/io.Writer_36-8              454818          2596 ns/op
-BenchmarkLogastic/fmt.Fprint_io.Writer_1011-8             132300          8783 ns/op
+BenchmarkLogastic/io.Writer_36-8              267924          4068 ns/op
+BenchmarkLogastic/fmt.Fprint_io.Writer_1010-8             106684         11257 ns/op
 PASS
-ok      github.com/danil/logastic   2.471s
+ok      github.com/danil/logastic   2.461s
 ```
 
 ## License

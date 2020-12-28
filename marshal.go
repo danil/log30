@@ -2,6 +2,7 @@ package logastic
 
 import (
 	"bytes"
+	"encoding"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -18,15 +19,20 @@ func Bool(v bool) boolV { return boolV{V: v} }
 
 type boolV struct{ V bool }
 
-func (v boolV) String() string {
-	if v.V {
-		return "true"
-	}
-	return "false"
+func (v boolV) MarshalJSON() ([]byte, error) {
+	return v.MarshalText()
 }
 
-func (v boolV) MarshalJSON() ([]byte, error) {
-	return []byte(v.String()), nil
+func (v boolV) MarshalText() ([]byte, error) {
+	if v.V {
+		return []byte("true"), nil
+	}
+	return []byte("false"), nil
+}
+
+func (v boolV) String() string {
+	p, _ := v.MarshalText()
+	return string(p)
 }
 
 // Bool returns stringer/JSON marshaler interface implementation for the pointer to the bool type.
@@ -34,69 +40,68 @@ func Boolp(p *bool) boolP { return boolP{P: p} }
 
 type boolP struct{ P *bool }
 
-func (p boolP) String() string {
-	if p.P == nil {
-		return "null"
-	}
-	return boolV{V: *p.P}.String()
-}
-
 func (p boolP) MarshalJSON() ([]byte, error) {
-	return []byte(p.String()), nil
+	return p.MarshalText()
 }
 
-var pool = sync.Pool{New: func() interface{} { return new(bytes.Buffer) }}
+func (p boolP) MarshalText() ([]byte, error) {
+	if p.P == nil {
+		return []byte("null"), nil
+	}
+	return boolV{V: *p.P}.MarshalText()
+}
+
+func (p boolP) String() string {
+	t, _ := p.MarshalText()
+	return string(t)
+}
+
+var bufPool = sync.Pool{New: func() interface{} { return new(bytes.Buffer) }}
 
 // Bytes returns stringer/JSON marshaler interface implementation for the byte slice type.
 func Bytes(v []byte) bytesV { return bytesV{V: v} }
 
 type bytesV struct{ V []byte }
 
-func (v bytesV) String() string {
-	if v.V == nil {
-		return "null"
-	}
-
-	buf := pool.Get().(*bytes.Buffer)
-	buf.Reset()
-	defer pool.Put(buf)
-
-	err := encode.Bytes(buf, v.V)
-	if err != nil {
-		return ""
-	}
-
-	return buf.String()
-}
-
 func (v bytesV) MarshalJSON() ([]byte, error) {
 	if v.V == nil {
 		return []byte("null"), nil
 	}
 
-	buf := pool.Get().(*bytes.Buffer)
+	p, err := v.MarshalText()
+	if err != nil {
+		return nil, err
+	}
+
+	return append([]byte(`"`), append(p, []byte(`"`)...)...), nil
+}
+
+func (v bytesV) MarshalText() ([]byte, error) {
+	if v.V == nil {
+		return []byte("null"), nil
+	}
+
+	buf := bufPool.Get().(*bytes.Buffer)
 	buf.Reset()
-	defer pool.Put(buf)
+	defer bufPool.Put(buf)
 
 	err := encode.Bytes(buf, v.V)
 	if err != nil {
 		return nil, err
 	}
 
-	return append([]byte(`"`), append(buf.Bytes(), []byte(`"`)...)...), nil
+	return buf.Bytes(), nil
+}
+
+func (v bytesV) String() string {
+	p, _ := v.MarshalText()
+	return string(p)
 }
 
 // Bytesp returns stringer/JSON marshaler interface implementation for the pointer to the byte slice type.
 func Bytesp(p *[]byte) bytesP { return bytesP{P: p} }
 
 type bytesP struct{ P *[]byte }
-
-func (p bytesP) String() string {
-	if p.P == nil {
-		return "null"
-	}
-	return bytesV{V: *p.P}.String()
-}
 
 func (p bytesP) MarshalJSON() ([]byte, error) {
 	if p.P == nil {
@@ -105,31 +110,40 @@ func (p bytesP) MarshalJSON() ([]byte, error) {
 	return bytesV{V: *p.P}.MarshalJSON()
 }
 
+func (p bytesP) MarshalText() ([]byte, error) {
+	if p.P == nil {
+		return []byte("null"), nil
+	}
+	return bytesV{V: *p.P}.MarshalText()
+}
+
+func (p bytesP) String() string {
+	t, _ := p.MarshalText()
+	return string(t)
+}
+
 // Complex128 returns stringer/JSON marshaler interface implementation for the complex128 type.
 func Complex128(v complex128) complex128V { return complex128V{V: v} }
 
 type complex128V struct{ V complex128 }
+
+func (v complex128V) MarshalJSON() ([]byte, error) {
+	return append([]byte(`"`), append([]byte(v.String()), []byte(`"`)...)...), nil
+}
+
+func (v complex128V) MarshalText() ([]byte, error) {
+	return []byte(v.String()), nil
+}
 
 func (v complex128V) String() string {
 	s := fmt.Sprintf("%g", v.V)
 	return s[1 : len(s)-1]
 }
 
-func (v complex128V) MarshalJSON() ([]byte, error) {
-	return append([]byte(`"`), append([]byte(v.String()), []byte(`"`)...)...), nil
-}
-
 // Complex128p returns stringer/JSON marshaler interface implementation for the pointer to the complex128 type.
 func Complex128p(p *complex128) complex128P { return complex128P{P: p} }
 
 type complex128P struct{ P *complex128 }
-
-func (p complex128P) String() string {
-	if p.P == nil {
-		return "null"
-	}
-	return complex128V{V: *p.P}.String()
-}
 
 func (p complex128P) MarshalJSON() ([]byte, error) {
 	if p.P == nil {
@@ -138,31 +152,42 @@ func (p complex128P) MarshalJSON() ([]byte, error) {
 	return complex128V{V: *p.P}.MarshalJSON()
 }
 
+func (p complex128P) MarshalText() ([]byte, error) {
+	if p.P == nil {
+		return []byte("null"), nil
+	}
+	return complex128V{V: *p.P}.MarshalText()
+}
+
+func (p complex128P) String() string {
+	if p.P == nil {
+		return "null"
+	}
+	return complex128V{V: *p.P}.String()
+}
+
 // Complex64 returns stringer/JSON marshaler interface implementation for the complex64 type.
 func Complex64(v complex64) complex64V { return complex64V{V: v} }
 
 type complex64V struct{ V complex64 }
+
+func (v complex64V) MarshalJSON() ([]byte, error) {
+	return append([]byte(`"`), append([]byte(v.String()), []byte(`"`)...)...), nil
+}
+
+func (v complex64V) MarshalText() ([]byte, error) {
+	return []byte(v.String()), nil
+}
 
 func (v complex64V) String() string {
 	s := fmt.Sprintf("%g", v.V)
 	return s[1 : len(s)-1]
 }
 
-func (v complex64V) MarshalJSON() ([]byte, error) {
-	return append([]byte(`"`), append([]byte(v.String()), []byte(`"`)...)...), nil
-}
-
 // Complex64p returns stringer/JSON marshaler interface implementation for the pointer to the complex64 type.
 func Complex64p(p *complex64) complex64P { return complex64P{P: p} }
 
 type complex64P struct{ P *complex64 }
-
-func (p complex64P) String() string {
-	if p.P == nil {
-		return "null"
-	}
-	return complex64V{V: *p.P}.String()
-}
 
 func (p complex64P) MarshalJSON() ([]byte, error) {
 	if p.P == nil {
@@ -171,43 +196,58 @@ func (p complex64P) MarshalJSON() ([]byte, error) {
 	return complex64V{V: *p.P}.MarshalJSON()
 }
 
+func (p complex64P) MarshalText() ([]byte, error) {
+	if p.P == nil {
+		return []byte("null"), nil
+	}
+	return complex64V{V: *p.P}.MarshalText()
+}
+
+func (p complex64P) String() string {
+	if p.P == nil {
+		return "null"
+	}
+	return complex64V{V: *p.P}.String()
+}
+
 // Error returns stringer/JSON marshaler interface implementation for the error type.
 func Error(v error) errorV { return errorV{V: v} }
 
 type errorV struct{ V error }
-
-func (v errorV) String() string {
-	if v.V == nil {
-		return "null"
-	}
-
-	buf := pool.Get().(*bytes.Buffer)
-	buf.Reset()
-	defer pool.Put(buf)
-
-	err := encode.String(buf, v.V.Error())
-	if err != nil {
-		return ""
-	}
-
-	return buf.String()
-}
 
 func (v errorV) MarshalJSON() ([]byte, error) {
 	if v.V == nil {
 		return []byte("null"), nil
 	}
 
-	buf := pool.Get().(*bytes.Buffer)
+	p, err := v.MarshalText()
+	if err != nil {
+		return nil, err
+	}
+
+	return append([]byte(`"`), append(p, []byte(`"`)...)...), nil
+}
+
+func (v errorV) MarshalText() ([]byte, error) {
+	if v.V == nil {
+		return []byte("null"), nil
+	}
+
+	buf := bufPool.Get().(*bytes.Buffer)
 	buf.Reset()
-	defer pool.Put(buf)
+	defer bufPool.Put(buf)
 
 	err := encode.String(buf, v.V.Error())
 	if err != nil {
 		return nil, err
 	}
 
-	return append([]byte(`"`), append(buf.Bytes(), []byte(`"`)...)...), nil
+	return buf.Bytes(), nil
+}
+
+func (v errorV) String() string {
+	p, _ := v.MarshalText()
+	return string(p)
 }
 
 // Float32 returns stringer/JSON marshaler interface implementation for the float32 type.
@@ -215,18 +255,33 @@ func Float32(v float32) float32V { return float32V{V: v} }
 
 type float32V struct{ V float32 }
 
-func (v float32V) String() string {
-	return fmt.Sprint(v.V)
+func (v float32V) MarshalJSON() ([]byte, error) {
+	return v.MarshalText()
 }
 
-func (v float32V) MarshalJSON() ([]byte, error) {
+func (v float32V) MarshalText() ([]byte, error) {
 	return []byte(v.String()), nil
+}
+
+func (v float32V) String() string {
+	return fmt.Sprint(v.V)
 }
 
 // Float32p returns stringer/JSON marshaler interface implementation for the pointer to the float32 type.
 func Float32p(p *float32) float32P { return float32P{P: p} }
 
 type float32P struct{ P *float32 }
+
+func (p float32P) MarshalJSON() ([]byte, error) {
+	return p.MarshalText()
+}
+
+func (p float32P) MarshalText() ([]byte, error) {
+	if p.P == nil {
+		return []byte("null"), nil
+	}
+	return float32V{V: *p.P}.MarshalText()
+}
 
 func (p float32P) String() string {
 	if p.P == nil {
@@ -235,27 +290,35 @@ func (p float32P) String() string {
 	return float32V{V: *p.P}.String()
 }
 
-func (p float32P) MarshalJSON() ([]byte, error) {
-	return []byte(p.String()), nil
-}
-
 // Float64 returns stringer/JSON marshaler interface implementation for the float64 type.
 func Float64(v float64) float64V { return float64V{V: v} }
 
 type float64V struct{ V float64 }
 
-func (v float64V) String() string {
-	return strconv.FormatFloat(float64(v.V), 'f', -1, 64)
+func (v float64V) MarshalJSON() ([]byte, error) {
+	return v.MarshalText()
 }
 
-func (v float64V) MarshalJSON() ([]byte, error) {
+func (v float64V) MarshalText() ([]byte, error) {
 	return []byte(v.String()), nil
+}
+
+func (v float64V) String() string {
+	return strconv.FormatFloat(float64(v.V), 'f', -1, 64)
 }
 
 // Float64p returns stringer/JSON marshaler interface implementation for the pointer to the float64 type.
 func Float64p(p *float64) float64P { return float64P{P: p} }
 
 type float64P struct{ P *float64 }
+
+func (p float64P) MarshalJSON() ([]byte, error) {
+	return p.MarshalText()
+}
+
+func (p float64P) MarshalText() ([]byte, error) {
+	return []byte(p.String()), nil
+}
 
 func (p float64P) String() string {
 	if p.P == nil {
@@ -264,27 +327,35 @@ func (p float64P) String() string {
 	return float64V{V: *p.P}.String()
 }
 
-func (p float64P) MarshalJSON() ([]byte, error) {
-	return []byte(p.String()), nil
-}
-
 // Int returns stringer/JSON marshaler interface implementation for the int type.
 func Int(v int) intV { return intV{V: v} }
 
 type intV struct{ V int }
 
-func (v intV) String() string {
-	return strconv.Itoa(v.V)
+func (v intV) MarshalText() ([]byte, error) {
+	return []byte(v.String()), nil
 }
 
 func (v intV) MarshalJSON() ([]byte, error) {
-	return []byte(v.String()), nil
+	return v.MarshalText()
+}
+
+func (v intV) String() string {
+	return strconv.Itoa(v.V)
 }
 
 // Intp returns stringer/JSON marshaler interface implementation for the pointer to the int type.
 func Intp(p *int) intP { return intP{P: p} }
 
 type intP struct{ P *int }
+
+func (p intP) MarshalText() ([]byte, error) {
+	return []byte(p.String()), nil
+}
+
+func (p intP) MarshalJSON() ([]byte, error) {
+	return p.MarshalText()
+}
 
 func (p intP) String() string {
 	if p.P == nil {
@@ -293,27 +364,35 @@ func (p intP) String() string {
 	return intV{V: *p.P}.String()
 }
 
-func (p intP) MarshalJSON() ([]byte, error) {
-	return []byte(p.String()), nil
-}
-
 // Int16 returns stringer/JSON marshaler interface implementation for the int16 type.
 func Int16(v int16) int16V { return int16V{V: v} }
 
 type int16V struct{ V int16 }
 
-func (v int16V) String() string {
-	return strconv.Itoa(int(v.V))
+func (v int16V) MarshalJSON() ([]byte, error) {
+	return v.MarshalText()
 }
 
-func (v int16V) MarshalJSON() ([]byte, error) {
+func (v int16V) MarshalText() ([]byte, error) {
 	return []byte(v.String()), nil
+}
+
+func (v int16V) String() string {
+	return strconv.Itoa(int(v.V))
 }
 
 // Int16p returns stringer/JSON marshaler interface implementation for the pointer to the int16 type.
 func Int16p(p *int16) int16P { return int16P{P: p} }
 
 type int16P struct{ P *int16 }
+
+func (p int16P) MarshalJSON() ([]byte, error) {
+	return p.MarshalText()
+}
+
+func (p int16P) MarshalText() ([]byte, error) {
+	return []byte(p.String()), nil
+}
 
 func (p int16P) String() string {
 	if p.P == nil {
@@ -322,27 +401,35 @@ func (p int16P) String() string {
 	return int16V{V: *p.P}.String()
 }
 
-func (p int16P) MarshalJSON() ([]byte, error) {
-	return []byte(p.String()), nil
-}
-
 // Int32 returns stringer/JSON marshaler interface implementation for the int32 type.
 func Int32(v int32) int32V { return int32V{V: v} }
 
 type int32V struct{ V int32 }
 
-func (v int32V) String() string {
-	return strconv.Itoa(int(v.V))
+func (v int32V) MarshalJSON() ([]byte, error) {
+	return v.MarshalText()
 }
 
-func (v int32V) MarshalJSON() ([]byte, error) {
+func (v int32V) MarshalText() ([]byte, error) {
 	return []byte(v.String()), nil
+}
+
+func (v int32V) String() string {
+	return strconv.Itoa(int(v.V))
 }
 
 // Int32p returns stringer/JSON marshaler interface implementation for the pointer to the int32 type.
 func Int32p(p *int32) int32P { return int32P{P: p} }
 
 type int32P struct{ P *int32 }
+
+func (p int32P) MarshalJSON() ([]byte, error) {
+	return p.MarshalText()
+}
+
+func (p int32P) MarshalText() ([]byte, error) {
+	return []byte(p.String()), nil
+}
 
 func (p int32P) String() string {
 	if p.P == nil {
@@ -351,27 +438,35 @@ func (p int32P) String() string {
 	return int32V{V: *p.P}.String()
 }
 
-func (p int32P) MarshalJSON() ([]byte, error) {
-	return []byte(p.String()), nil
-}
-
 // Int64 returns stringer/JSON marshaler interface implementation for the int64 type.
 func Int64(v int64) int64V { return int64V{V: v} }
 
 type int64V struct{ V int64 }
 
-func (v int64V) String() string {
-	return strconv.FormatInt(int64(v.V), 10)
+func (v int64V) MarshalJSON() ([]byte, error) {
+	return v.MarshalText()
 }
 
-func (v int64V) MarshalJSON() ([]byte, error) {
+func (v int64V) MarshalText() ([]byte, error) {
 	return []byte(v.String()), nil
+}
+
+func (v int64V) String() string {
+	return strconv.FormatInt(int64(v.V), 10)
 }
 
 // Int64p returns stringer/JSON marshaler interface implementation for the pointer to the int64 type.
 func Int64p(p *int64) int64P { return int64P{P: p} }
 
 type int64P struct{ P *int64 }
+
+func (p int64P) MarshalJSON() ([]byte, error) {
+	return p.MarshalText()
+}
+
+func (p int64P) MarshalText() ([]byte, error) {
+	return []byte(p.String()), nil
+}
 
 func (p int64P) String() string {
 	if p.P == nil {
@@ -380,27 +475,35 @@ func (p int64P) String() string {
 	return int64V{V: *p.P}.String()
 }
 
-func (p int64P) MarshalJSON() ([]byte, error) {
-	return []byte(p.String()), nil
-}
-
 // Int8 returns stringer/JSON marshaler interface implementation for the int8 type.
 func Int8(v int8) int8V { return int8V{V: v} }
 
 type int8V struct{ V int8 }
 
-func (v int8V) String() string {
-	return strconv.Itoa(int(v.V))
+func (v int8V) MarshalJSON() ([]byte, error) {
+	return v.MarshalText()
 }
 
-func (v int8V) MarshalJSON() ([]byte, error) {
+func (v int8V) MarshalText() ([]byte, error) {
 	return []byte(v.String()), nil
+}
+
+func (v int8V) String() string {
+	return strconv.Itoa(int(v.V))
 }
 
 // Int8p returns stringer/JSON marshaler interface implementation for the pointer to the int8 type.
 func Int8p(p *int8) int8P { return int8P{P: p} }
 
 type int8P struct{ P *int8 }
+
+func (p int8P) MarshalJSON() ([]byte, error) {
+	return p.MarshalText()
+}
+
+func (p int8P) MarshalText() ([]byte, error) {
+	return []byte(p.String()), nil
+}
 
 func (p int8P) String() string {
 	if p.P == nil {
@@ -409,23 +512,49 @@ func (p int8P) String() string {
 	return int8V{V: *p.P}.String()
 }
 
-func (p int8P) MarshalJSON() ([]byte, error) {
-	return []byte(p.String()), nil
-}
-
 // Runes returns stringer/JSON marshaler interface implementation for the rune slice type.
 func Runes(v []rune) runesV { return runesV{V: v} }
 
 type runesV struct{ V []rune }
+
+func (v runesV) MarshalJSON() ([]byte, error) {
+	if v.V == nil {
+		return []byte("null"), nil
+	}
+
+	p, err := v.MarshalText()
+	if err != nil {
+		return nil, err
+	}
+
+	return append([]byte(`"`), append(p, []byte(`"`)...)...), nil
+}
+
+func (v runesV) MarshalText() ([]byte, error) {
+	if v.V == nil {
+		return []byte("null"), nil
+	}
+
+	buf := bufPool.Get().(*bytes.Buffer)
+	buf.Reset()
+	defer bufPool.Put(buf)
+
+	err := encode.Runes(buf, v.V)
+	if err != nil {
+		return nil, err
+	}
+
+	return buf.Bytes(), nil
+}
 
 func (v runesV) String() string {
 	if v.V == nil {
 		return "null"
 	}
 
-	buf := pool.Get().(*bytes.Buffer)
+	buf := bufPool.Get().(*bytes.Buffer)
 	buf.Reset()
-	defer pool.Put(buf)
+	defer bufPool.Put(buf)
 
 	err := encode.Runes(buf, v.V)
 	if err != nil {
@@ -435,34 +564,10 @@ func (v runesV) String() string {
 	return buf.String()
 }
 
-func (v runesV) MarshalJSON() ([]byte, error) {
-	if v.V == nil {
-		return []byte("null"), nil
-	}
-
-	buf := pool.Get().(*bytes.Buffer)
-	buf.Reset()
-	defer pool.Put(buf)
-
-	err := encode.Runes(buf, v.V)
-	if err != nil {
-		return nil, err
-	}
-
-	return append([]byte(`"`), append(buf.Bytes(), []byte(`"`)...)...), nil
-}
-
 // Runesp returns stringer/JSON marshaler interface implementation for the pointer to the rune slice type.
 func Runesp(p *[]rune) runesP { return runesP{P: p} }
 
 type runesP struct{ P *[]rune }
-
-func (p runesP) String() string {
-	if p.P == nil {
-		return "null"
-	}
-	return runesV{V: *p.P}.String()
-}
 
 func (p runesP) MarshalJSON() ([]byte, error) {
 	if p.P == nil {
@@ -471,15 +576,50 @@ func (p runesP) MarshalJSON() ([]byte, error) {
 	return runesV{V: *p.P}.MarshalJSON()
 }
 
+func (p runesP) MarshalText() ([]byte, error) {
+	if p.P == nil {
+		return []byte("null"), nil
+	}
+	return runesV{V: *p.P}.MarshalText()
+}
+
+func (p runesP) String() string {
+	if p.P == nil {
+		return "null"
+	}
+	return runesV{V: *p.P}.String()
+}
+
 // String returns stringer/JSON marshaler interface implementation for the string type.
 func String(v string) stringV { return stringV{V: v} }
 
 type stringV struct{ V string }
 
-func (v stringV) String() string {
-	buf := pool.Get().(*bytes.Buffer)
+func (v stringV) MarshalJSON() ([]byte, error) {
+	p, err := v.MarshalText()
+	if err != nil {
+		return nil, err
+	}
+	return append([]byte(`"`), append(p, []byte(`"`)...)...), nil
+}
+
+func (v stringV) MarshalText() ([]byte, error) {
+	buf := bufPool.Get().(*bytes.Buffer)
 	buf.Reset()
-	defer pool.Put(buf)
+	defer bufPool.Put(buf)
+
+	err := encode.String(buf, v.V)
+	if err != nil {
+		return nil, err
+	}
+
+	return buf.Bytes(), nil
+}
+
+func (v stringV) String() string {
+	buf := bufPool.Get().(*bytes.Buffer)
+	buf.Reset()
+	defer bufPool.Put(buf)
 
 	err := encode.String(buf, v.V)
 	if err != nil {
@@ -489,30 +629,10 @@ func (v stringV) String() string {
 	return buf.String()
 }
 
-func (v stringV) MarshalJSON() ([]byte, error) {
-	buf := pool.Get().(*bytes.Buffer)
-	buf.Reset()
-	defer pool.Put(buf)
-
-	err := encode.String(buf, v.V)
-	if err != nil {
-		return nil, err
-	}
-
-	return append([]byte(`"`), append(buf.Bytes(), []byte(`"`)...)...), nil
-}
-
 // Stringp returns stringer/JSON marshaler interface implementation for the pointer to the string type.
 func Stringp(p *string) stringP { return stringP{P: p} }
 
 type stringP struct{ P *string }
-
-func (p stringP) String() string {
-	if p.P == nil {
-		return "null"
-	}
-	return stringV{V: *p.P}.String()
-}
 
 func (p stringP) MarshalJSON() ([]byte, error) {
 	if p.P == nil {
@@ -521,23 +641,49 @@ func (p stringP) MarshalJSON() ([]byte, error) {
 	return stringV{V: *p.P}.MarshalJSON()
 }
 
+func (p stringP) MarshalText() ([]byte, error) {
+	if p.P == nil {
+		return []byte("null"), nil
+	}
+	return stringV{V: *p.P}.MarshalText()
+}
+
+func (p stringP) String() string {
+	if p.P == nil {
+		return "null"
+	}
+	return stringV{V: *p.P}.String()
+}
+
 // Uint returns stringer/JSON marshaler interface implementation for the uint type.
 func Uint(v uint) uintV { return uintV{V: v} }
 
 type uintV struct{ V uint }
 
-func (v uintV) String() string {
-	return strconv.FormatUint(uint64(v.V), 10)
+func (v uintV) MarshalJSON() ([]byte, error) {
+	return v.MarshalText()
 }
 
-func (v uintV) MarshalJSON() ([]byte, error) {
+func (v uintV) MarshalText() ([]byte, error) {
 	return []byte(v.String()), nil
+}
+
+func (v uintV) String() string {
+	return strconv.FormatUint(uint64(v.V), 10)
 }
 
 // Uintp returns stringer/JSON marshaler interface implementation for the pointer to the uint type.
 func Uintp(p *uint) uintP { return uintP{P: p} }
 
 type uintP struct{ P *uint }
+
+func (p uintP) MarshalJSON() ([]byte, error) {
+	return p.MarshalText()
+}
+
+func (p uintP) MarshalText() ([]byte, error) {
+	return []byte(p.String()), nil
+}
 
 func (p uintP) String() string {
 	if p.P == nil {
@@ -546,27 +692,35 @@ func (p uintP) String() string {
 	return uintV{V: *p.P}.String()
 }
 
-func (p uintP) MarshalJSON() ([]byte, error) {
-	return []byte(p.String()), nil
-}
-
 // Uint16 returns stringer/JSON marshaler interface implementation for the uint16 type.
 func Uint16(v uint16) uint16V { return uint16V{V: v} }
 
 type uint16V struct{ V uint16 }
 
-func (v uint16V) String() string {
-	return strconv.FormatUint(uint64(v.V), 10)
+func (v uint16V) MarshalJSON() ([]byte, error) {
+	return v.MarshalText()
 }
 
-func (v uint16V) MarshalJSON() ([]byte, error) {
+func (v uint16V) MarshalText() ([]byte, error) {
 	return []byte(v.String()), nil
+}
+
+func (v uint16V) String() string {
+	return strconv.FormatUint(uint64(v.V), 10)
 }
 
 // Uint16p returns stringer/JSON marshaler interface implementation for the pointer to the uint16 type.
 func Uint16p(p *uint16) uint16P { return uint16P{P: p} }
 
 type uint16P struct{ P *uint16 }
+
+func (p uint16P) MarshalJSON() ([]byte, error) {
+	return p.MarshalText()
+}
+
+func (p uint16P) MarshalText() ([]byte, error) {
+	return []byte(p.String()), nil
+}
 
 func (p uint16P) String() string {
 	if p.P == nil {
@@ -575,27 +729,35 @@ func (p uint16P) String() string {
 	return uint16V{V: *p.P}.String()
 }
 
-func (p uint16P) MarshalJSON() ([]byte, error) {
-	return []byte(p.String()), nil
-}
-
 // Uint32 returns stringer/JSON marshaler interface implementation for the uint32 type.
 func Uint32(v uint32) uint32V { return uint32V{V: v} }
 
 type uint32V struct{ V uint32 }
 
-func (v uint32V) String() string {
-	return strconv.FormatUint(uint64(v.V), 10)
+func (v uint32V) MarshalJSON() ([]byte, error) {
+	return v.MarshalText()
 }
 
-func (v uint32V) MarshalJSON() ([]byte, error) {
+func (v uint32V) MarshalText() ([]byte, error) {
 	return []byte(v.String()), nil
+}
+
+func (v uint32V) String() string {
+	return strconv.FormatUint(uint64(v.V), 10)
 }
 
 // Uint32p returns stringer/JSON marshaler interface implementation for the pointer to the uint32 type.
 func Uint32p(p *uint32) uint32P { return uint32P{P: p} }
 
 type uint32P struct{ P *uint32 }
+
+func (p uint32P) MarshalJSON() ([]byte, error) {
+	return p.MarshalText()
+}
+
+func (p uint32P) MarshalText() ([]byte, error) {
+	return []byte(p.String()), nil
+}
 
 func (p uint32P) String() string {
 	if p.P == nil {
@@ -604,27 +766,35 @@ func (p uint32P) String() string {
 	return uint32V{V: *p.P}.String()
 }
 
-func (p uint32P) MarshalJSON() ([]byte, error) {
-	return []byte(p.String()), nil
-}
-
 // Uint64 returns stringer/JSON marshaler interface implementation for the uint64 type.
 func Uint64(v uint64) uint64V { return uint64V{V: v} }
 
 type uint64V struct{ V uint64 }
 
-func (v uint64V) String() string {
-	return strconv.FormatUint(v.V, 10)
+func (v uint64V) MarshalJSON() ([]byte, error) {
+	return v.MarshalText()
 }
 
-func (v uint64V) MarshalJSON() ([]byte, error) {
+func (v uint64V) MarshalText() ([]byte, error) {
 	return []byte(v.String()), nil
+}
+
+func (v uint64V) String() string {
+	return strconv.FormatUint(v.V, 10)
 }
 
 // Uint64p returns stringer/JSON marshaler interface implementation for the pointer to the uint64 type.
 func Uint64p(p *uint64) uint64P { return uint64P{P: p} }
 
 type uint64P struct{ P *uint64 }
+
+func (p uint64P) MarshalJSON() ([]byte, error) {
+	return p.MarshalText()
+}
+
+func (p uint64P) MarshalText() ([]byte, error) {
+	return []byte(p.String()), nil
+}
 
 func (p uint64P) String() string {
 	if p.P == nil {
@@ -633,27 +803,35 @@ func (p uint64P) String() string {
 	return uint64V{V: *p.P}.String()
 }
 
-func (p uint64P) MarshalJSON() ([]byte, error) {
-	return []byte(p.String()), nil
-}
-
 // Uint8 returns stringer/JSON marshaler interface implementation for the uint8 type.
 func Uint8(v uint8) uint8V { return uint8V{V: v} }
 
 type uint8V struct{ V uint8 }
 
-func (v uint8V) String() string {
-	return strconv.FormatUint(uint64(v.V), 10)
+func (v uint8V) MarshalJSON() ([]byte, error) {
+	return v.MarshalText()
 }
 
-func (v uint8V) MarshalJSON() ([]byte, error) {
+func (v uint8V) MarshalText() ([]byte, error) {
 	return []byte(v.String()), nil
+}
+
+func (v uint8V) String() string {
+	return strconv.FormatUint(uint64(v.V), 10)
 }
 
 // Uint8p returns stringer/JSON marshaler interface implementation for the pointer to the uint8 type.
 func Uint8p(p *uint8) uint8P { return uint8P{P: p} }
 
 type uint8P struct{ P *uint8 }
+
+func (p uint8P) MarshalJSON() ([]byte, error) {
+	return p.MarshalText()
+}
+
+func (p uint8P) MarshalText() ([]byte, error) {
+	return []byte(p.String()), nil
+}
 
 func (p uint8P) String() string {
 	if p.P == nil {
@@ -662,27 +840,35 @@ func (p uint8P) String() string {
 	return uint8V{V: *p.P}.String()
 }
 
-func (p uint8P) MarshalJSON() ([]byte, error) {
-	return []byte(p.String()), nil
-}
-
 // Uintptr returns stringer/JSON marshaler interface implementation for the uintptr type.
 func Uintptr(v uintptr) uintptrV { return uintptrV{V: v} }
 
 type uintptrV struct{ V uintptr }
 
-func (v uintptrV) String() string {
-	return strconv.FormatUint(uint64(v.V), 10)
+func (v uintptrV) MarshalJSON() ([]byte, error) {
+	return v.MarshalText()
 }
 
-func (v uintptrV) MarshalJSON() ([]byte, error) {
+func (v uintptrV) MarshalText() ([]byte, error) {
 	return []byte(v.String()), nil
+}
+
+func (v uintptrV) String() string {
+	return strconv.FormatUint(uint64(v.V), 10)
 }
 
 // Uintptrp returns stringer/JSON marshaler interface implementation for the pointer to the uintptr type.
 func Uintptrp(p *uintptr) uintptrP { return uintptrP{P: p} }
 
 type uintptrP struct{ P *uintptr }
+
+func (p uintptrP) MarshalJSON() ([]byte, error) {
+	return p.MarshalText()
+}
+
+func (p uintptrP) MarshalText() ([]byte, error) {
+	return []byte(p.String()), nil
+}
 
 func (p uintptrP) String() string {
 	if p.P == nil {
@@ -691,34 +877,27 @@ func (p uintptrP) String() string {
 	return uintptrV{V: *p.P}.String()
 }
 
-func (p uintptrP) MarshalJSON() ([]byte, error) {
-	return []byte(p.String()), nil
-}
-
 // Duration returns stringer/JSON marshaler interface implementation for the time duration type.
 func Duration(v time.Duration) durationV { return durationV{V: v} }
 
 type durationV struct{ V time.Duration }
 
-func (v durationV) String() string {
-	return v.V.String()
-}
-
 func (v durationV) MarshalJSON() ([]byte, error) {
 	return append([]byte(`"`), append([]byte(v.String()), []byte(`"`)...)...), nil
+}
+
+func (v durationV) MarshalText() ([]byte, error) {
+	return []byte(v.String()), nil
+}
+
+func (v durationV) String() string {
+	return v.V.String()
 }
 
 // Durationp returns stringer/JSON marshaler interface implementation for the pointer to the time duration type.
 func Durationp(p *time.Duration) durationP { return durationP{P: p} }
 
 type durationP struct{ P *time.Duration }
-
-func (p durationP) String() string {
-	if p.P == nil {
-		return "null"
-	}
-	return durationV{V: *p.P}.String()
-}
 
 func (p durationP) MarshalJSON() ([]byte, error) {
 	if p.P == nil {
@@ -727,10 +906,35 @@ func (p durationP) MarshalJSON() ([]byte, error) {
 	return durationV{V: *p.P}.MarshalJSON()
 }
 
+func (p durationP) MarshalText() ([]byte, error) {
+	if p.P == nil {
+		return []byte("null"), nil
+	}
+	return durationV{V: *p.P}.MarshalText()
+}
+
+func (p durationP) String() string {
+	if p.P == nil {
+		return "null"
+	}
+	return durationV{V: *p.P}.String()
+}
+
 // Raw returns stringer/JSON marshaler interface implementation for the raw byte slice.
 func Raw(v []byte) rawV { return rawV{V: v} }
 
 type rawV struct{ V []byte }
+
+func (v rawV) MarshalJSON() ([]byte, error) {
+	return v.MarshalText()
+}
+
+func (v rawV) MarshalText() ([]byte, error) {
+	if v.V == nil {
+		return []byte("null"), nil
+	}
+	return v.V, nil
+}
 
 func (v rawV) String() string {
 	if v.V == nil {
@@ -739,16 +943,191 @@ func (v rawV) String() string {
 	return string(v.V)
 }
 
-func (v rawV) MarshalJSON() ([]byte, error) {
-	if v.V == nil {
-		return []byte("null"), nil
-	}
-	return v.V, nil
-}
-
 func Any(v interface{}) anyV { return anyV{V: v} }
 
 type anyV struct{ V interface{} }
+
+func (v anyV) MarshalJSON() ([]byte, error) {
+	switch x := v.V.(type) {
+	case bool:
+		return Bool(x).MarshalJSON()
+	case *bool:
+		return Boolp(x).MarshalJSON()
+	case []byte:
+		return Bytes(x).MarshalJSON()
+	case *[]byte:
+		return Bytesp(x).MarshalJSON()
+	case complex128:
+		return Complex128(x).MarshalJSON()
+	case *complex128:
+		return Complex128p(x).MarshalJSON()
+	case complex64:
+		return Complex64(x).MarshalJSON()
+	case *complex64:
+		return Complex64p(x).MarshalJSON()
+	case error:
+		return Error(x).MarshalJSON()
+	case float32:
+		return Float32(x).MarshalJSON()
+	case *float32:
+		return Float32p(x).MarshalJSON()
+	case float64:
+		return Float64(x).MarshalJSON()
+	case *float64:
+		return Float64p(x).MarshalJSON()
+	case int:
+		return Int(x).MarshalJSON()
+	case *int:
+		return Intp(x).MarshalJSON()
+	case int16:
+		return Int16(x).MarshalJSON()
+	case *int16:
+		return Int16p(x).MarshalJSON()
+	case int32:
+		return Int32(x).MarshalJSON()
+	case *int32:
+		return Int32p(x).MarshalJSON()
+	case int64:
+		return Int64(x).MarshalJSON()
+	case *int64:
+		return Int64p(x).MarshalJSON()
+	case int8:
+		return Int8(x).MarshalJSON()
+	case *int8:
+		return Int8p(x).MarshalJSON()
+	case []rune:
+		return Runes(x).MarshalJSON()
+	case *[]rune:
+		return Runesp(x).MarshalJSON()
+	case string:
+		return String(x).MarshalJSON()
+	case *string:
+		return Stringp(x).MarshalJSON()
+	case uint:
+		return Uint(x).MarshalJSON()
+	case *uint:
+		return Uintp(x).MarshalJSON()
+	case uint16:
+		return Uint16(x).MarshalJSON()
+	case *uint16:
+		return Uint16p(x).MarshalJSON()
+	case uint32:
+		return Uint32(x).MarshalJSON()
+	case *uint32:
+		return Uint32p(x).MarshalJSON()
+	case uint64:
+		return Uint64(x).MarshalJSON()
+	case *uint64:
+		return Uint64p(x).MarshalJSON()
+	case uint8:
+		return Uint8(x).MarshalJSON()
+	case *uint8:
+		return Uint8p(x).MarshalJSON()
+	case uintptr:
+		return Uintptr(x).MarshalJSON()
+	case *uintptr:
+		return Uintptrp(x).MarshalJSON()
+	case time.Duration:
+		return Duration(x).MarshalJSON()
+	case *time.Duration:
+		return Durationp(x).MarshalJSON()
+	case json.Marshaler:
+		return x.MarshalJSON()
+	default:
+		return Reflect(x).MarshalJSON()
+	}
+}
+
+func (v anyV) MarshalText() ([]byte, error) {
+	switch x := v.V.(type) {
+	case bool:
+		return Bool(x).MarshalText()
+	case *bool:
+		return Boolp(x).MarshalText()
+	case []byte:
+		return Bytes(x).MarshalText()
+	case *[]byte:
+		return Bytesp(x).MarshalText()
+	case complex128:
+		return Complex128(x).MarshalText()
+	case *complex128:
+		return Complex128p(x).MarshalText()
+	case complex64:
+		return Complex64(x).MarshalText()
+	case *complex64:
+		return Complex64p(x).MarshalText()
+	case error:
+		return Error(x).MarshalText()
+	case float32:
+		return Float32(x).MarshalText()
+	case *float32:
+		return Float32p(x).MarshalText()
+	case float64:
+		return Float64(x).MarshalText()
+	case *float64:
+		return Float64p(x).MarshalText()
+	case int:
+		return Int(x).MarshalText()
+	case *int:
+		return Intp(x).MarshalText()
+	case int16:
+		return Int16(x).MarshalText()
+	case *int16:
+		return Int16p(x).MarshalText()
+	case int32:
+		return Int32(x).MarshalText()
+	case *int32:
+		return Int32p(x).MarshalText()
+	case int64:
+		return Int64(x).MarshalText()
+	case *int64:
+		return Int64p(x).MarshalText()
+	case int8:
+		return Int8(x).MarshalText()
+	case *int8:
+		return Int8p(x).MarshalText()
+	case []rune:
+		return Runes(x).MarshalText()
+	case *[]rune:
+		return Runesp(x).MarshalText()
+	case string:
+		return String(x).MarshalText()
+	case *string:
+		return Stringp(x).MarshalText()
+	case uint:
+		return Uint(x).MarshalText()
+	case *uint:
+		return Uintp(x).MarshalText()
+	case uint16:
+		return Uint16(x).MarshalText()
+	case *uint16:
+		return Uint16p(x).MarshalText()
+	case uint32:
+		return Uint32(x).MarshalText()
+	case *uint32:
+		return Uint32p(x).MarshalText()
+	case uint64:
+		return Uint64(x).MarshalText()
+	case *uint64:
+		return Uint64p(x).MarshalText()
+	case uint8:
+		return Uint8(x).MarshalText()
+	case *uint8:
+		return Uint8p(x).MarshalText()
+	case uintptr:
+		return Uintptr(x).MarshalText()
+	case *uintptr:
+		return Uintptrp(x).MarshalText()
+	case time.Duration:
+		return Duration(x).MarshalText()
+	case *time.Duration:
+		return Durationp(x).MarshalText()
+	case encoding.TextMarshaler:
+		return x.MarshalText()
+	default:
+		return Reflect(x).MarshalText()
+	}
+}
 
 func (v anyV) String() string {
 	switch x := v.V.(type) {
@@ -842,100 +1221,17 @@ func (v anyV) String() string {
 	}
 }
 
-func (v anyV) MarshalJSON() ([]byte, error) {
-	switch x := v.V.(type) {
-	case bool:
-		return Bool(x).MarshalJSON()
-	case *bool:
-		return Boolp(x).MarshalJSON()
-	case []byte:
-		return Bytes(x).MarshalJSON()
-	case *[]byte:
-		return Bytesp(x).MarshalJSON()
-	case complex128:
-		return Complex128(x).MarshalJSON()
-	case *complex128:
-		return Complex128p(x).MarshalJSON()
-	case complex64:
-		return Complex64(x).MarshalJSON()
-	case *complex64:
-		return Complex64p(x).MarshalJSON()
-	case error:
-		return Error(x).MarshalJSON()
-	case float32:
-		return Float32(x).MarshalJSON()
-	case *float32:
-		return Float32p(x).MarshalJSON()
-	case float64:
-		return Float64(x).MarshalJSON()
-	case *float64:
-		return Float64p(x).MarshalJSON()
-	case int:
-		return Int(x).MarshalJSON()
-	case *int:
-		return Intp(x).MarshalJSON()
-	case int16:
-		return Int16(x).MarshalJSON()
-	case *int16:
-		return Int16p(x).MarshalJSON()
-	case int32:
-		return Int32(x).MarshalJSON()
-	case *int32:
-		return Int32p(x).MarshalJSON()
-	case int64:
-		return Int64(x).MarshalJSON()
-	case *int64:
-		return Int64p(x).MarshalJSON()
-	case int8:
-		return Int8(x).MarshalJSON()
-	case *int8:
-		return Int8p(x).MarshalJSON()
-	case []rune:
-		return Runes(x).MarshalJSON()
-	case *[]rune:
-		return Runesp(x).MarshalJSON()
-	case string:
-		return String(x).MarshalJSON()
-	case *string:
-		return Stringp(x).MarshalJSON()
-	case uint:
-		return Uint(x).MarshalJSON()
-	case *uint:
-		return Uintp(x).MarshalJSON()
-	case uint16:
-		return Uint16(x).MarshalJSON()
-	case *uint16:
-		return Uint16p(x).MarshalJSON()
-	case uint32:
-		return Uint32(x).MarshalJSON()
-	case *uint32:
-		return Uint32p(x).MarshalJSON()
-	case uint64:
-		return Uint64(x).MarshalJSON()
-	case *uint64:
-		return Uint64p(x).MarshalJSON()
-	case uint8:
-		return Uint8(x).MarshalJSON()
-	case *uint8:
-		return Uint8p(x).MarshalJSON()
-	case uintptr:
-		return Uintptr(x).MarshalJSON()
-	case *uintptr:
-		return Uintptrp(x).MarshalJSON()
-	case time.Duration:
-		return Duration(x).MarshalJSON()
-	case *time.Duration:
-		return Durationp(x).MarshalJSON()
-	case json.Marshaler:
-		return x.MarshalJSON()
-	default:
-		return Reflect(x).MarshalJSON()
-	}
-}
-
 func Reflect(v interface{}) reflectV { return reflectV{V: v} }
 
 type reflectV struct{ V interface{} }
+
+func (v reflectV) MarshalJSON() ([]byte, error) {
+	return json.Marshal(v.V)
+}
+
+func (v reflectV) MarshalText() ([]byte, error) {
+	return []byte(v.String()), nil
+}
 
 func (v reflectV) String() string {
 	if v.V == nil {
@@ -953,9 +1249,9 @@ func (v reflectV) String() string {
 			return reflectV{V: val.Elem().Interface()}.String()
 
 		} else if val.Kind() == reflect.Slice && val.Type().Elem().Kind() == reflect.Uint8 { // Byte slice.
-			buf := pool.Get().(*bytes.Buffer)
+			buf := bufPool.Get().(*bytes.Buffer)
 			buf.Reset()
-			defer pool.Put(buf)
+			defer bufPool.Put(buf)
 
 			p := val.Bytes()
 			enc := base64.NewEncoder(base64.StdEncoding, buf)
@@ -968,8 +1264,4 @@ func (v reflectV) String() string {
 	}
 
 	return fmt.Sprint(v.V)
-}
-
-func (v reflectV) MarshalJSON() ([]byte, error) {
-	return json.Marshal(v.V)
 }
