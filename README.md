@@ -140,5 +140,5 @@ ok      github.com/danil/logastic   2.461s
 
 ## License
 
-Copyright (C) 2020 Danil Kutkevich <danil@kutkevich.org>  
+Copyright (C) 2020 [Danil Kutkevich](https://github.com/danil)  
 See the [LICENSE](./LICENSE) file for license rights and limitations (MIT)
