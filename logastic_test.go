@@ -805,7 +805,7 @@ var FprintWriteTestCases = []struct {
 		line: line(),
 		log: func() logastic.Log {
 			l := logastic.GELF()
-			l.Funcs = []func() (json.Marshaler, json.Marshaler){
+			l.Func = []func() (json.Marshaler, json.Marshaler){
 				func() (json.Marshaler, json.Marshaler) {
 					return logastic.String("timestamp"), logastic.Int64(time.Date(2020, time.October, 15, 18, 9, 0, 0, time.UTC).Unix())
 				},
@@ -1138,7 +1138,7 @@ var FprintWriteTestCases = []struct {
 		name: `dynamic "time" key`,
 		line: line(),
 		log: logastic.Log{
-			Funcs: []func() (json.Marshaler, json.Marshaler){
+			Func: []func() (json.Marshaler, json.Marshaler){
 				func() (json.Marshaler, json.Marshaler) {
 					return logastic.String("time"), logastic.String(time.Date(2020, time.October, 15, 18, 9, 0, 0, time.UTC).String())
 				},
@@ -1283,7 +1283,7 @@ var FprintWriteTestCases = []struct {
 		line: line(),
 		log: func() logastic.Log {
 			l := logastic.GELF()
-			l.Funcs = []func() (json.Marshaler, json.Marshaler){
+			l.Func = []func() (json.Marshaler, json.Marshaler){
 				func() (json.Marshaler, json.Marshaler) {
 					return logastic.String("timestamp"), logastic.Int64(time.Date(2020, time.October, 15, 18, 9, 0, 0, time.UTC).Unix())
 				},
@@ -1305,7 +1305,7 @@ var FprintWriteTestCases = []struct {
 		log: func() logastic.Log {
 			l := logastic.GELF()
 			l.Flag = log.Llongfile
-			l.Funcs = []func() (json.Marshaler, json.Marshaler){
+			l.Func = []func() (json.Marshaler, json.Marshaler){
 				func() (json.Marshaler, json.Marshaler) {
 					return logastic.String("timestamp"), logastic.Int64(time.Date(2020, time.October, 15, 18, 9, 0, 0, time.UTC).Unix())
 				},

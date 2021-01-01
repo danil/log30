@@ -28,19 +28,19 @@ const (
 
 // Log is a JSON logger/writer.
 type Log struct {
-	Output  io.Writer                                 // Destination for output.
-	Flag    int                                       // Log properties.
+	Output  io.Writer                                 // Output is a destination for output.
+	Flag    int                                       // Flag is a log properties.
 	KV      []json.Marshaler                          // Key-values.
-	Funcs   []func() (json.Marshaler, json.Marshaler) // Dynamically calculated key-values.
+	Func    []func() (json.Marshaler, json.Marshaler) // Func ia a dynamically calculated key-values. Existing kv will not overwritten by the dynamically calculated key-values.
+	Keys    [4]json.Marshaler                         // Keys: 0 = original message; 1 = message excerpt; 2 = message trail; 3 = file path.
+	Key     uint8                                     // Key is a default/sticky message key: all except 1 = original message; 1 = message excerpt.
 	Trunc   int                                       // Maximum length of the message excerpt after which the message excerpt is truncated.
-	Keys    [4]json.Marshaler                         // 0 = original message; 1 = message excerpt; 2 = message trail; 3 = file path.
-	Key     uint8                                     // Default/sticky message key: all except 1 = original message; 1 = message excerpt.
-	Marks   [3][]byte                                 // 0 = truncate; 1 = empty; 2 = blank.
-	Replace [][2][]byte                               // Pairs of byte slices to replace in the message excerpt.
+	Marks   [3][]byte                                 // Marks: 0 = truncate; 1 = empty; 2 = blank.
+	Replace [][2][]byte                               // Replace ia a pairs of byte slices to replace in the message excerpt.
 }
 
 func (l Log) Write(p []byte) (int, error) {
-	j, err := logastic(p, l.Flag, l.KV, l.Funcs, l.Trunc, l.Keys, l.Key, l.Marks, l.Replace)
+	j, err := l.json(p)
 	if err != nil {
 		return 0, err
 	}
@@ -61,37 +61,18 @@ var (
 	excerptPool = sync.Pool{New: func() interface{} { return new([]byte) }}
 )
 
-func logastic(
-	src []byte,
-	// flg is a log properties.
-	flg int,
-	// kv is a key-values.
-	kv []json.Marshaler,
-	// fns is a dynamically calculated key-values.
-	// Existing kv will not overwritten by the dynamically calculated key-values.
-	fns []func() (json.Marshaler, json.Marshaler),
-	// trunc is a maximum length of the message excerpt after which the message excerpt is truncated.
-	trunc int,
-	// keys: 0 = original message; 1 = message excerpt; 2 = message trail; 3 = file path.
-	keys [4]json.Marshaler,
-	// default/sticky message key: all except 1 = original message; 1 = message excerpt.
-	key uint8,
-	// marks: 0 = truncate; 1 = empty; 2 = blank.
-	marks [3][]byte,
-	// rplc is a pairs of byte slices to replace in the message excerpt.
-	rplc [][2][]byte,
-) ([]byte, error) {
+func (l Log) json(src []byte) ([]byte, error) {
 	tmpKV := mapPool.Get().(map[json.Marshaler]json.Marshaler)
 	for k := range tmpKV {
 		delete(tmpKV, k)
 	}
 	defer mapPool.Put(tmpKV)
 
-	for i := 0; i < len(kv); i += 2 {
-		tmpKV[kv[i]] = kv[i+1]
+	for i := 0; i < len(l.KV); i += 2 {
+		tmpKV[l.KV[i]] = l.KV[i+1]
 	}
 
-	for _, fn := range fns {
+	for _, fn := range l.Func {
 		k, v := fn()
 		if _, ok := tmpKV[k]; ok {
 			continue
@@ -102,7 +83,7 @@ func logastic(
 	var tail, file int
 
 	if len(src) != 0 {
-		switch flg {
+		switch l.Flag {
 		case log.Lshortfile, log.Llongfile:
 			i := bytes.Index(src, []byte(": "))
 			if i == -1 {
@@ -115,149 +96,74 @@ func logastic(
 		}
 	}
 
-	if keys[Original] == nil {
-		keys[Original] = String("")
+	if l.Keys[Original] == nil {
+		l.Keys[Original] = String("")
 	}
 
-	if keys[Excerpt] == nil {
-		keys[Excerpt] = String("")
+	if l.Keys[Excerpt] == nil {
+		l.Keys[Excerpt] = String("")
 	}
 
 	excerpt := *excerptPool.Get().(*[]byte)
 	excerpt = excerpt[:0]
 	defer excerptPool.Put(&excerpt)
 
-	end := tail
+	if tmpKV[l.Keys[Excerpt]] == nil {
+		if tail == len(src) && tmpKV[l.Keys[Original]] == nil {
+			excerpt = append(excerpt[:0], l.Marks[emptyMark]...)
 
-	if tmpKV[keys[Excerpt]] == nil {
-		if tail == len(src) && tmpKV[keys[Original]] == nil {
-			excerpt = append(excerpt[:0], marks[emptyMark]...)
 		} else if tail != len(src) {
-			beg := true
-
-			for {
-				r, n := utf8.DecodeRune(src[end:])
-				if n == 0 {
-					break
-				}
-
-				// Rids of off all leading space, as defined by Unicode.
-				if beg {
-					c := src[end]
-
-					// Fast path for ASCII: look for the first ASCII non-space byte or
-					// if we run into a non-ASCII byte, fall back
-					// to the slower unicode-aware method
-					if c < utf8.RuneSelf && asciiSpace[c] == 1 {
-						tail++
-						end++
-
-						continue
-					} else if unicode.IsSpace(r) {
-						tail += n
-						end += n
-
-						continue
-					} else {
-						beg = false
-					}
-				}
-
-				if end-tail >= trunc {
-					break
-				}
-
-				end += n
-			}
-
-			truncate := end-tail < len(src[tail:])
-
-			// Rids of off all trailing white space,
-			// as defined by Unicode.
-			// Look for the first ASCII non-space byte from the end.
-			for ; end > tail; end-- {
-				c := src[end-1]
-				if c >= utf8.RuneSelf {
-					end = lastIndexFunc(src[:end], unicode.IsSpace, false)
-					if end >= 0 && src[end] >= utf8.RuneSelf {
-						_, wid := utf8.DecodeRune(src[end:])
-						end += wid
-					} else {
-						end++
-					}
-					break
-				}
-				if asciiSpace[c] == 0 {
-					break
+			n := len(src) + len(l.Marks[truncMark])
+			for _, m := range l.Marks {
+				if n < len(m) {
+					n = len(m)
 				}
 			}
 
-			excerpt = append(excerpt[:0], src[tail:end]...)
-
-		replace:
-			for _, r := range rplc {
-				for offset := 0; ; {
-					if len(r[0]) == 0 || bytes.Equal(r[0], r[1]) {
-						continue replace
-					}
-
-					idx := bytes.Index(excerpt[offset:], r[0])
-					if idx == -1 {
-						continue replace
-					}
-
-					offset += idx
-
-					excerpt = append(excerpt[:offset], append(r[1], excerpt[offset+len(r[0]):]...)...)
-
-					offset += len(r[1])
-				}
+			excerpt = append(excerpt[:0], make([]byte, n)...)
+			n, err := l.excerpt(excerpt, src[tail:])
+			if err != nil {
+				return nil, err
 			}
 
-			if end-tail == 0 {
-				excerpt = append(excerpt, marks[blankMark]...)
-			}
-
-			if end-tail != 0 && truncate {
-				excerpt = append(excerpt, marks[truncMark]...)
-			}
+			excerpt = excerpt[:n]
 		}
 	}
 
-	if keys[Trail] == nil {
-		keys[Trail] = String("")
+	if l.Keys[Trail] == nil {
+		l.Keys[Trail] = String("")
 	}
 
 	if bytes.Equal(src, excerpt) && src != nil {
-		if key == Excerpt {
-			tmpKV[keys[Excerpt]] = Bytes(src)
+		if l.Key == Excerpt {
+			tmpKV[l.Keys[Excerpt]] = Bytes(src)
 
 		} else {
-			if tmpKV[keys[Original]] == nil {
-				tmpKV[keys[Original]] = Bytes(src)
+			if tmpKV[l.Keys[Original]] == nil {
+				tmpKV[l.Keys[Original]] = Bytes(src)
 			} else if len(src) != 0 {
-				tmpKV[keys[Trail]] = Bytes(src)
+				tmpKV[l.Keys[Trail]] = Bytes(src)
 			}
 		}
 
 	} else if !bytes.Equal(src, excerpt) {
-		if tmpKV[keys[Original]] == nil {
-			tmpKV[keys[Original]] = Bytes(src)
-		} else if tmpKV[keys[Original]] != nil && len(src) != 0 {
-			tmpKV[keys[Trail]] = Bytes(src)
+		if tmpKV[l.Keys[Original]] == nil {
+			tmpKV[l.Keys[Original]] = Bytes(src)
+		} else if tmpKV[l.Keys[Original]] != nil && len(src) != 0 {
+			tmpKV[l.Keys[Trail]] = Bytes(src)
 		}
 
-		if tmpKV[keys[Excerpt]] == nil && len(excerpt) != 0 {
-			tmpKV[keys[Excerpt]] = Bytes(excerpt)
+		if tmpKV[l.Keys[Excerpt]] == nil && len(excerpt) != 0 {
+			tmpKV[l.Keys[Excerpt]] = Bytes(excerpt)
 		}
 	}
 
-	if keys[File] == nil {
-		keys[File] = String("")
+	if l.Keys[File] == nil {
+		l.Keys[File] = String("")
 	}
 
 	if file != 0 {
-		tmpKV[keys[File]] = Bytes(src[:file])
+		tmpKV[l.Keys[File]] = Bytes(src[:file])
 	}
 
 	p, err := jsoniter.ConfigCompatibleWithStandardLibrary.Marshal(tmpKV)
@@ -266,6 +172,101 @@ func logastic(
 	}
 
 	return append(p, '\n'), nil
+}
+
+func (l Log) excerpt(dst, src []byte) (int, error) {
+	var start, end int
+	begin := true
+
+	for {
+		r, n := utf8.DecodeRune(src[end:])
+		if n == 0 {
+			break
+		}
+
+		// Rids of off all leading space, as defined by Unicode.
+		if begin {
+			c := src[end]
+
+			// Fast path for ASCII: look for the first ASCII non-space byte or
+			// if we run into a non-ASCII byte, fall back
+			// to the slower unicode-aware method
+			if c < utf8.RuneSelf && asciiSpace[c] == 1 {
+				start++
+				end++
+
+				continue
+			} else if unicode.IsSpace(r) {
+				start += n
+				end += n
+
+				continue
+			} else {
+				begin = false
+			}
+		}
+
+		if end-start >= len(src) || end-start >= l.Trunc {
+			break
+		}
+
+		end += n
+	}
+
+	truncate := end-start < len(src[start:])
+
+	// Rids of off all trailing white space,
+	// as defined by Unicode.
+	// Look for the first ASCII non-space byte from the end.
+	for ; end > start; end-- {
+		c := src[end-1]
+		if c >= utf8.RuneSelf {
+			end = lastIndexFunc(src[:end], unicode.IsSpace, false)
+			if end >= 0 && src[end] >= utf8.RuneSelf {
+				_, wid := utf8.DecodeRune(src[end:])
+				end += wid
+			} else {
+				end++
+			}
+			break
+		}
+		if asciiSpace[c] == 0 {
+			break
+		}
+	}
+
+	n := copy(dst, src[start:end])
+
+replace:
+	for _, r := range l.Replace {
+		for offset := 0; offset < n; {
+			if len(r[0]) == 0 || bytes.Equal(r[0], r[1]) {
+				continue replace
+			}
+
+			idx := bytes.Index(dst[offset:n], r[0])
+			if idx == -1 {
+				continue replace
+			}
+
+			offset += idx
+
+			dst = append(dst[:offset], append(r[1], dst[offset+len(r[0]):]...)...)
+
+			offset += len(r[1])
+			n += len(r[1]) - len(r[0])
+		}
+	}
+
+	if end-start == 0 {
+		n += copy(dst[n:], l.Marks[blankMark])
+	}
+
+	if end-start != 0 && truncate {
+		n += copy(dst[n:], l.Marks[truncMark])
+	}
+
+	return n, nil
 }
 
 // lastIndexFunc is the same as bytes.LastIndexFunc except that if
@@ -293,7 +294,7 @@ func GELF() Log {
 		// <https://docs.graylog.org/en/latest/pages/gelf.html#gelf-payload-specification>,
 		// <https://github.com/graylog-labs/gelf-rb/issues/41#issuecomment-198266505>.
 		KV: []json.Marshaler{String("version"), String("1.1")},
-		Funcs: []func() (json.Marshaler, json.Marshaler){
+		Func: []func() (json.Marshaler, json.Marshaler){
 			func() (json.Marshaler, json.Marshaler) {
 				return String("timestamp"), Int64(time.Now().Unix())
 			},
