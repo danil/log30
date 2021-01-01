@@ -39,19 +39,12 @@ type Log struct {
 	Replace [][2][]byte                               // Replace ia a pairs of byte slices to replace in the message excerpt.
 }
 
-func (l Log) Write(p []byte) (int, error) {
-	j, err := l.json(p)
+func (l Log) Write(src []byte) (int, error) {
+	j, err := l.json(src)
 	if err != nil {
 		return 0, err
 	}
 	return l.Output.Write(j)
-}
-
-// With returns copy of the logger with additional key-values.
-// Copy of the original key-values overwritten by the additional key-values.
-func (l Log) With(kv ...json.Marshaler) Log {
-	l.KV = append(l.KV, kv...)
-	return l
 }
 
 var asciiSpace = [256]uint8{'\t': 1, '\n': 1, '\v': 1, '\f': 1, '\r': 1, ' ': 1}
@@ -121,7 +114,7 @@ func (l Log) json(src []byte) ([]byte, error) {
 			}
 
 			excerpt = append(excerpt[:0], make([]byte, n)...)
-			n, err := l.excerpt(excerpt, src[tail:])
+			n, err := l.Truncate(excerpt, src[tail:])
 			if err != nil {
 				return nil, err
 			}
@@ -174,7 +167,27 @@ func (l Log) json(src []byte) ([]byte, error) {
 	return append(p, '\n'), nil
 }
 
-func (l Log) excerpt(dst, src []byte) (int, error) {
+// lastIndexFunc is the same as bytes.LastIndexFunc except that if
+// truth==false, the sense of the predicate function is
+// inverted.
+// lastIndexFunc copied from the bytes package.
+func lastIndexFunc(s []byte, f func(r rune) bool, truth bool) int {
+	for i := len(s); i > 0; {
+		r, size := rune(s[i-1]), 1
+		if r >= utf8.RuneSelf {
+			r, size = utf8.DecodeLastRune(s[0:i])
+		}
+		i -= size
+		if f(r) == truth {
+			return i
+		}
+	}
+	return -1
+}
+
+// Truncate writes excerpt of the src to the dst and returns number of the written bytes
+// and error if occurre.
+func (l Log) Truncate(dst, src []byte) (int, error) {
 	var start, end int
 	begin := true
 
@@ -269,22 +282,11 @@ replace:
 	return n, nil
 }
 
-// lastIndexFunc is the same as bytes.LastIndexFunc except that if
-// truth==false, the sense of the predicate function is
-// inverted.
-// lastIndexFunc copied from the bytes package.
-func lastIndexFunc(s []byte, f func(r rune) bool, truth bool) int {
-	for i := len(s); i > 0; {
-		r, size := rune(s[i-1]), 1
-		if r >= utf8.RuneSelf {
-			r, size = utf8.DecodeLastRune(s[0:i])
-		}
-		i -= size
-		if f(r) == truth {
-			return i
-		}
-	}
-	return -1
+// With returns copy of the logger with additional key-values.
+// Copy of the original key-values overwritten by the additional key-values.
+func (l Log) With(kv ...json.Marshaler) Log {
+	l.KV = append(l.KV, kv...)
+	return l
 }
 
 // GELF returns a GELF formater <https://docs.graylog.org/en/latest/pages/gelf.html>.
