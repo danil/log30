@@ -754,7 +754,7 @@ func TestWrite(t *testing.T) {
 	_, testFile, _, _ := runtime.Caller(0)
 	for _, tc := range WriteTestCases {
 		tc := tc
-		t.Run(fmt.Sprintf("io.Writer %s %d", tc.name, tc.line), func(t *testing.T) {
+		t.Run(fmt.Sprintf("io writer %s %d", tc.name, tc.line), func(t *testing.T) {
 			t.Parallel()
 			linkToExample := fmt.Sprintf("%s:%d", testFile, tc.line)
 
@@ -1329,7 +1329,7 @@ func TestFprintWrite(t *testing.T) {
 	_, testFile, _, _ := runtime.Caller(0)
 	for _, tc := range FprintWriteTestCases {
 		tc := tc
-		t.Run(fmt.Sprintf("fmt.Fprint io.Writer %s %d", tc.name, tc.line), func(t *testing.T) {
+		t.Run(fmt.Sprintf("io writer via fmt fprint %s %d", tc.name, tc.line), func(t *testing.T) {
 			t.Parallel()
 			linkToExample := fmt.Sprintf("%s:%d", testFile, tc.line)
 
