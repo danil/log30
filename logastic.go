@@ -39,12 +39,12 @@ type Log struct {
 	Replace [][2][]byte                               // Replace ia a pairs of byte slices to replace in the message excerpt.
 }
 
-func (l Log) Write(src []byte) (int, error) {
-	j, err := l.json(src)
+func (lg Log) Write(src []byte) (int, error) {
+	j, err := lg.json(src)
 	if err != nil {
 		return 0, err
 	}
-	return l.Output.Write(j)
+	return lg.Output.Write(j)
 }
 
 var asciiSpace = [256]uint8{'\t': 1, '\n': 1, '\v': 1, '\f': 1, '\r': 1, ' ': 1}
@@ -54,18 +54,18 @@ var (
 	excerptPool = sync.Pool{New: func() interface{} { return new([]byte) }}
 )
 
-func (l Log) json(src []byte) ([]byte, error) {
+func (lg Log) json(src []byte) ([]byte, error) {
 	tmpKV := mapPool.Get().(map[json.Marshaler]json.Marshaler)
 	for k := range tmpKV {
 		delete(tmpKV, k)
 	}
 	defer mapPool.Put(tmpKV)
 
-	for i := 0; i < len(l.KV); i += 2 {
-		tmpKV[l.KV[i]] = l.KV[i+1]
+	for i := 0; i < len(lg.KV); i += 2 {
+		tmpKV[lg.KV[i]] = lg.KV[i+1]
 	}
 
-	for _, fn := range l.Func {
+	for _, fn := range lg.Func {
 		k, v := fn()
 		if _, ok := tmpKV[k]; ok {
 			continue
@@ -76,7 +76,7 @@ func (l Log) json(src []byte) ([]byte, error) {
 	var tail, file int
 
 	if len(src) != 0 {
-		switch l.Flag {
+		switch lg.Flag {
 		case log.Lshortfile, log.Llongfile:
 			i := bytes.Index(src, []byte(": "))
 			if i == -1 {
@@ -89,32 +89,32 @@ func (l Log) json(src []byte) ([]byte, error) {
 		}
 	}
 
-	if l.Keys[Original] == nil {
-		l.Keys[Original] = String("")
+	if lg.Keys[Original] == nil {
+		lg.Keys[Original] = String("")
 	}
 
-	if l.Keys[Excerpt] == nil {
-		l.Keys[Excerpt] = String("")
+	if lg.Keys[Excerpt] == nil {
+		lg.Keys[Excerpt] = String("")
 	}
 
 	excerpt := *excerptPool.Get().(*[]byte)
 	excerpt = excerpt[:0]
 	defer excerptPool.Put(&excerpt)
 
-	if tmpKV[l.Keys[Excerpt]] == nil {
-		if tail == len(src) && tmpKV[l.Keys[Original]] == nil {
-			excerpt = append(excerpt[:0], l.Marks[emptyMark]...)
+	if tmpKV[lg.Keys[Excerpt]] == nil {
+		if tail == len(src) && tmpKV[lg.Keys[Original]] == nil {
+			excerpt = append(excerpt[:0], lg.Marks[emptyMark]...)
 
 		} else if tail != len(src) {
-			n := len(src) + len(l.Marks[truncMark])
-			for _, m := range l.Marks {
+			n := len(src) + len(lg.Marks[truncMark])
+			for _, m := range lg.Marks {
 				if n < len(m) {
 					n = len(m)
 				}
 			}
 
 			excerpt = append(excerpt[:0], make([]byte, n)...)
-			n, err := l.Truncate(excerpt, src[tail:])
+			n, err := lg.Truncate(excerpt, src[tail:])
 			if err != nil {
 				return nil, err
 			}
@@ -123,40 +123,40 @@ func (l Log) json(src []byte) ([]byte, error) {
 		}
 	}
 
-	if l.Keys[Trail] == nil {
-		l.Keys[Trail] = String("")
+	if lg.Keys[Trail] == nil {
+		lg.Keys[Trail] = String("")
 	}
 
 	if bytes.Equal(src, excerpt) && src != nil {
-		if l.Key == Excerpt {
-			tmpKV[l.Keys[Excerpt]] = Bytes(src)
+		if lg.Key == Excerpt {
+			tmpKV[lg.Keys[Excerpt]] = Bytes(src)
 
 		} else {
-			if tmpKV[l.Keys[Original]] == nil {
-				tmpKV[l.Keys[Original]] = Bytes(src)
+			if tmpKV[lg.Keys[Original]] == nil {
+				tmpKV[lg.Keys[Original]] = Bytes(src)
 			} else if len(src) != 0 {
-				tmpKV[l.Keys[Trail]] = Bytes(src)
+				tmpKV[lg.Keys[Trail]] = Bytes(src)
 			}
 		}
 
 	} else if !bytes.Equal(src, excerpt) {
-		if tmpKV[l.Keys[Original]] == nil {
-			tmpKV[l.Keys[Original]] = Bytes(src)
-		} else if tmpKV[l.Keys[Original]] != nil && len(src) != 0 {
-			tmpKV[l.Keys[Trail]] = Bytes(src)
+		if tmpKV[lg.Keys[Original]] == nil {
+			tmpKV[lg.Keys[Original]] = Bytes(src)
+		} else if tmpKV[lg.Keys[Original]] != nil && len(src) != 0 {
+			tmpKV[lg.Keys[Trail]] = Bytes(src)
 		}
 
-		if tmpKV[l.Keys[Excerpt]] == nil && len(excerpt) != 0 {
-			tmpKV[l.Keys[Excerpt]] = Bytes(excerpt)
+		if tmpKV[lg.Keys[Excerpt]] == nil && len(excerpt) != 0 {
+			tmpKV[lg.Keys[Excerpt]] = Bytes(excerpt)
 		}
 	}
 
-	if l.Keys[File] == nil {
-		l.Keys[File] = String("")
+	if lg.Keys[File] == nil {
+		lg.Keys[File] = String("")
 	}
 
 	if file != 0 {
-		tmpKV[l.Keys[File]] = Bytes(src[:file])
+		tmpKV[lg.Keys[File]] = Bytes(src[:file])
 	}
 
 	p, err := jsoniter.ConfigCompatibleWithStandardLibrary.Marshal(tmpKV)
@@ -187,7 +187,7 @@ func lastIndexFunc(s []byte, f func(r rune) bool, truth bool) int {
 
 // Truncate writes excerpt of the src to the dst and returns number of the written bytes
 // and error if occurre.
-func (l Log) Truncate(dst, src []byte) (int, error) {
+func (lg Log) Truncate(dst, src []byte) (int, error) {
 	var start, end int
 	begin := true
 
@@ -219,7 +219,7 @@ func (l Log) Truncate(dst, src []byte) (int, error) {
 			}
 		}
 
-		if end-start >= len(src) || (l.Trunc > 0 && end-start >= l.Trunc) {
+		if end-start >= len(src) || (lg.Trunc > 0 && end-start >= lg.Trunc) {
 			break
 		}
 
@@ -251,7 +251,7 @@ func (l Log) Truncate(dst, src []byte) (int, error) {
 	n := copy(dst, src[start:end])
 
 replace:
-	for _, r := range l.Replace {
+	for _, r := range lg.Replace {
 		for offset := 0; offset < n; {
 			if len(r[0]) == 0 || bytes.Equal(r[0], r[1]) {
 				continue replace
@@ -272,11 +272,11 @@ replace:
 	}
 
 	if end-start == 0 {
-		n += copy(dst[n:], l.Marks[blankMark])
+		n += copy(dst[n:], lg.Marks[blankMark])
 	}
 
 	if end-start != 0 && truncate {
-		n += copy(dst[n:], l.Marks[truncMark])
+		n += copy(dst[n:], lg.Marks[truncMark])
 	}
 
 	return n, nil
@@ -284,9 +284,9 @@ replace:
 
 // With returns copy of the logger with additional key-values.
 // Copy of the original key-values overwritten by the additional key-values.
-func (l Log) With(kv ...json.Marshaler) Log {
-	l.KV = append(l.KV, kv...)
-	return l
+func (lg Log) With(kv ...json.Marshaler) Log {
+	lg.KV = append(lg.KV, kv...)
+	return lg
 }
 
 // GELF returns a GELF formater <https://docs.graylog.org/en/latest/pages/gelf.html>.

@@ -762,11 +762,11 @@ func TestWrite(t *testing.T) {
 
 			tc.log.Output = &buf
 
-			l := tc.log
+			lg := tc.log
 			for _, kv := range tc.kv {
-				l = l.With(kv)
+				lg = lg.With(kv)
 			}
-			_, err := l.Write(tc.bytes)
+			_, err := lg.Write(tc.bytes)
 			if err != nil {
 				t.Fatalf("write error: %s", err)
 			}
@@ -804,14 +804,14 @@ var FprintWriteTestCases = []struct {
 		name: "readme example 2",
 		line: line(),
 		log: func() logastic.Log {
-			l := logastic.GELF()
-			l.Func = []func() (json.Marshaler, json.Marshaler){
+			lg := logastic.GELF()
+			lg.Func = []func() (json.Marshaler, json.Marshaler){
 				func() (json.Marshaler, json.Marshaler) {
 					return logastic.String("timestamp"), logastic.Int64(time.Date(2020, time.October, 15, 18, 9, 0, 0, time.UTC).Unix())
 				},
 			}
-			l.KV = []json.Marshaler{logastic.String("version"), logastic.String("1.1")}
-			return l
+			lg.KV = []json.Marshaler{logastic.String("version"), logastic.String("1.1")}
+			return lg
 		}(),
 		input: "Hello,\nGELF!",
 		expected: `{
@@ -1282,14 +1282,14 @@ var FprintWriteTestCases = []struct {
 		name: "GELF",
 		line: line(),
 		log: func() logastic.Log {
-			l := logastic.GELF()
-			l.Func = []func() (json.Marshaler, json.Marshaler){
+			lg := logastic.GELF()
+			lg.Func = []func() (json.Marshaler, json.Marshaler){
 				func() (json.Marshaler, json.Marshaler) {
 					return logastic.String("timestamp"), logastic.Int64(time.Date(2020, time.October, 15, 18, 9, 0, 0, time.UTC).Unix())
 				},
 			}
-			l.KV = []json.Marshaler{logastic.String("version"), logastic.String("1.1"), logastic.String("host"), logastic.String("example.tld")}
-			return l
+			lg.KV = []json.Marshaler{logastic.String("version"), logastic.String("1.1"), logastic.String("host"), logastic.String("example.tld")}
+			return lg
 		}(),
 		input: "Hello, GELF!",
 		expected: `{
@@ -1303,15 +1303,15 @@ var FprintWriteTestCases = []struct {
 		name: "GELF with file path",
 		line: line(),
 		log: func() logastic.Log {
-			l := logastic.GELF()
-			l.Flag = log.Llongfile
-			l.Func = []func() (json.Marshaler, json.Marshaler){
+			lg := logastic.GELF()
+			lg.Flag = log.Llongfile
+			lg.Func = []func() (json.Marshaler, json.Marshaler){
 				func() (json.Marshaler, json.Marshaler) {
 					return logastic.String("timestamp"), logastic.Int64(time.Date(2020, time.October, 15, 18, 9, 0, 0, time.UTC).Unix())
 				},
 			}
-			l.KV = []json.Marshaler{logastic.String("version"), logastic.String("1.1"), logastic.String("host"), logastic.String("example.tld")}
-			return l
+			lg.KV = []json.Marshaler{logastic.String("version"), logastic.String("1.1"), logastic.String("host"), logastic.String("example.tld")}
+			return lg
 		}(),
 		input: "path/to/file7:89: Hello, GELF!",
 		expected: `{
@@ -1359,11 +1359,11 @@ func BenchmarkLogastic(b *testing.B) {
 
 				tc.log.Output = &buf
 
-				l := tc.log
+				lg := tc.log
 				for _, kv := range tc.kv {
-					l = l.With(kv)
+					lg = lg.With(kv)
 				}
-				_, err := l.Write(tc.bytes)
+				_, err := lg.Write(tc.bytes)
 				if err != nil {
 					fmt.Println(err)
 				}
@@ -1401,9 +1401,9 @@ var dummy = logastic.Log{
 func TestLogWriteTrailingNewLine(t *testing.T) {
 	var buf bytes.Buffer
 
-	l := logastic.Log{Output: &buf}
+	lg := logastic.Log{Output: &buf}
 
-	_, err := l.Write([]byte("Hello, Wrold!"))
+	_, err := lg.Write([]byte("Hello, Wrold!"))
 	if err != nil {
 		t.Fatalf("write error: %s", err)
 	}
