@@ -219,7 +219,7 @@ func (l Log) Truncate(dst, src []byte) (int, error) {
 			}
 		}
 
-		if end-start >= len(src) || end-start >= l.Trunc {
+		if end-start >= len(src) || (l.Trunc > 0 && end-start >= l.Trunc) {
 			break
 		}
 
@@ -264,7 +264,7 @@ replace:
 
 			offset += idx
 
-			dst = append(dst[:offset], append(r[1], dst[offset+len(r[0]):]...)...)
+			copy(dst, append(dst[:offset], append(r[1], dst[offset+len(r[0]):]...)...))
 
 			offset += len(r[1])
 			n += len(r[1]) - len(r[0])

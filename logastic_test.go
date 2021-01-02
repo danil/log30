@@ -1412,3 +1412,123 @@ func TestLogWriteTrailingNewLine(t *testing.T) {
 		t.Errorf("trailing new line expected but not present: %q", buf.String())
 	}
 }
+
+var TruncateTestCases = []struct {
+	name      string
+	line      int
+	log       logastic.Log
+	input     []byte
+	expected  []byte
+	benchmark bool
+}{
+	{
+		name:     "do nothing",
+		line:     line(),
+		input:    []byte("Hello,\nWorld!"),
+		expected: []byte("Hello,\nWorld!"),
+	},
+	{
+		name: "truncate last character",
+		log: logastic.Log{
+			Trunc: 12,
+		},
+		line:     line(),
+		input:    []byte("Hello, World!"),
+		expected: []byte("Hello, World"),
+	},
+	{
+		name: "truncate last character and places ellipsis instead",
+		log: logastic.Log{
+			Trunc: 12,
+			Marks: [3][]byte{[]byte("…")},
+		},
+		line:     line(),
+		input:    []byte("Hello, World!"),
+		expected: []byte("Hello, World…"),
+	},
+	{
+		name: "replace new lines by spaces",
+		log: logastic.Log{
+			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
+		},
+		line:     line(),
+		input:    []byte("Hello\n,\nWorld\n!"),
+		expected: []byte("Hello , World !"),
+	},
+	{
+		name: "replace new lines by empty string",
+		log: logastic.Log{
+			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte("")}},
+		},
+		line:     line(),
+		input:    []byte("Hello\n,\nWorld\n!"),
+		expected: []byte("Hello,World!"),
+	},
+	{
+		name: "remove new lines",
+		log: logastic.Log{
+			Replace: [][2][]byte{[2][]byte{[]byte("\n")}},
+		},
+		line:     line(),
+		input:    []byte("Hello\n,\nWorld\n!"),
+		expected: []byte("Hello,World!"),
+	},
+	{
+		name: "replace three characters by one",
+		log: logastic.Log{
+			Replace: [][2][]byte{[2][]byte{[]byte("foo"), []byte("f")}, [2][]byte{[]byte("bar"), []byte("b")}},
+		},
+		line:     line(),
+		input:    []byte("foobar"),
+		expected: []byte("fb"),
+	},
+	{
+		name: "replace one characters by three",
+		log: logastic.Log{
+			Replace: [][2][]byte{[2][]byte{[]byte("f"), []byte("foo")}, [2][]byte{[]byte("b"), []byte("bar")}},
+		},
+		line:     line(),
+		input:    []byte("fb"),
+		expected: []byte("foobar"),
+	},
+	{
+		name: "remove three characters",
+		log: logastic.Log{
+			Replace: [][2][]byte{[2][]byte{[]byte("foo")}, [2][]byte{[]byte("bar")}},
+		},
+		line:     line(),
+		input:    []byte("foobar foobar"),
+		expected: []byte(" "),
+	},
+}
+
+func TestTruncate(t *testing.T) {
+	_, testFile, _, _ := runtime.Caller(0)
+	for _, tc := range TruncateTestCases {
+		tc := tc
+		t.Run(fmt.Sprintf("truncate %s %d", tc.name, tc.line), func(t *testing.T) {
+			t.Parallel()
+			linkToExample := fmt.Sprintf("%s:%d", testFile, tc.line)
+
+			n := len(tc.input) + 10*10
+			for _, m := range tc.log.Marks {
+				if n < len(m) {
+					n = len(m)
+				}
+			}
+
+			excerpt := make([]byte, n)
+
+			n, err := tc.log.Truncate(excerpt, tc.input)
+			if err != nil {
+				t.Fatalf("write error: %s", err)
+			}
+
+			excerpt = excerpt[:n]
+
+			if !bytes.Equal(excerpt, tc.expected) {
+				t.Errorf("unexpected excerpt, expected: %q, received %q %s", tc.expected, excerpt, linkToExample)
+			}
+		})
+	}
+}
