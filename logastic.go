@@ -292,7 +292,7 @@ replace:
 func (lg Log) With(kv ...json.Marshaler) Log {
 	n := len(lg.KV)
 	if n == 0 {
-		lg.KV = append(lg.KV, kv...)
+		lg.KV = append(kv[:0], append(lg.KV, kv...)...)
 		return lg
 	}
 
@@ -300,7 +300,7 @@ func (lg Log) With(kv ...json.Marshaler) Log {
 		n--
 	}
 
-	lg.KV = append(lg.KV[:n], kv...)
+	lg.KV = append(kv[:0], append(lg.KV[:n], kv...)...)
 
 	return lg
 }
