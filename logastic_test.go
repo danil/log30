@@ -17,7 +17,7 @@ var WriteTestCases = []struct {
 	name      string
 	line      int
 	log       logastic.Log
-	bytes     []byte
+	input     []byte
 	kv        []json.Marshaler
 	expected  string
 	benchmark bool
@@ -39,7 +39,7 @@ var WriteTestCases = []struct {
 			KV:    []json.Marshaler{logastic.String("string"), logastic.String("foo")},
 			Keys:  [4]json.Marshaler{logastic.String("message")},
 		},
-		bytes: []byte("Hello, World!"),
+		input: []byte("Hello, World!"),
 		kv:    []json.Marshaler{logastic.String("string"), logastic.String("bar")},
 		expected: `{
 			"message":"Hello, World!",
@@ -48,10 +48,10 @@ var WriteTestCases = []struct {
 		benchmark: true,
 	},
 	{
-		name:  "key-values is nil",
+		name:  "kv is nil",
 		line:  line(),
 		log:   dummy,
-		bytes: []byte("Hello, World!"),
+		input: []byte("Hello, World!"),
 		kv:    nil,
 		expected: `{
 			"message":"Hello, World!"
@@ -66,7 +66,7 @@ var WriteTestCases = []struct {
 			Keys:    [4]json.Marshaler{logastic.String("message"), logastic.String("excerpt"), logastic.String("trail")},
 			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 		},
-		bytes: []byte("Hello,\nWorld!"),
+		input: []byte("Hello,\nWorld!"),
 		expected: `{
 			"message":"string value",
 			"excerpt":"Hello, World!",
@@ -77,7 +77,7 @@ var WriteTestCases = []struct {
 		name:  `bytes appends to the "message" key with "string value"`,
 		line:  line(),
 		log:   dummy,
-		bytes: []byte("Hello,\nWorld!"),
+		input: []byte("Hello,\nWorld!"),
 		kv:    []json.Marshaler{logastic.String("message"), logastic.String("string value")},
 		expected: `{
 			"message":"string value",
@@ -98,7 +98,7 @@ var WriteTestCases = []struct {
 		}`,
 	},
 	{
-		name: `bytes is nil and "message" key with "string value"`,
+		name: `input is nil and "message" key with "string value"`,
 		line: line(),
 		log:  dummy,
 		kv:   []json.Marshaler{logastic.String("message"), logastic.String("string value")},
@@ -110,7 +110,7 @@ var WriteTestCases = []struct {
 		name:  `bytes appends to the integer key "message"`,
 		line:  line(),
 		log:   dummy,
-		bytes: []byte("Hello, World!\n"),
+		input: []byte("Hello, World!\n"),
 		kv:    []json.Marshaler{logastic.String("message"), logastic.Int(1)},
 		expected: `{
 			"message":1,
@@ -122,7 +122,7 @@ var WriteTestCases = []struct {
 		name:  `bytes appends to the float 32 bit key "message"`,
 		line:  line(),
 		log:   dummy,
-		bytes: []byte("Hello,\nWorld!"),
+		input: []byte("Hello,\nWorld!"),
 		kv:    []json.Marshaler{logastic.String("message"), logastic.Float32(4.2)},
 		expected: `{
 			"message":4.2,
@@ -134,7 +134,7 @@ var WriteTestCases = []struct {
 		name:  `bytes appends to the float 64 bit key "message"`,
 		line:  line(),
 		log:   dummy,
-		bytes: []byte("Hello,\nWorld!"),
+		input: []byte("Hello,\nWorld!"),
 		kv:    []json.Marshaler{logastic.String("message"), logastic.Float64(4.2)},
 		expected: `{
 			"message":4.2,
@@ -146,7 +146,7 @@ var WriteTestCases = []struct {
 		name:  `bytes appends to the boolean key "message"`,
 		line:  line(),
 		log:   dummy,
-		bytes: []byte("Hello,\nWorld!"),
+		input: []byte("Hello,\nWorld!"),
 		kv:    []json.Marshaler{logastic.String("message"), logastic.Bool(true)},
 		expected: `{
 			"message":true,
@@ -158,7 +158,7 @@ var WriteTestCases = []struct {
 		name:  `bytes will appends to the nil key "message"`,
 		line:  line(),
 		log:   dummy,
-		bytes: []byte("Hello, World!"),
+		input: []byte("Hello, World!"),
 		kv:    []json.Marshaler{logastic.String("message"), logastic.Reflect(nil)},
 		expected: `{
 			"message":null,
@@ -201,7 +201,7 @@ var WriteTestCases = []struct {
 			Key:     logastic.Original,
 			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 		},
-		bytes: []byte("foo"),
+		input: []byte("foo"),
 		kv:    []json.Marshaler{logastic.String("message"), logastic.String("bar")},
 		expected: `{
 			"message":"bar",
@@ -209,14 +209,14 @@ var WriteTestCases = []struct {
 		}`,
 	},
 	{
-		name: `default key is original and bytes is present and "message" key is present and with replace intput bytes`,
+		name: `default key is original and bytes is present and "message" key is present and with replace input bytes`,
 		line: line(),
 		log: logastic.Log{
 			Trunc: 120,
 			Keys:  [4]json.Marshaler{logastic.String("message"), logastic.String("excerpt"), logastic.String("trail")},
 			Key:   logastic.Original,
 		},
-		bytes: []byte("foo\n"),
+		input: []byte("foo\n"),
 		kv:    []json.Marshaler{logastic.String("message"), logastic.String("bar")},
 		expected: `{
 			"message":"bar",
@@ -225,7 +225,7 @@ var WriteTestCases = []struct {
 		}`,
 	},
 	{
-		name: `default key is original and bytes is present and "message" key is present and with replace intput bytes and key`,
+		name: `default key is original and bytes is present and "message" key is present and with replace input bytes and key`,
 		line: line(),
 		log: logastic.Log{
 			Trunc:   120,
@@ -233,7 +233,7 @@ var WriteTestCases = []struct {
 			Key:     logastic.Original,
 			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 		},
-		bytes: []byte("foo\n"),
+		input: []byte("foo\n"),
 		kv:    []json.Marshaler{logastic.String("message"), logastic.String("bar\n")},
 		expected: `{
 			"message":"bar\n",
@@ -276,7 +276,7 @@ var WriteTestCases = []struct {
 			Keys:  [4]json.Marshaler{logastic.String("message"), logastic.String("excerpt")},
 			Key:   logastic.Original,
 		},
-		bytes: []byte("foo"),
+		input: []byte("foo"),
 		kv:    []json.Marshaler{logastic.String("excerpt"), logastic.String("bar")},
 		expected: `{
 			"message":"foo",
@@ -292,7 +292,7 @@ var WriteTestCases = []struct {
 			Key:     logastic.Original,
 			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 		},
-		bytes: []byte("foo\n"),
+		input: []byte("foo\n"),
 		kv:    []json.Marshaler{logastic.String("excerpt"), logastic.String("bar")},
 		expected: `{
 			"message":"foo\n",
@@ -308,7 +308,7 @@ var WriteTestCases = []struct {
 			Key:     logastic.Original,
 			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 		},
-		bytes: []byte("foo\n"),
+		input: []byte("foo\n"),
 		kv:    []json.Marshaler{logastic.String("excerpt"), logastic.String("bar")},
 		expected: `{
 			"message":"foo\n",
@@ -324,7 +324,7 @@ var WriteTestCases = []struct {
 			Key:     logastic.Original,
 			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 		},
-		bytes: []byte("foo\n"),
+		input: []byte("foo\n"),
 		kv:    []json.Marshaler{logastic.String("excerpt"), logastic.String("bar\n")},
 		expected: `{
 			"message":"foo\n",
@@ -368,7 +368,7 @@ var WriteTestCases = []struct {
 			Keys:  [4]json.Marshaler{logastic.String("message"), logastic.String("excerpt"), logastic.String("trail")},
 			Key:   logastic.Original,
 		},
-		bytes: []byte("foo"),
+		input: []byte("foo"),
 		kv:    []json.Marshaler{logastic.String("message"), logastic.String("bar"), logastic.String("excerpt"), logastic.String("xyz")},
 		expected: `{
 			"message":"bar",
@@ -385,7 +385,7 @@ var WriteTestCases = []struct {
 			Key:     logastic.Original,
 			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 		},
-		bytes: []byte("foo\n"),
+		input: []byte("foo\n"),
 		kv:    []json.Marshaler{logastic.String("message"), logastic.String("bar"), logastic.String("excerpt"), logastic.String("xyz")},
 		expected: `{
 			"message":"bar",
@@ -402,7 +402,7 @@ var WriteTestCases = []struct {
 			Key:     logastic.Original,
 			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 		},
-		bytes: []byte("foo\n"),
+		input: []byte("foo\n"),
 		kv:    []json.Marshaler{logastic.String("message"), logastic.String("bar\n"), logastic.String("excerpt"), logastic.String("xyz\n")},
 		expected: `{
 			"message":"bar\n",
@@ -446,7 +446,7 @@ var WriteTestCases = []struct {
 			Key:     logastic.Excerpt,
 			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 		},
-		bytes: []byte("foo"),
+		input: []byte("foo"),
 		kv:    []json.Marshaler{logastic.String("message"), logastic.String("bar")},
 		expected: `{
 			"message":"bar",
@@ -454,14 +454,14 @@ var WriteTestCases = []struct {
 		}`,
 	},
 	{
-		name: `default key is excerpt and bytes is present and "message" key is present and with replace intput bytes`,
+		name: `default key is excerpt and bytes is present and "message" key is present and with replace input bytes`,
 		line: line(),
 		log: logastic.Log{
 			Trunc: 120,
 			Keys:  [4]json.Marshaler{logastic.String("message"), logastic.String("excerpt"), logastic.String("trail")},
 			Key:   logastic.Excerpt,
 		},
-		bytes: []byte("foo\n"),
+		input: []byte("foo\n"),
 		kv:    []json.Marshaler{logastic.String("message"), logastic.String("bar")},
 		expected: `{
 			"message":"bar",
@@ -470,7 +470,7 @@ var WriteTestCases = []struct {
 		}`,
 	},
 	{
-		name: `default key is excerpt and bytes is present and "message" key is present and with replace intput bytes and key`,
+		name: `default key is excerpt and bytes is present and "message" key is present and with replace input bytes and key`,
 		line: line(),
 		log: logastic.Log{
 			Trunc:   120,
@@ -478,7 +478,7 @@ var WriteTestCases = []struct {
 			Key:     logastic.Excerpt,
 			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 		},
-		bytes: []byte("foo\n"),
+		input: []byte("foo\n"),
 		kv:    []json.Marshaler{logastic.String("message"), logastic.String("bar\n")},
 		expected: `{
 			"message":"bar\n",
@@ -521,7 +521,7 @@ var WriteTestCases = []struct {
 			Keys:  [4]json.Marshaler{logastic.String("message"), logastic.String("excerpt")},
 			Key:   logastic.Excerpt,
 		},
-		bytes: []byte("foo"),
+		input: []byte("foo"),
 		kv:    []json.Marshaler{logastic.String("excerpt"), logastic.String("bar")},
 		expected: `{
 			"message":"foo",
@@ -537,7 +537,7 @@ var WriteTestCases = []struct {
 			Key:     logastic.Excerpt,
 			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 		},
-		bytes: []byte("foo\n"),
+		input: []byte("foo\n"),
 		kv:    []json.Marshaler{logastic.String("excerpt"), logastic.String("bar")},
 		expected: `{
 			"message":"foo\n",
@@ -553,7 +553,7 @@ var WriteTestCases = []struct {
 			Key:     logastic.Excerpt,
 			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 		},
-		bytes: []byte("foo\n"),
+		input: []byte("foo\n"),
 		kv:    []json.Marshaler{logastic.String("excerpt"), logastic.String("bar")},
 		expected: `{
 			"message":"foo\n",
@@ -569,7 +569,7 @@ var WriteTestCases = []struct {
 			Key:     logastic.Excerpt,
 			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 		},
-		bytes: []byte("foo\n"),
+		input: []byte("foo\n"),
 		kv:    []json.Marshaler{logastic.String("excerpt"), logastic.String("bar\n")},
 		expected: `{
 			"message":"foo\n",
@@ -613,7 +613,7 @@ var WriteTestCases = []struct {
 			Keys:  [4]json.Marshaler{logastic.String("message"), logastic.String("excerpt"), logastic.String("trail")},
 			Key:   logastic.Excerpt,
 		},
-		bytes: []byte("foo"),
+		input: []byte("foo"),
 		kv:    []json.Marshaler{logastic.String("message"), logastic.String("bar"), logastic.String("excerpt"), logastic.String("xyz")},
 		expected: `{
 			"message":"bar",
@@ -630,7 +630,7 @@ var WriteTestCases = []struct {
 			Key:     logastic.Excerpt,
 			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 		},
-		bytes: []byte("foo\n"),
+		input: []byte("foo\n"),
 		kv:    []json.Marshaler{logastic.String("message"), logastic.String("bar"), logastic.String("excerpt"), logastic.String("xyz")},
 		expected: `{
 			"message":"bar",
@@ -647,7 +647,7 @@ var WriteTestCases = []struct {
 			Key:     logastic.Excerpt,
 			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 		},
-		bytes: []byte("foo\n"),
+		input: []byte("foo\n"),
 		kv:    []json.Marshaler{logastic.String("message"), logastic.String("bar\n"), logastic.String("excerpt"), logastic.String("xyz\n")},
 		expected: `{
 			"message":"bar\n",
@@ -692,7 +692,7 @@ var WriteTestCases = []struct {
 			Flag: log.Llongfile,
 			Keys: [4]json.Marshaler{logastic.String("message")},
 		},
-		bytes: []byte("a"),
+		input: []byte("a"),
 		expected: `{
 			"message":"a"
 		}`,
@@ -704,7 +704,7 @@ var WriteTestCases = []struct {
 			Flag: log.Llongfile,
 			Keys: [4]json.Marshaler{logastic.String("message"), logastic.String("excerpt"), logastic.String("trail"), logastic.String("file")},
 		},
-		bytes: []byte("ab"),
+		input: []byte("ab"),
 		expected: `{
 			"message":"ab",
 			"file":"a"
@@ -717,7 +717,7 @@ var WriteTestCases = []struct {
 			Flag: log.Llongfile,
 			Keys: [4]json.Marshaler{logastic.String("message"), logastic.String("excerpt"), logastic.String("trail"), logastic.String("file")},
 		},
-		bytes: []byte("abc"),
+		input: []byte("abc"),
 		expected: `{
 			"message":"abc",
 			"file":"ab"
@@ -762,11 +762,7 @@ func TestWrite(t *testing.T) {
 
 			tc.log.Output = &buf
 
-			lg := tc.log
-			for _, kv := range tc.kv {
-				lg = lg.With(kv)
-			}
-			_, err := lg.Write(tc.bytes)
+			_, err := tc.log.With(tc.kv...).Write(tc.input)
 			if err != nil {
 				t.Fatalf("write error: %s", err)
 			}
@@ -1363,7 +1359,7 @@ func BenchmarkLogastic(b *testing.B) {
 				for _, kv := range tc.kv {
 					lg = lg.With(kv)
 				}
-				_, err := lg.Write(tc.bytes)
+				_, err := lg.Write(tc.input)
 				if err != nil {
 					fmt.Println(err)
 				}
@@ -1529,6 +1525,190 @@ func TestTruncate(t *testing.T) {
 			if !bytes.Equal(excerpt, tc.expected) {
 				t.Errorf("unexpected excerpt, expected: %q, received %q %s", tc.expected, excerpt, linkToExample)
 			}
+		})
+	}
+}
+
+var WithTestCases = []struct {
+	name      string
+	line      int
+	log       logastic.Log
+	kv        []json.Marshaler
+	expected  string
+	benchmark bool
+}{
+	{
+		name: "one kv",
+		line: line(),
+		log: logastic.Log{
+			KV: []json.Marshaler{
+				logastic.String("foo"), logastic.String("bar"),
+			},
+		},
+		expected: `{
+			"foo":"bar"
+		}`,
+	},
+	{
+		name: "two kv",
+		line: line(),
+		log: logastic.Log{
+			KV: []json.Marshaler{
+				logastic.String("foo"), logastic.String("bar"),
+				logastic.String("baz"), logastic.String("xyz"),
+			},
+		},
+		expected: `{
+			"foo":"bar",
+			"baz":"xyz"
+		}`,
+	},
+	{
+		name: "one additional kv",
+		line: line(),
+		log:  logastic.Log{},
+		kv: []json.Marshaler{
+			logastic.String("baz"), logastic.String("xyz"),
+		},
+		expected: `{
+			"baz":"xyz"
+		}`,
+	},
+	{
+		name: "two additional kv",
+		line: line(),
+		log:  logastic.Log{},
+		kv: []json.Marshaler{
+			logastic.String("foo"), logastic.String("bar"),
+			logastic.String("baz"), logastic.String("xyz"),
+		},
+		expected: `{
+			"foo":"bar",
+			"baz":"xyz"
+		}`,
+	},
+	{
+		name: "one kv with additional one kv",
+		line: line(),
+		log: logastic.Log{
+			KV: []json.Marshaler{
+				logastic.String("foo"), logastic.String("bar"),
+			},
+		},
+		kv: []json.Marshaler{
+			logastic.String("baz"), logastic.String("xyz"),
+		},
+		expected: `{
+			"foo":"bar",
+			"baz":"xyz"
+		}`,
+	},
+	{
+		name: "two kv with two additional kv",
+		line: line(),
+		log: logastic.Log{
+			KV: []json.Marshaler{
+				logastic.String("foo"), logastic.String("bar"),
+				logastic.String("abc"), logastic.String("dfg"),
+			},
+		},
+		kv: []json.Marshaler{
+			logastic.String("baz"), logastic.String("xyz"),
+			logastic.String("hjk"), logastic.String("lmn"),
+		},
+		expected: `{
+			"foo":"bar",
+			"abc":"dfg",
+			"baz":"xyz",
+			"hjk":"lmn"
+		}`,
+	},
+	{
+		name: "one orphan key",
+		line: line(),
+		log: logastic.Log{
+			KV: []json.Marshaler{logastic.String("foo")},
+		},
+		expected: `{}`,
+	},
+	{
+		name: "one addition orphan key",
+		line: line(),
+		log:  logastic.Log{},
+		kv: []json.Marshaler{
+			logastic.String("foo"),
+		},
+		expected: `{}`,
+	},
+	{
+		name: "one orphan key with one additional kv",
+		line: line(),
+		log: logastic.Log{
+			KV: []json.Marshaler{
+				logastic.String("foo"),
+			},
+		},
+		kv: []json.Marshaler{
+			logastic.String("bar"), logastic.String("xyz"),
+		},
+		expected: `{
+			"bar":"xyz"
+		}`,
+	},
+	{
+		name: "one kv with one additional orphan key",
+		line: line(),
+		log: logastic.Log{
+			KV: []json.Marshaler{
+				logastic.String("foo"), logastic.String("bar"),
+			},
+		},
+		kv: []json.Marshaler{
+			logastic.String("xyz"),
+		},
+		expected: `{
+			"foo":"bar"
+		}`,
+	},
+	{
+		name: "one kv and one orphan key with one additional kv and one additional orphan key",
+		line: line(),
+		log: logastic.Log{
+			KV: []json.Marshaler{
+				logastic.String("foo"), logastic.String("bar"),
+				logastic.String("abc"),
+			},
+		},
+		kv: []json.Marshaler{
+			logastic.String("baz"), logastic.String("xyz"),
+			logastic.String("hjk"),
+		},
+		expected: `{
+			"foo":"bar",
+			"baz":"xyz"
+		}`,
+	},
+}
+
+func TestWith(t *testing.T) {
+	_, testFile, _, _ := runtime.Caller(0)
+	for _, tc := range WithTestCases {
+		tc := tc
+		t.Run(fmt.Sprintf("with %s %d", tc.name, tc.line), func(t *testing.T) {
+			t.Parallel()
+			linkToExample := fmt.Sprintf("%s:%d", testFile, tc.line)
+
+			var buf bytes.Buffer
+
+			tc.log.Output = &buf
+
+			_, err := tc.log.With(tc.kv...).Write(nil)
+			if err != nil {
+				t.Fatalf("write error: %s", err)
+			}
+
+			ja := jsonassert.New(testprinter{t: t, link: linkToExample})
+			ja.Assertf(buf.String(), tc.expected)
 		})
 	}
 }

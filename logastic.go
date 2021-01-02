@@ -61,7 +61,12 @@ func (lg Log) json(src []byte) ([]byte, error) {
 	}
 	defer mapPool.Put(tmpKV)
 
-	for i := 0; i < len(lg.KV); i += 2 {
+	n := len(lg.KV)
+	if n%2 != 0 {
+		n--
+	}
+
+	for i := 0; i < len(lg.KV[:n]); i += 2 {
 		tmpKV[lg.KV[i]] = lg.KV[i+1]
 	}
 
@@ -285,7 +290,18 @@ replace:
 // With returns copy of the logger with additional key-values.
 // Copy of the original key-values overwritten by the additional key-values.
 func (lg Log) With(kv ...json.Marshaler) Log {
-	lg.KV = append(lg.KV, kv...)
+	n := len(lg.KV)
+	if n == 0 {
+		lg.KV = append(lg.KV, kv...)
+		return lg
+	}
+
+	if n%2 != 0 {
+		n--
+	}
+
+	lg.KV = append(lg.KV[:n], kv...)
+
 	return lg
 }
 
