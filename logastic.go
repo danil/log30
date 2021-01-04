@@ -10,6 +10,7 @@ import (
 	"unicode"
 	"unicode/utf8"
 
+	"github.com/danil/logastic/marshastic"
 	jsoniter "github.com/json-iterator/go"
 )
 
@@ -95,11 +96,11 @@ func (lg Log) json(src []byte) ([]byte, error) {
 	}
 
 	if lg.Keys[Original] == nil {
-		lg.Keys[Original] = String("")
+		lg.Keys[Original] = marshastic.String("")
 	}
 
 	if lg.Keys[Excerpt] == nil {
-		lg.Keys[Excerpt] = String("")
+		lg.Keys[Excerpt] = marshastic.String("")
 	}
 
 	excerpt := *excerptPool.Get().(*[]byte)
@@ -129,39 +130,39 @@ func (lg Log) json(src []byte) ([]byte, error) {
 	}
 
 	if lg.Keys[Trail] == nil {
-		lg.Keys[Trail] = String("")
+		lg.Keys[Trail] = marshastic.String("")
 	}
 
 	if bytes.Equal(src, excerpt) && src != nil {
 		if lg.Key == Excerpt {
-			tmpKV[lg.Keys[Excerpt]] = Bytes(src)
+			tmpKV[lg.Keys[Excerpt]] = marshastic.Bytes(src)
 
 		} else {
 			if tmpKV[lg.Keys[Original]] == nil {
-				tmpKV[lg.Keys[Original]] = Bytes(src)
+				tmpKV[lg.Keys[Original]] = marshastic.Bytes(src)
 			} else if len(src) != 0 {
-				tmpKV[lg.Keys[Trail]] = Bytes(src)
+				tmpKV[lg.Keys[Trail]] = marshastic.Bytes(src)
 			}
 		}
 
 	} else if !bytes.Equal(src, excerpt) {
 		if tmpKV[lg.Keys[Original]] == nil {
-			tmpKV[lg.Keys[Original]] = Bytes(src)
+			tmpKV[lg.Keys[Original]] = marshastic.Bytes(src)
 		} else if tmpKV[lg.Keys[Original]] != nil && len(src) != 0 {
-			tmpKV[lg.Keys[Trail]] = Bytes(src)
+			tmpKV[lg.Keys[Trail]] = marshastic.Bytes(src)
 		}
 
 		if tmpKV[lg.Keys[Excerpt]] == nil && len(excerpt) != 0 {
-			tmpKV[lg.Keys[Excerpt]] = Bytes(excerpt)
+			tmpKV[lg.Keys[Excerpt]] = marshastic.Bytes(excerpt)
 		}
 	}
 
 	if lg.Keys[File] == nil {
-		lg.Keys[File] = String("")
+		lg.Keys[File] = marshastic.String("")
 	}
 
 	if file != 0 {
-		tmpKV[lg.Keys[File]] = Bytes(src[:file])
+		tmpKV[lg.Keys[File]] = marshastic.Bytes(src[:file])
 	}
 
 	p, err := jsoniter.ConfigCompatibleWithStandardLibrary.Marshal(tmpKV)
@@ -311,18 +312,18 @@ func GELF() Log {
 		// GELF spec version – "1.1"; Must be set by client library.
 		// <https://docs.graylog.org/en/latest/pages/gelf.html#gelf-payload-specification>,
 		// <https://github.com/graylog-labs/gelf-rb/issues/41#issuecomment-198266505>.
-		KV: []json.Marshaler{String("version"), String("1.1")},
+		KV: []json.Marshaler{marshastic.String("version"), marshastic.String("1.1")},
 		Func: []func() (json.Marshaler, json.Marshaler){
 			func() (json.Marshaler, json.Marshaler) {
-				return String("timestamp"), Int64(time.Now().Unix())
+				return marshastic.String("timestamp"), marshastic.Int64(time.Now().Unix())
 			},
 		},
 		Trunc: 120,
 		Keys: [4]json.Marshaler{
-			String("full_message"),
-			String("short_message"),
-			String("_trail"),
-			String("_file"),
+			marshastic.String("full_message"),
+			marshastic.String("short_message"),
+			marshastic.String("_trail"),
+			marshastic.String("_file"),
 		},
 		Key:     Excerpt,
 		Marks:   [3][]byte{[]byte("…"), []byte("_EMPTY_"), []byte("_BLANK_")},
