@@ -1,4 +1,4 @@
-package marshastic
+package logastic
 
 import (
 	"bytes"
@@ -877,6 +877,49 @@ func (p uintptrP) MarshalJSON() ([]byte, error) {
 	return p.MarshalText()
 }
 
+// Time returns stringer/JSON marshaler interface implementation for the time time type.
+func Time(v time.Time) timeV { return timeV{V: v} }
+
+type timeV struct{ V time.Time }
+
+func (v timeV) String() string {
+	return v.V.String()
+}
+
+func (v timeV) MarshalText() ([]byte, error) {
+	return v.V.MarshalText()
+}
+
+func (v timeV) MarshalJSON() ([]byte, error) {
+	return v.V.MarshalJSON()
+}
+
+// Timep returns stringer/JSON marshaler interface implementation for the pointer to the time time type.
+func Timep(p *time.Time) timeP { return timeP{P: p} }
+
+type timeP struct{ P *time.Time }
+
+func (p timeP) String() string {
+	if p.P == nil {
+		return "null"
+	}
+	return timeV{V: *p.P}.String()
+}
+
+func (p timeP) MarshalText() ([]byte, error) {
+	if p.P == nil {
+		return []byte("null"), nil
+	}
+	return timeV{V: *p.P}.MarshalText()
+}
+
+func (p timeP) MarshalJSON() ([]byte, error) {
+	if p.P == nil {
+		return []byte("null"), nil
+	}
+	return timeV{V: *p.P}.MarshalJSON()
+}
+
 // Duration returns stringer/JSON marshaler interface implementation for the time duration type.
 func Duration(v time.Duration) durationV { return durationV{V: v} }
 
@@ -1027,6 +1070,10 @@ func (v anyV) String() string {
 		return Uintptr(x).String()
 	case *uintptr:
 		return Uintptrp(x).String()
+	case time.Time:
+		return Time(x).String()
+	case *time.Time:
+		return Timep(x).String()
 	case time.Duration:
 		return Duration(x).String()
 	case *time.Duration:
@@ -1119,6 +1166,10 @@ func (v anyV) MarshalText() ([]byte, error) {
 		return Uintptr(x).MarshalText()
 	case *uintptr:
 		return Uintptrp(x).MarshalText()
+	case time.Time:
+		return Time(x).MarshalText()
+	case *time.Time:
+		return Timep(x).MarshalText()
 	case time.Duration:
 		return Duration(x).MarshalText()
 	case *time.Duration:
@@ -1210,6 +1261,10 @@ func (v anyV) MarshalJSON() ([]byte, error) {
 		return Uintptr(x).MarshalJSON()
 	case *uintptr:
 		return Uintptrp(x).MarshalJSON()
+	case time.Time:
+		return Time(x).MarshalJSON()
+	case *time.Time:
+		return Timep(x).MarshalJSON()
 	case time.Duration:
 		return Duration(x).MarshalJSON()
 	case *time.Duration:
