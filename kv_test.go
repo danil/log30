@@ -1259,7 +1259,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        logastic.StringString("string", "Hello, Wörld!"),
+		input:        logastic.String("string", "Hello, Wörld!"),
 		expected:     "Hello, Wörld!",
 		expectedText: "Hello, Wörld!",
 		expectedJSON: `{
@@ -1268,7 +1268,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        logastic.StringString("empty string", ""),
+		input:        logastic.String("empty string", ""),
 		expected:     "",
 		expectedText: "",
 		expectedJSON: `{
@@ -1277,7 +1277,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        logastic.StringString("string with zero byte", string(byte(0))),
+		input:        logastic.String("string with zero byte", string(byte(0))),
 		expected:     "\\u0000",
 		expectedText: "\\u0000",
 		expectedJSON: `{

@@ -36,11 +36,11 @@ var WriteTestCases = []struct {
 		line: line(),
 		log: logastic.Log{
 			Trunc: 120,
-			KV:    []logastic.KV{logastic.StringString("string", "foo")},
+			KV:    []logastic.KV{logastic.String("string", "foo")},
 			Keys:  [4]encoding.TextMarshaler{logastic.String("message")},
 		},
 		input: []byte("Hello, World!"),
-		kv:    []logastic.KV{logastic.StringString("string", "bar")},
+		kv:    []logastic.KV{logastic.String("string", "bar")},
 		expected: `{
 			"message":"Hello, World!",
 		  "string": "bar"
@@ -61,7 +61,7 @@ var WriteTestCases = []struct {
 		name: `bytes appends to the "message" key with "string value"`,
 		line: line(),
 		log: logastic.Log{
-			KV:      []logastic.KV{logastic.StringString("message", "string value")},
+			KV:      []logastic.KV{logastic.String("message", "string value")},
 			Trunc:   120,
 			Keys:    [4]encoding.TextMarshaler{logastic.String("message"), logastic.String("excerpt"), logastic.String("trail")},
 			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
@@ -78,7 +78,7 @@ var WriteTestCases = []struct {
 		line:  line(),
 		log:   dummy,
 		input: []byte("Hello,\nWorld!"),
-		kv:    []logastic.KV{logastic.StringString("message", "string value")},
+		kv:    []logastic.KV{logastic.String("message", "string value")},
 		expected: `{
 			"message":"string value",
 			"excerpt":"Hello, World!",
@@ -89,7 +89,7 @@ var WriteTestCases = []struct {
 		name: `bytes is nil and "message" key with "string value"`,
 		line: line(),
 		log: logastic.Log{
-			KV:    []logastic.KV{logastic.StringString("message", "string value")},
+			KV:    []logastic.KV{logastic.String("message", "string value")},
 			Trunc: 120,
 			Keys:  [4]encoding.TextMarshaler{logastic.String("message")},
 		},
@@ -101,7 +101,7 @@ var WriteTestCases = []struct {
 		name: `input is nil and "message" key with "string value"`,
 		line: line(),
 		log:  dummy,
-		kv:   []logastic.KV{logastic.StringString("message", "string value")},
+		kv:   []logastic.KV{logastic.String("message", "string value")},
 		expected: `{
 			"message":"string value"
 		}`,
@@ -173,7 +173,7 @@ var WriteTestCases = []struct {
 			Keys:  [4]encoding.TextMarshaler{logastic.String("message")},
 			Key:   logastic.Original,
 		},
-		kv: []logastic.KV{logastic.StringString("message", "foo")},
+		kv: []logastic.KV{logastic.String("message", "foo")},
 		expected: `{
 			"message":"foo"
 		}`,
@@ -187,7 +187,7 @@ var WriteTestCases = []struct {
 			Key:     logastic.Original,
 			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 		},
-		kv: []logastic.KV{logastic.StringString("message", "foo\n")},
+		kv: []logastic.KV{logastic.String("message", "foo\n")},
 		expected: `{
 			"message":"foo\n"
 		}`,
@@ -202,7 +202,7 @@ var WriteTestCases = []struct {
 			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 		},
 		input: []byte("foo"),
-		kv:    []logastic.KV{logastic.StringString("message", "bar")},
+		kv:    []logastic.KV{logastic.String("message", "bar")},
 		expected: `{
 			"message":"bar",
 			"trail":"foo"
@@ -217,7 +217,7 @@ var WriteTestCases = []struct {
 			Key:   logastic.Original,
 		},
 		input: []byte("foo\n"),
-		kv:    []logastic.KV{logastic.StringString("message", "bar")},
+		kv:    []logastic.KV{logastic.String("message", "bar")},
 		expected: `{
 			"message":"bar",
 			"excerpt":"foo",
@@ -234,7 +234,7 @@ var WriteTestCases = []struct {
 			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 		},
 		input: []byte("foo\n"),
-		kv:    []logastic.KV{logastic.StringString("message", "bar\n")},
+		kv:    []logastic.KV{logastic.String("message", "bar\n")},
 		expected: `{
 			"message":"bar\n",
 			"excerpt":"foo",
@@ -249,7 +249,7 @@ var WriteTestCases = []struct {
 			Keys:  [4]encoding.TextMarshaler{logastic.String("message"), logastic.String("excerpt")},
 			Key:   logastic.Original,
 		},
-		kv: []logastic.KV{logastic.StringString("excerpt", "foo")},
+		kv: []logastic.KV{logastic.String("excerpt", "foo")},
 		expected: `{
 			"excerpt":"foo"
 		}`,
@@ -263,7 +263,7 @@ var WriteTestCases = []struct {
 			Key:     logastic.Original,
 			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 		},
-		kv: []logastic.KV{logastic.StringString("excerpt", "foo\n")},
+		kv: []logastic.KV{logastic.String("excerpt", "foo\n")},
 		expected: `{
 			"excerpt":"foo\n"
 		}`,
@@ -277,7 +277,7 @@ var WriteTestCases = []struct {
 			Key:   logastic.Original,
 		},
 		input: []byte("foo"),
-		kv:    []logastic.KV{logastic.StringString("excerpt", "bar")},
+		kv:    []logastic.KV{logastic.String("excerpt", "bar")},
 		expected: `{
 			"message":"foo",
 			"excerpt":"bar"
@@ -293,7 +293,7 @@ var WriteTestCases = []struct {
 			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 		},
 		input: []byte("foo\n"),
-		kv:    []logastic.KV{logastic.StringString("excerpt", "bar")},
+		kv:    []logastic.KV{logastic.String("excerpt", "bar")},
 		expected: `{
 			"message":"foo\n",
 			"excerpt":"bar"
@@ -309,7 +309,7 @@ var WriteTestCases = []struct {
 			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 		},
 		input: []byte("foo\n"),
-		kv:    []logastic.KV{logastic.StringString("excerpt", "bar")},
+		kv:    []logastic.KV{logastic.String("excerpt", "bar")},
 		expected: `{
 			"message":"foo\n",
 			"excerpt":"bar"
@@ -325,7 +325,7 @@ var WriteTestCases = []struct {
 			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 		},
 		input: []byte("foo\n"),
-		kv:    []logastic.KV{logastic.StringString("excerpt", "bar\n")},
+		kv:    []logastic.KV{logastic.String("excerpt", "bar\n")},
 		expected: `{
 			"message":"foo\n",
 			"excerpt":"bar\n"
@@ -339,7 +339,7 @@ var WriteTestCases = []struct {
 			Keys:  [4]encoding.TextMarshaler{logastic.String("message"), logastic.String("excerpt")},
 			Key:   logastic.Original,
 		},
-		kv: []logastic.KV{logastic.StringString("message", "foo"), logastic.StringString("excerpt", "bar")},
+		kv: []logastic.KV{logastic.String("message", "foo"), logastic.String("excerpt", "bar")},
 		expected: `{
 			"message":"foo",
 			"excerpt":"bar"
@@ -354,7 +354,7 @@ var WriteTestCases = []struct {
 			Key:     logastic.Original,
 			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 		},
-		kv: []logastic.KV{logastic.StringString("message", "foo\n"), logastic.StringString("excerpt", "bar\n")},
+		kv: []logastic.KV{logastic.String("message", "foo\n"), logastic.String("excerpt", "bar\n")},
 		expected: `{
 			"message":"foo\n",
 			"excerpt":"bar\n"
@@ -369,7 +369,7 @@ var WriteTestCases = []struct {
 			Key:   logastic.Original,
 		},
 		input: []byte("foo"),
-		kv:    []logastic.KV{logastic.StringString("message", "bar"), logastic.StringString("excerpt", "xyz")},
+		kv:    []logastic.KV{logastic.String("message", "bar"), logastic.String("excerpt", "xyz")},
 		expected: `{
 			"message":"bar",
 			"excerpt":"xyz",
@@ -387,8 +387,8 @@ var WriteTestCases = []struct {
 		},
 		input: []byte("foo\n"),
 		kv: []logastic.KV{
-			logastic.StringString("message", "bar"),
-			logastic.StringString("excerpt", "xyz"),
+			logastic.String("message", "bar"),
+			logastic.String("excerpt", "xyz"),
 		},
 		expected: `{
 			"message":"bar",
@@ -406,7 +406,7 @@ var WriteTestCases = []struct {
 			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 		},
 		input: []byte("foo\n"),
-		kv:    []logastic.KV{logastic.StringString("message", "bar\n"), logastic.StringString("excerpt", "xyz\n")},
+		kv:    []logastic.KV{logastic.String("message", "bar\n"), logastic.String("excerpt", "xyz\n")},
 		expected: `{
 			"message":"bar\n",
 			"excerpt":"xyz\n",
@@ -421,7 +421,7 @@ var WriteTestCases = []struct {
 			Keys:  [4]encoding.TextMarshaler{logastic.String("message")},
 			Key:   logastic.Excerpt,
 		},
-		kv: []logastic.KV{logastic.StringString("message", "foo")},
+		kv: []logastic.KV{logastic.String("message", "foo")},
 		expected: `{
 			"message":"foo"
 		}`,
@@ -435,7 +435,7 @@ var WriteTestCases = []struct {
 			Key:     logastic.Excerpt,
 			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 		},
-		kv: []logastic.KV{logastic.StringString("message", "foo\n")},
+		kv: []logastic.KV{logastic.String("message", "foo\n")},
 		expected: `{
 			"message":"foo\n"
 		}`,
@@ -450,7 +450,7 @@ var WriteTestCases = []struct {
 			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 		},
 		input: []byte("foo"),
-		kv:    []logastic.KV{logastic.StringString("message", "bar")},
+		kv:    []logastic.KV{logastic.String("message", "bar")},
 		expected: `{
 			"message":"bar",
 			"excerpt":"foo"
@@ -465,7 +465,7 @@ var WriteTestCases = []struct {
 			Key:   logastic.Excerpt,
 		},
 		input: []byte("foo\n"),
-		kv:    []logastic.KV{logastic.StringString("message", "bar")},
+		kv:    []logastic.KV{logastic.String("message", "bar")},
 		expected: `{
 			"message":"bar",
 			"excerpt":"foo",
@@ -482,7 +482,7 @@ var WriteTestCases = []struct {
 			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 		},
 		input: []byte("foo\n"),
-		kv:    []logastic.KV{logastic.StringString("message", "bar\n")},
+		kv:    []logastic.KV{logastic.String("message", "bar\n")},
 		expected: `{
 			"message":"bar\n",
 			"excerpt":"foo",
@@ -497,7 +497,7 @@ var WriteTestCases = []struct {
 			Keys:  [4]encoding.TextMarshaler{logastic.String("message"), logastic.String("excerpt")},
 			Key:   logastic.Excerpt,
 		},
-		kv: []logastic.KV{logastic.StringString("excerpt", "foo")},
+		kv: []logastic.KV{logastic.String("excerpt", "foo")},
 		expected: `{
 			"excerpt":"foo"
 		}`,
@@ -511,7 +511,7 @@ var WriteTestCases = []struct {
 			Key:     logastic.Excerpt,
 			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 		},
-		kv: []logastic.KV{logastic.StringString("excerpt", "foo\n")},
+		kv: []logastic.KV{logastic.String("excerpt", "foo\n")},
 		expected: `{
 			"excerpt":"foo\n"
 		}`,
@@ -525,7 +525,7 @@ var WriteTestCases = []struct {
 			Key:   logastic.Excerpt,
 		},
 		input: []byte("foo"),
-		kv:    []logastic.KV{logastic.StringString("excerpt", "bar")},
+		kv:    []logastic.KV{logastic.String("excerpt", "bar")},
 		expected: `{
 			"message":"foo",
 			"excerpt":"bar"
@@ -541,7 +541,7 @@ var WriteTestCases = []struct {
 			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 		},
 		input: []byte("foo\n"),
-		kv:    []logastic.KV{logastic.StringString("excerpt", "bar")},
+		kv:    []logastic.KV{logastic.String("excerpt", "bar")},
 		expected: `{
 			"message":"foo\n",
 			"excerpt":"bar"
@@ -557,7 +557,7 @@ var WriteTestCases = []struct {
 			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 		},
 		input: []byte("foo\n"),
-		kv:    []logastic.KV{logastic.StringString("excerpt", "bar")},
+		kv:    []logastic.KV{logastic.String("excerpt", "bar")},
 		expected: `{
 			"message":"foo\n",
 			"excerpt":"bar"
@@ -573,7 +573,7 @@ var WriteTestCases = []struct {
 			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 		},
 		input: []byte("foo\n"),
-		kv:    []logastic.KV{logastic.StringString("excerpt", "bar\n")},
+		kv:    []logastic.KV{logastic.String("excerpt", "bar\n")},
 		expected: `{
 			"message":"foo\n",
 			"excerpt":"bar\n"
@@ -587,7 +587,7 @@ var WriteTestCases = []struct {
 			Keys:  [4]encoding.TextMarshaler{logastic.String("message"), logastic.String("excerpt")},
 			Key:   logastic.Excerpt,
 		},
-		kv: []logastic.KV{logastic.StringString("message", "foo"), logastic.StringString("excerpt", "bar")},
+		kv: []logastic.KV{logastic.String("message", "foo"), logastic.String("excerpt", "bar")},
 		expected: `{
 			"message":"foo",
 			"excerpt":"bar"
@@ -602,7 +602,7 @@ var WriteTestCases = []struct {
 			Key:     logastic.Excerpt,
 			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 		},
-		kv: []logastic.KV{logastic.StringString("message", "foo\n"), logastic.StringString("excerpt", "bar\n")},
+		kv: []logastic.KV{logastic.String("message", "foo\n"), logastic.String("excerpt", "bar\n")},
 		expected: `{
 			"message":"foo\n",
 			"excerpt":"bar\n"
@@ -617,7 +617,7 @@ var WriteTestCases = []struct {
 			Key:   logastic.Excerpt,
 		},
 		input: []byte("foo"),
-		kv:    []logastic.KV{logastic.StringString("message", "bar"), logastic.StringString("excerpt", "xyz")},
+		kv:    []logastic.KV{logastic.String("message", "bar"), logastic.String("excerpt", "xyz")},
 		expected: `{
 			"message":"bar",
 			"excerpt":"xyz",
@@ -634,7 +634,7 @@ var WriteTestCases = []struct {
 			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 		},
 		input: []byte("foo\n"),
-		kv:    []logastic.KV{logastic.StringString("message", "bar"), logastic.StringString("excerpt", "xyz")},
+		kv:    []logastic.KV{logastic.String("message", "bar"), logastic.String("excerpt", "xyz")},
 		expected: `{
 			"message":"bar",
 			"excerpt":"xyz",
@@ -651,7 +651,7 @@ var WriteTestCases = []struct {
 			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 		},
 		input: []byte("foo\n"),
-		kv:    []logastic.KV{logastic.StringString("message", "bar\n"), logastic.StringString("excerpt", "xyz\n")},
+		kv:    []logastic.KV{logastic.String("message", "bar\n"), logastic.String("excerpt", "xyz\n")},
 		expected: `{
 			"message":"bar\n",
 			"excerpt":"xyz\n",
@@ -683,7 +683,7 @@ var WriteTestCases = []struct {
 			Flag: log.Llongfile,
 			Keys: [4]encoding.TextMarshaler{logastic.String("message")},
 		},
-		kv: []logastic.KV{logastic.StringString("foo", "bar")},
+		kv: []logastic.KV{logastic.String("foo", "bar")},
 		expected: `{
 			"foo":"bar"
 		}`,
@@ -730,9 +730,9 @@ var WriteTestCases = []struct {
 		name: "permanent kv overwritten by the additional kv",
 		line: line(),
 		log: logastic.Log{
-			KV: []logastic.KV{logastic.StringString("foo", "bar")},
+			KV: []logastic.KV{logastic.String("foo", "bar")},
 		},
-		kv: []logastic.KV{logastic.StringString("foo", "baz")},
+		kv: []logastic.KV{logastic.String("foo", "baz")},
 		expected: `{
 			"foo":"baz"
 		}`,
@@ -741,11 +741,11 @@ var WriteTestCases = []struct {
 		name: "permanent kv and first additional kv overwritten by the second additional kv",
 		line: line(),
 		log: logastic.Log{
-			KV: []logastic.KV{logastic.StringString("foo", "bar")},
+			KV: []logastic.KV{logastic.String("foo", "bar")},
 		},
 		kv: []logastic.KV{
-			logastic.StringString("foo", "baz"),
-			logastic.StringString("foo", "xyz"),
+			logastic.String("foo", "baz"),
+			logastic.String("foo", "xyz"),
 		},
 		expected: `{
 			"foo":"xyz"
@@ -809,7 +809,7 @@ var FprintWriteTestCases = []struct {
 					return logastic.StringInt64("timestamp", time.Date(2020, time.October, 15, 18, 9, 0, 0, time.UTC).Unix())
 				},
 			}
-			lg.KV = []logastic.KV{logastic.StringString("version", "1.1")}
+			lg.KV = []logastic.KV{logastic.String("version", "1.1")}
 			return lg
 		}(),
 		input: "Hello,\nGELF!",
@@ -930,7 +930,7 @@ var FprintWriteTestCases = []struct {
 		name: `"string" key with "foo" value`,
 		line: line(),
 		log: logastic.Log{
-			KV:   []logastic.KV{logastic.StringString("string", "foo")},
+			KV:   []logastic.KV{logastic.String("string", "foo")},
 			Keys: [4]encoding.TextMarshaler{logastic.String("message")},
 		},
 		input: "Hello, World!",
@@ -1067,7 +1067,7 @@ var FprintWriteTestCases = []struct {
 		name: "explicit string as message excerpt key",
 		line: line(),
 		log: logastic.Log{
-			KV:    []logastic.KV{logastic.StringString("excerpt", "Explicit string")},
+			KV:    []logastic.KV{logastic.String("excerpt", "Explicit string")},
 			Trunc: 120,
 			Keys:  [4]encoding.TextMarshaler{logastic.String("message"), logastic.String("excerpt")},
 		},
@@ -1139,7 +1139,7 @@ var FprintWriteTestCases = []struct {
 		log: logastic.Log{
 			Func: []func() logastic.KV{
 				func() logastic.KV {
-					return logastic.StringString("time", time.Date(2020, time.October, 15, 18, 9, 0, 0, time.UTC).String())
+					return logastic.String("time", time.Date(2020, time.October, 15, 18, 9, 0, 0, time.UTC).String())
 				},
 			},
 			Keys: [4]encoding.TextMarshaler{logastic.String("message")},
@@ -1287,7 +1287,7 @@ var FprintWriteTestCases = []struct {
 					return logastic.StringInt64("timestamp", time.Date(2020, time.October, 15, 18, 9, 0, 0, time.UTC).Unix())
 				},
 			}
-			lg.KV = []logastic.KV{logastic.StringString("version", "1.1"), logastic.StringString("host", "example.tld")}
+			lg.KV = []logastic.KV{logastic.String("version", "1.1"), logastic.String("host", "example.tld")}
 			return lg
 		}(),
 		input: "Hello, GELF!",
@@ -1309,7 +1309,7 @@ var FprintWriteTestCases = []struct {
 					return logastic.StringInt64("timestamp", time.Date(2020, time.October, 15, 18, 9, 0, 0, time.UTC).Unix())
 				},
 			}
-			lg.KV = []logastic.KV{logastic.StringString("version", "1.1"), logastic.StringString("host", "example.tld")}
+			lg.KV = []logastic.KV{logastic.String("version", "1.1"), logastic.String("host", "example.tld")}
 			return lg
 		}(),
 		input: "path/to/file7:89: Hello, GELF!",
@@ -1545,7 +1545,7 @@ var WithTestCases = []struct {
 		line: line(),
 		log: logastic.Log{
 			KV: []logastic.KV{
-				logastic.StringString("foo", "bar"),
+				logastic.String("foo", "bar"),
 			},
 		},
 		expected: `{
@@ -1557,8 +1557,8 @@ var WithTestCases = []struct {
 		line: line(),
 		log: logastic.Log{
 			KV: []logastic.KV{
-				logastic.StringString("foo", "bar"),
-				logastic.StringString("baz", "xyz"),
+				logastic.String("foo", "bar"),
+				logastic.String("baz", "xyz"),
 			},
 		},
 		expected: `{
@@ -1571,7 +1571,7 @@ var WithTestCases = []struct {
 		line: line(),
 		log:  logastic.Log{},
 		kv: []logastic.KV{
-			logastic.StringString("baz", "xyz"),
+			logastic.String("baz", "xyz"),
 		},
 		expected: `{
 			"baz":"xyz"
@@ -1582,8 +1582,8 @@ var WithTestCases = []struct {
 		line: line(),
 		log:  logastic.Log{},
 		kv: []logastic.KV{
-			logastic.StringString("foo", "bar"),
-			logastic.StringString("baz", "xyz"),
+			logastic.String("foo", "bar"),
+			logastic.String("baz", "xyz"),
 		},
 		expected: `{
 			"foo":"bar",
@@ -1595,11 +1595,11 @@ var WithTestCases = []struct {
 		line: line(),
 		log: logastic.Log{
 			KV: []logastic.KV{
-				logastic.StringString("foo", "bar"),
+				logastic.String("foo", "bar"),
 			},
 		},
 		kv: []logastic.KV{
-			logastic.StringString("baz", "xyz"),
+			logastic.String("baz", "xyz"),
 		},
 		expected: `{
 			"foo":"bar",
@@ -1611,13 +1611,13 @@ var WithTestCases = []struct {
 		line: line(),
 		log: logastic.Log{
 			KV: []logastic.KV{
-				logastic.StringString("foo", "bar"),
-				logastic.StringString("abc", "dfg"),
+				logastic.String("foo", "bar"),
+				logastic.String("abc", "dfg"),
 			},
 		},
 		kv: []logastic.KV{
-			logastic.StringString("baz", "xyz"),
-			logastic.StringString("hjk", "lmn"),
+			logastic.String("baz", "xyz"),
+			logastic.String("hjk", "lmn"),
 		},
 		expected: `{
 			"foo":"bar",

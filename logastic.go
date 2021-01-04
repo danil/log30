@@ -11,6 +11,7 @@ import (
 	"unicode"
 	"unicode/utf8"
 
+	"github.com/danil/logastic/marshalastic"
 	jsoniter "github.com/json-iterator/go"
 )
 
@@ -168,25 +169,25 @@ func (lg Log) json(src []byte) ([]byte, error) {
 
 	if bytes.Equal(src, excerpt) && src != nil {
 		if lg.Key == Excerpt {
-			tmpKV[excerptKey] = Bytes(src)
+			tmpKV[excerptKey] = marshalastic.Bytes(src)
 
 		} else {
 			if tmpKV[originalKey] == nil {
-				tmpKV[originalKey] = Bytes(src)
+				tmpKV[originalKey] = marshalastic.Bytes(src)
 			} else if len(src) != 0 {
-				tmpKV[trailKey] = Bytes(src)
+				tmpKV[trailKey] = marshalastic.Bytes(src)
 			}
 		}
 
 	} else if !bytes.Equal(src, excerpt) {
 		if tmpKV[originalKey] == nil {
-			tmpKV[originalKey] = Bytes(src)
+			tmpKV[originalKey] = marshalastic.Bytes(src)
 		} else if tmpKV[originalKey] != nil && len(src) != 0 {
-			tmpKV[trailKey] = Bytes(src)
+			tmpKV[trailKey] = marshalastic.Bytes(src)
 		}
 
 		if tmpKV[excerptKey] == nil && len(excerpt) != 0 {
-			tmpKV[excerptKey] = Bytes(excerpt)
+			tmpKV[excerptKey] = marshalastic.Bytes(excerpt)
 		}
 	}
 
@@ -203,7 +204,7 @@ func (lg Log) json(src []byte) ([]byte, error) {
 	}
 
 	if file != 0 {
-		tmpKV[fileKey] = Bytes(src[:file])
+		tmpKV[fileKey] = marshalastic.Bytes(src[:file])
 	}
 
 	p, err := jsoniter.ConfigCompatibleWithStandardLibrary.Marshal(tmpKV)
@@ -342,7 +343,7 @@ func GELF() Log {
 		// GELF spec version – "1.1"; Must be set by client library.
 		// <https://docs.graylog.org/en/latest/pages/gelf.html#gelf-payload-specification>,
 		// <https://github.com/graylog-labs/gelf-rb/issues/41#issuecomment-198266505>.
-		KV: []KV{StringString("version", "1.1")},
+		KV: []KV{String("version", "1.1")},
 		Func: []func() KV{
 			func() KV { return StringInt64("timestamp", time.Now().Unix()) },
 		},

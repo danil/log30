@@ -1,4 +1,4 @@
-package logastic
+package marshalastic
 
 import (
 	"bytes"
