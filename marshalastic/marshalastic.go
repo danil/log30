@@ -655,6 +655,55 @@ func (p stringP) MarshalJSON() ([]byte, error) {
 	return stringV{V: *p.P}.MarshalJSON()
 }
 
+// Text returns stringer/JSON marshaler interface implementation for the encoding.TextMarshaler type.
+func Text(v encoding.TextMarshaler) textV { return textV{V: v} }
+
+type textV struct{ V encoding.TextMarshaler }
+
+func (v textV) String() string {
+	p, err := v.V.MarshalText()
+	if err != nil {
+		return ""
+	}
+
+	buf := bufPool.Get().(*bytes.Buffer)
+	buf.Reset()
+	defer bufPool.Put(buf)
+
+	err = encode.Bytes(buf, p)
+	if err != nil {
+		return ""
+	}
+
+	return buf.String()
+}
+
+func (v textV) MarshalText() ([]byte, error) {
+	p, err := v.V.MarshalText()
+	if err != nil {
+		return nil, err
+	}
+
+	buf := bufPool.Get().(*bytes.Buffer)
+	buf.Reset()
+	defer bufPool.Put(buf)
+
+	err = encode.Bytes(buf, p)
+	if err != nil {
+		return nil, err
+	}
+
+	return buf.Bytes(), nil
+}
+
+func (v textV) MarshalJSON() ([]byte, error) {
+	p, err := v.MarshalText()
+	if err != nil {
+		return nil, err
+	}
+	return append([]byte(`"`), append(p, []byte(`"`)...)...), nil
+}
+
 // Uint returns stringer/JSON marshaler interface implementation for the uint type.
 func Uint(v uint) uintV { return uintV{V: v} }
 
@@ -1078,6 +1127,8 @@ func (v anyV) String() string {
 		return Duration(x).String()
 	case *time.Duration:
 		return Durationp(x).String()
+	case encoding.TextMarshaler:
+		return Text(x).String()
 	case json.Marshaler:
 		p, _ := x.MarshalJSON()
 		return string(p)
@@ -1269,6 +1320,8 @@ func (v anyV) MarshalJSON() ([]byte, error) {
 		return Duration(x).MarshalJSON()
 	case *time.Duration:
 		return Durationp(x).MarshalJSON()
+	case encoding.TextMarshaler:
+		return Text(x).MarshalJSON()
 	case json.Marshaler:
 		return x.MarshalJSON()
 	default:

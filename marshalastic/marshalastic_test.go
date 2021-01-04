@@ -1428,6 +1428,33 @@ var MarshalTestCases = []struct {
 	},
 	{
 		line:         line(),
+		input:        map[string]json.Marshaler{"text": marshalastic.Text(marshalastic.String("Hello, Wörld!"))},
+		expected:     "Hello, Wörld!",
+		expectedText: "Hello, Wörld!",
+		expectedJSON: `{
+			"text":"Hello, Wörld!"
+		}`,
+	},
+	{
+		line:         line(),
+		input:        map[string]json.Marshaler{"empty text": marshalastic.Text(marshalastic.String(""))},
+		expected:     "",
+		expectedText: "",
+		expectedJSON: `{
+			"empty text":""
+		}`,
+	},
+	{
+		line:         line(),
+		input:        map[string]json.Marshaler{"text with zero byte": marshalastic.Text(marshalastic.String(string(byte(0))))},
+		expected:     "\\u0000",
+		expectedText: "\\u0000",
+		expectedJSON: `{
+			"text with zero byte":"\u0000"
+		}`,
+	},
+	{
+		line:         line(),
 		input:        map[string]json.Marshaler{"uint": marshalastic.Uint(42)},
 		expected:     "42",
 		expectedText: "42",

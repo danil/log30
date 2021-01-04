@@ -117,15 +117,15 @@ func StringRunesp(k string, v *[]rune) kvp {
 	return kvp{K: marshalastic.String(k), V: marshalastic.Runesp(v)}
 }
 
-func String(s ...string) kvp {
-	if len(s) == 0 {
+func String(a ...string) kvp {
+	if len(a) == 0 {
 		kv := marshalastic.String("")
 		return kvp{K: kv, V: kv}
 	}
-	if len(s) == 1 {
-		return kvp{K: marshalastic.String(s[0]), V: marshalastic.String("")}
+	if len(a) == 1 {
+		return kvp{K: marshalastic.String(a[0]), V: marshalastic.String("")}
 	}
-	return kvp{K: marshalastic.String(s[0]), V: marshalastic.String(s[1])}
+	return kvp{K: marshalastic.String(a[0]), V: marshalastic.String(a[1])}
 }
 
 func StringStringp(k string, v *string) kvp {
@@ -206,4 +206,199 @@ func StringAny(k string, v interface{}) kvp {
 
 func StringReflect(k string, v interface{}) kvp {
 	return kvp{K: marshalastic.String(k), V: marshalastic.Reflect(v)}
+}
+
+func TextBool(k encoding.TextMarshaler, v bool) kvp {
+	return kvp{K: k, V: marshalastic.Bool(v)}
+}
+
+func TextBoolp(k encoding.TextMarshaler, v *bool) kvp {
+	return kvp{K: k, V: marshalastic.Boolp(v)}
+}
+
+func TextBytes(k encoding.TextMarshaler, v []byte) kvp {
+	return kvp{K: k, V: marshalastic.Bytes(v)}
+}
+
+func TextBytesp(k encoding.TextMarshaler, v *[]byte) kvp {
+	return kvp{K: k, V: marshalastic.Bytesp(v)}
+}
+
+func TextComplex128(k encoding.TextMarshaler, v complex128) kvp {
+	return kvp{K: k, V: marshalastic.Complex128(v)}
+}
+
+func TextComplex128p(k encoding.TextMarshaler, v *complex128) kvp {
+	return kvp{K: k, V: marshalastic.Complex128p(v)}
+}
+
+func TextComplex64(k encoding.TextMarshaler, v complex64) kvp {
+	return kvp{K: k, V: marshalastic.Complex64(v)}
+}
+
+func TextComplex64p(k encoding.TextMarshaler, v *complex64) kvp {
+	return kvp{K: k, V: marshalastic.Complex64p(v)}
+}
+
+func TextError(k encoding.TextMarshaler, v error) kvp {
+	return kvp{K: k, V: marshalastic.Error(v)}
+}
+
+func TextFloat32(k encoding.TextMarshaler, v float32) kvp {
+	return kvp{K: k, V: marshalastic.Float32(v)}
+}
+
+func TextFloat32p(k encoding.TextMarshaler, v *float32) kvp {
+	return kvp{K: k, V: marshalastic.Float32p(v)}
+}
+
+func TextFloat64(k encoding.TextMarshaler, v float64) kvp {
+	return kvp{K: k, V: marshalastic.Float64(v)}
+}
+
+func TextFloat64p(k encoding.TextMarshaler, v *float64) kvp {
+	return kvp{K: k, V: marshalastic.Float64p(v)}
+}
+
+func TextInt(k encoding.TextMarshaler, v int) kvp {
+	return kvp{K: k, V: marshalastic.Int(v)}
+}
+
+func TextIntp(k encoding.TextMarshaler, v *int) kvp {
+	return kvp{K: k, V: marshalastic.Intp(v)}
+}
+
+func TextInt16(k encoding.TextMarshaler, v int16) kvp {
+	return kvp{K: k, V: marshalastic.Int16(v)}
+}
+
+func TextInt16p(k encoding.TextMarshaler, v *int16) kvp {
+	return kvp{K: k, V: marshalastic.Int16p(v)}
+}
+
+func TextInt32(k encoding.TextMarshaler, v int32) kvp {
+	return kvp{K: k, V: marshalastic.Int32(v)}
+}
+
+func TextInt32p(k encoding.TextMarshaler, v *int32) kvp {
+	return kvp{K: k, V: marshalastic.Int32p(v)}
+}
+
+func TextInt64(k encoding.TextMarshaler, v int64) kvp {
+	return kvp{K: k, V: marshalastic.Int64(v)}
+}
+
+func TextInt64p(k encoding.TextMarshaler, v *int64) kvp {
+	return kvp{K: k, V: marshalastic.Int64p(v)}
+}
+
+func TextInt8(k encoding.TextMarshaler, v int8) kvp {
+	return kvp{K: k, V: marshalastic.Int8(v)}
+}
+
+func TextInt8p(k encoding.TextMarshaler, v *int8) kvp {
+	return kvp{K: k, V: marshalastic.Int8p(v)}
+}
+
+func TextRunes(k encoding.TextMarshaler, v []rune) kvp {
+	return kvp{K: k, V: marshalastic.Runes(v)}
+}
+
+func TextRunesp(k encoding.TextMarshaler, v *[]rune) kvp {
+	return kvp{K: k, V: marshalastic.Runesp(v)}
+}
+
+func Text(a ...encoding.TextMarshaler) kvp {
+	if len(a) == 0 {
+		kv := marshalastic.String("")
+		return kvp{K: kv, V: kv}
+	}
+	if len(a) == 1 {
+		return kvp{K: a[0], V: marshalastic.String("")}
+	}
+	return kvp{K: a[0], V: marshalastic.Text(a[1])}
+}
+
+func TextString(k encoding.TextMarshaler, v string) kvp {
+	return kvp{K: k, V: marshalastic.String(v)}
+}
+
+func TextStringp(k encoding.TextMarshaler, v *string) kvp {
+	return kvp{K: k, V: marshalastic.Stringp(v)}
+}
+
+func TextUint(k encoding.TextMarshaler, v uint) kvp {
+	return kvp{K: k, V: marshalastic.Uint(v)}
+}
+
+func TextUintp(k encoding.TextMarshaler, v *uint) kvp {
+	return kvp{K: k, V: marshalastic.Uintp(v)}
+}
+
+func TextUint16(k encoding.TextMarshaler, v uint16) kvp {
+	return kvp{K: k, V: marshalastic.Uint16(v)}
+}
+
+func TextUint16p(k encoding.TextMarshaler, v *uint16) kvp {
+	return kvp{K: k, V: marshalastic.Uint16p(v)}
+}
+
+func TextUint32(k encoding.TextMarshaler, v uint32) kvp {
+	return kvp{K: k, V: marshalastic.Uint32(v)}
+}
+
+func TextUint32p(k encoding.TextMarshaler, v *uint32) kvp {
+	return kvp{K: k, V: marshalastic.Uint32p(v)}
+}
+
+func TextUint64(k encoding.TextMarshaler, v uint64) kvp {
+	return kvp{K: k, V: marshalastic.Uint64(v)}
+}
+
+func TextUint64p(k encoding.TextMarshaler, v *uint64) kvp {
+	return kvp{K: k, V: marshalastic.Uint64p(v)}
+}
+
+func TextUint8(k encoding.TextMarshaler, v uint8) kvp {
+	return kvp{K: k, V: marshalastic.Uint8(v)}
+}
+
+func TextUint8p(k encoding.TextMarshaler, v *uint8) kvp {
+	return kvp{K: k, V: marshalastic.Uint8p(v)}
+}
+
+func TextUintptr(k encoding.TextMarshaler, v uintptr) kvp {
+	return kvp{K: k, V: marshalastic.Uintptr(v)}
+}
+
+func TextUintptrp(k encoding.TextMarshaler, v *uintptr) kvp {
+	return kvp{K: k, V: marshalastic.Uintptrp(v)}
+}
+
+func TextDuration(k encoding.TextMarshaler, v time.Duration) kvp {
+	return kvp{K: k, V: marshalastic.Duration(v)}
+}
+
+func TextDurationp(k encoding.TextMarshaler, v *time.Duration) kvp {
+	return kvp{K: k, V: marshalastic.Durationp(v)}
+}
+
+func TextTime(k encoding.TextMarshaler, v time.Time) kvp {
+	return kvp{K: k, V: marshalastic.Time(v)}
+}
+
+func TextTimep(k encoding.TextMarshaler, v *time.Time) kvp {
+	return kvp{K: k, V: marshalastic.Timep(v)}
+}
+
+func TextRaw(k encoding.TextMarshaler, v []byte) kvp {
+	return kvp{K: k, V: marshalastic.Raw(v)}
+}
+
+func TextAny(k encoding.TextMarshaler, v interface{}) kvp {
+	return kvp{K: k, V: marshalastic.Any(v)}
+}
+
+func TextReflect(k encoding.TextMarshaler, v interface{}) kvp {
+	return kvp{K: k, V: marshalastic.Reflect(v)}
 }
