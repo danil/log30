@@ -1,10 +1,16 @@
 package logastic_test
 
 import (
+	"encoding/json"
 	"errors"
+	"fmt"
+	"runtime"
+	"testing"
 	"time"
 
+	"github.com/danil/equalastic"
 	"github.com/danil/logastic"
+	"github.com/kinbiko/jsonassert"
 )
 
 var KVTestCases = []struct {
@@ -1912,7 +1918,7 @@ var KVTestCases = []struct {
 		expected:     "0001-01-01 00:00:00 +0000 UTC",
 		expectedText: "0001-01-01T00:00:00Z",
 		expectedJSON: `{
-			"nil time pointer":"0001-01-01T00:00:00Z"
+			"nil time pointer":null
 		}`,
 	},
 	{
@@ -2190,26 +2196,31 @@ var KVTestCases = []struct {
 	},
 }
 
-// func TestKV(t *testing.T) {
-// 	_, testFile, _, _ := runtime.Caller(0)
-// 	for _, tc := range KVTestCases {
-// 		tc := tc
-// 		t.Run(fmt.Sprint(tc.input), func(t *testing.T) {
-// 			t.Parallel()
-// 			linkToExample := fmt.Sprintf("%s:%d", testFile, tc.line)
+func TestKV(t *testing.T) {
+	_, testFile, _, _ := runtime.Caller(0)
+	for _, tc := range KVTestCases {
+		tc := tc
+		t.Run(fmt.Sprint(tc.input), func(t *testing.T) {
+			t.Parallel()
+			linkToExample := fmt.Sprintf("%s:%d", testFile, tc.line)
 
-// 			m := map[encoding.TextMarshaler]json.Marshaler{tc.input: tc.input}
+			p, err := tc.input.MarshalText()
+			if err != nil {
+				t.Fatalf("encoding marshal text error: %s", err)
+			}
 
-// 			p, err := json.Marshal(m)
+			m := map[string]json.Marshaler{string(p): tc.input}
 
-// 			if !equalastic.ErrorEqual(err, tc.error) {
-// 				t.Fatalf("marshal error expected: %s, recieved: %s %s", tc.error, err, linkToExample)
-// 			}
+			p, err = json.Marshal(m)
 
-// 			if err == nil {
-// 				ja := jsonassert.New(testprinter{t: t, link: linkToExample})
-// 				ja.Assertf(string(p), tc.expectedJSON)
-// 			}
-// 		})
-// 	}
-// }
+			if !equalastic.ErrorEqual(err, tc.error) {
+				t.Fatalf("marshal error expected: %s, recieved: %s %s", tc.error, err, linkToExample)
+			}
+
+			if err == nil {
+				ja := jsonassert.New(testprinter{t: t, link: linkToExample})
+				ja.Assertf(string(p), tc.expectedJSON)
+			}
+		})
+	}
+}
