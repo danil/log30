@@ -12,7 +12,7 @@ its extremely slow and allocates a lots of memory)
 
 ## Install
 
-    go get github.com/danil/logastic@v0.81.0
+    go get github.com/danil/logastic@v0.82.0
 
 ## Usage
 
@@ -132,14 +132,8 @@ go test -bench=. ./...
 goos: linux
 goarch: amd64
 pkg: github.com/danil/logastic
-BenchmarkLogastic/io.Writer_36-8         	  329304	      3569 ns/op
-BenchmarkLogastic/fmt.Fprint_io.Writer_1009-8         	  125017	      9537 ns/op
-PASS
-ok  	github.com/danil/logastic	2.509s
-PASS
-ok  	github.com/danil/logastic/encode	0.003s
-PASS
-ok  	github.com/danil/logastic/marshalastic	0.005s
+BenchmarkLogastic/io.Writer_36-8         	  323197	      3678 ns/op
+BenchmarkLogastic/fmt.Fprint_io.Writer_1009-8         	  121657	     10417 ns/op
 ```
 
 ## License

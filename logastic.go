@@ -23,9 +23,9 @@ const (
 )
 
 const (
-	truncMark = iota
-	emptyMark
-	blankMark
+	Trunc = iota
+	Empty
+	Blank
 )
 
 // Log is a JSON logger/writer.
@@ -135,10 +135,10 @@ func (lg Log) json(src []byte) ([]byte, error) {
 
 	if tmpKV[excerptKey] == nil {
 		if tail == len(src) && tmpKV[originalKey] == nil {
-			excerpt = append(excerpt[:0], lg.Marks[emptyMark]...)
+			excerpt = append(excerpt[:0], lg.Marks[Empty]...)
 
 		} else if tail != len(src) {
-			n := len(src) + len(lg.Marks[truncMark])
+			n := len(src) + len(lg.Marks[Trunc])
 			for _, m := range lg.Marks {
 				if n < len(m) {
 					n = len(m)
@@ -320,11 +320,11 @@ replace:
 	}
 
 	if end-start == 0 {
-		n += copy(dst[n:], lg.Marks[blankMark])
+		n += copy(dst[n:], lg.Marks[Blank])
 	}
 
 	if end-start != 0 && truncate {
-		n += copy(dst[n:], lg.Marks[truncMark])
+		n += copy(dst[n:], lg.Marks[Trunc])
 	}
 
 	return n, nil
