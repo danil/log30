@@ -12,7 +12,7 @@ its extremely slow and allocates a lots of memory)
 
 ## Install
 
-    go get github.com/danil/logastic@v0.82.0
+    go get github.com/danil/logastic@v0.83.0
 
 ## Usage
 
@@ -138,5 +138,5 @@ BenchmarkLogastic/fmt.Fprint_io.Writer_1009-8         	  121657	     10417 ns/op
 
 ## License
 
-Copyright (C) 2020 [Danil Kutkevich](https://github.com/danil)  
+Copyright (C) 2021 [Danil Kutkevich](https://github.com/danil)  
 See the [LICENSE](./LICENSE) file for license rights and limitations (MIT)
