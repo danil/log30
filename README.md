@@ -5,6 +5,14 @@
 
 JSON logging for Go.
 
+* [About](#about)
+* [Install](#install)
+* [Usage](#usage)
+* [Use as GELF formater](#use-as-gelf-formater)
+* [Caveat: numeric types appears in the message as a string](#caveat-numeric-types-appears-in-the-message-as-a-string)
+* [Benchmark](#benchmark)
+* [License](#license)
+
 ## About
 
 The software is considered to be at a alpha level of readiness -
@@ -12,7 +20,7 @@ its extremely slow and allocates a lots of memory)
 
 ## Install
 
-    go get github.com/danil/logastic@v0.83.0
+    go get github.com/danil/logastic@v0.84.0
 
 ## Usage
 
