@@ -5,6 +5,8 @@
 
 JSON logging for Go.
 
+<!-- markdown-toc start - Don't edit this section. Run M-x markdown-toc-refresh-toc -->
+
 * [About](#about)
 * [Install](#install)
 * [Usage](#usage)
@@ -12,6 +14,8 @@ JSON logging for Go.
 * [Caveat: numeric types appears in the message as a string](#caveat-numeric-types-appears-in-the-message-as-a-string)
 * [Benchmark](#benchmark)
 * [License](#license)
+
+<!-- markdown-toc end -->
 
 ## About
 
