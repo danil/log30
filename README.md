@@ -150,5 +150,5 @@ BenchmarkLogastic/fmt.Fprint_io.Writer_1009-8         	  121657	     10417 ns/op
 
 ## License
 
-Copyright (C) 2021 [Danil Kutkevich](https://github.com/danil)  
+Copyright (C) 2021 [Danil Kutkevich](https://danil.kutkevich.org)  
 See the [LICENSE](./LICENSE) file for license rights and limitations (MIT)
