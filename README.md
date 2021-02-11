@@ -1,4 +1,5 @@
-# log64
+log64
+=====
 
 [![Build Status](https://cloud.drone.io/api/badges/danil/log64/status.svg)](https://cloud.drone.io/danil/log64)
 [![Go Reference](https://pkg.go.dev/badge/github.com/danil/log64.svg)](https://pkg.go.dev/github.com/danil/log64)
@@ -17,16 +18,19 @@ JSON logging for Go.
 
 <!-- markdown-toc end -->
 
-## About
+About
+-----
 
 The software is considered to be at a alpha level of readiness -
 its extremely slow and allocates a lots of memory)
 
-## Install
+Install
+-------
 
     go get github.com/danil/log64@v0.85.0
 
-## Usage
+Usage
+-----
 
 Set log64 as global logger
 
@@ -64,7 +68,8 @@ Output:
 }
 ```
 
-## Use as GELF formater
+Use as GELF formater
+--------------------
 
 ```go
 package main
@@ -96,7 +101,8 @@ Output:
 }
 ```
 
-## Caveat: numeric types appears in the message as a string
+Caveat: numeric types appears in the message as a string
+--------------------------------------------------------
 
 ```go
 package main
@@ -137,7 +143,8 @@ Output 2:
 }
 ```
 
-## Benchmark
+Benchmark
+---------
 
 ```
 go test -bench=. ./...
@@ -148,7 +155,8 @@ BenchmarkLog64/io.Writer_36-8         	  323197	      3678 ns/op
 BenchmarkLog64/fmt.Fprint_io.Writer_1009-8         	  121657	     10417 ns/op
 ```
 
-## License
+License
+-------
 
 Copyright (C) 2021 [Danil Kutkevich](https://danil.kutkevich.org)  
 See the [LICENSE](./LICENSE) file for license rights and limitations (MIT)
