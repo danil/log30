@@ -1,4 +1,4 @@
-package marshalastic
+package marshal8
 
 import (
 	"bytes"
@@ -11,7 +11,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/danil/logastic/encode"
+	"github.com/danil/log64/encode"
 )
 
 // Bool returns stringer/JSON marshaler interface implementation for the bool type.

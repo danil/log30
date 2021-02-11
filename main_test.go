@@ -1,4 +1,4 @@
-package logastic_test
+package log64_test
 
 import (
 	"runtime"

@@ -1,5 +1,5 @@
-github.com/danil/equalastic v0.4.0 h1:SZZa0sNz5xKYNcNY+AHO718mcE+7B+yVddjL7EzshsI=
-github.com/danil/equalastic v0.4.0/go.mod h1:R8We1ZvEhOsjpaMLZ94/E4xYpk23+xZFOEepcmyrEb4=
+github.com/danil/eq32 v0.5.0 h1:df4bepIeIW8XLuVQb3KuoVmF9sC09DN4wXX96JXCsXQ=
+github.com/danil/eq32 v0.5.0/go.mod h1:fab46rBABFwCW39Zj3WDq83sXjLmlzf3LnDWTFb5wh0=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/google/gofuzz v1.0.0/go.mod h1:dBl0BpW6vV/+mYPU4Po3pmUjxk6FQPldtuIdl/M65Eg=

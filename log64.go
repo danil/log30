@@ -1,4 +1,4 @@
-package logastic
+package log64
 
 import (
 	"bytes"
@@ -11,7 +11,7 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	"github.com/danil/logastic/marshalastic"
+	"github.com/danil/log64/marshal8"
 	jsoniter "github.com/json-iterator/go"
 )
 
@@ -169,25 +169,25 @@ func (lg Log) json(src []byte) ([]byte, error) {
 
 	if bytes.Equal(src, excerpt) && src != nil {
 		if lg.Key == Excerpt {
-			tmpKV[excerptKey] = marshalastic.Bytes(src)
+			tmpKV[excerptKey] = marshal8.Bytes(src)
 
 		} else {
 			if tmpKV[originalKey] == nil {
-				tmpKV[originalKey] = marshalastic.Bytes(src)
+				tmpKV[originalKey] = marshal8.Bytes(src)
 			} else if len(src) != 0 {
-				tmpKV[trailKey] = marshalastic.Bytes(src)
+				tmpKV[trailKey] = marshal8.Bytes(src)
 			}
 		}
 
 	} else if !bytes.Equal(src, excerpt) {
 		if tmpKV[originalKey] == nil {
-			tmpKV[originalKey] = marshalastic.Bytes(src)
+			tmpKV[originalKey] = marshal8.Bytes(src)
 		} else if tmpKV[originalKey] != nil && len(src) != 0 {
-			tmpKV[trailKey] = marshalastic.Bytes(src)
+			tmpKV[trailKey] = marshal8.Bytes(src)
 		}
 
 		if tmpKV[excerptKey] == nil && len(excerpt) != 0 {
-			tmpKV[excerptKey] = marshalastic.Bytes(excerpt)
+			tmpKV[excerptKey] = marshal8.Bytes(excerpt)
 		}
 	}
 
@@ -204,7 +204,7 @@ func (lg Log) json(src []byte) ([]byte, error) {
 	}
 
 	if file != 0 {
-		tmpKV[fileKey] = marshalastic.Bytes(src[:file])
+		tmpKV[fileKey] = marshal8.Bytes(src[:file])
 	}
 
 	p, err := jsoniter.ConfigCompatibleWithStandardLibrary.Marshal(tmpKV)
