@@ -337,14 +337,15 @@ replace:
 
 // With returns copy of the logger with additional key-values.
 // Copy of the original key-values overwritten by the additional key-values.
-func (lg Log) With(kv ...KV) Log {
-	lg.KV = append(kv[:0], append(lg.KV, kv...)...)
-	return lg
+func (lg *Log) With(kv ...KV) Logger {
+	l2 := *lg
+	l2.KV = append(kv[:0], append(lg.KV, kv...)...)
+	return &l2
 }
 
 // GELF returns a GELF formater <https://docs.graylog.org/en/latest/pages/gelf.html>.
-func GELF() Log {
-	return Log{
+func GELF() *Log {
+	return &Log{
 		// GELF spec version – "1.1"; Must be set by client library.
 		// <https://docs.graylog.org/en/latest/pages/gelf.html#gelf-payload-specification>,
 		// <https://github.com/graylog-labs/gelf-rb/issues/41#issuecomment-198266505>.
