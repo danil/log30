@@ -808,7 +808,7 @@ var FprintWriteTestCases = []struct {
 		line: line(),
 		log: func() *log64.Log {
 			lg := log64.GELF()
-			lg.Func = []func() log64.KV{
+			lg.FKV = []func() log64.KV{
 				func() log64.KV {
 					return log64.StringInt64("timestamp", time.Date(2020, time.October, 15, 18, 9, 0, 0, time.UTC).Unix())
 				},
@@ -1141,7 +1141,7 @@ var FprintWriteTestCases = []struct {
 		name: `dynamic "time" key`,
 		line: line(),
 		log: &log64.Log{
-			Func: []func() log64.KV{
+			FKV: []func() log64.KV{
 				func() log64.KV {
 					return log64.String("time", time.Date(2020, time.October, 15, 18, 9, 0, 0, time.UTC).String())
 				},
@@ -1286,7 +1286,7 @@ var FprintWriteTestCases = []struct {
 		line: line(),
 		log: func() *log64.Log {
 			lg := log64.GELF()
-			lg.Func = []func() log64.KV{
+			lg.FKV = []func() log64.KV{
 				func() log64.KV {
 					return log64.StringInt64("timestamp", time.Date(2020, time.October, 15, 18, 9, 0, 0, time.UTC).Unix())
 				},
@@ -1308,7 +1308,7 @@ var FprintWriteTestCases = []struct {
 		log: func() *log64.Log {
 			lg := log64.GELF()
 			lg.Flag = log.Llongfile
-			lg.Func = []func() log64.KV{
+			lg.FKV = []func() log64.KV{
 				func() log64.KV {
 					return log64.StringInt64("timestamp", time.Date(2020, time.October, 15, 18, 9, 0, 0, time.UTC).Unix())
 				},
