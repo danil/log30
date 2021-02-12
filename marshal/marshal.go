@@ -1,4 +1,4 @@
-package marshal8
+package marshal
 
 import (
 	"bytes"

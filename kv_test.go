@@ -10,7 +10,7 @@ import (
 
 	"github.com/danil/eq32"
 	"github.com/danil/log64"
-	"github.com/danil/log64/marshal8"
+	"github.com/danil/log64/marshal"
 	"github.com/kinbiko/jsonassert"
 )
 
@@ -2197,7 +2197,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextBool(marshal8.String("bool true"), true),
+		input:        log64.TextBool(marshal.String("bool true"), true),
 		expected:     "true",
 		expectedText: "true",
 		expectedJSON: `{
@@ -2206,7 +2206,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextBool(marshal8.String("bool false"), false),
+		input:        log64.TextBool(marshal.String("bool false"), false),
 		expected:     "false",
 		expectedText: "false",
 		expectedJSON: `{
@@ -2215,7 +2215,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextAny(marshal8.String("any bool false"), false),
+		input:        log64.TextAny(marshal.String("any bool false"), false),
 		expected:     "false",
 		expectedText: "false",
 		expectedJSON: `{
@@ -2224,7 +2224,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextAny(marshal8.String("reflect bool false"), false),
+		input:        log64.TextAny(marshal.String("reflect bool false"), false),
 		expected:     "false",
 		expectedText: "false",
 		expectedJSON: `{
@@ -2235,7 +2235,7 @@ var KVTestCases = []struct {
 		line: line(),
 		input: func() log64.KV {
 			b := true
-			return log64.TextBoolp(marshal8.String("bool pointer to true"), &b)
+			return log64.TextBoolp(marshal.String("bool pointer to true"), &b)
 		}(),
 		expected:     "true",
 		expectedText: "true",
@@ -2247,7 +2247,7 @@ var KVTestCases = []struct {
 		line: line(),
 		input: func() log64.KV {
 			b := false
-			return log64.TextBoolp(marshal8.String("bool pointer to false"), &b)
+			return log64.TextBoolp(marshal.String("bool pointer to false"), &b)
 		}(),
 		expected:     "false",
 		expectedText: "false",
@@ -2257,7 +2257,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextBoolp(marshal8.String("bool nil pointer"), nil),
+		input:        log64.TextBoolp(marshal.String("bool nil pointer"), nil),
 		expected:     "null",
 		expectedText: "null",
 		expectedJSON: `{
@@ -2268,7 +2268,7 @@ var KVTestCases = []struct {
 		line: line(),
 		input: func() log64.KV {
 			b := true
-			return log64.TextAny(marshal8.String("any bool pointer to true"), &b)
+			return log64.TextAny(marshal.String("any bool pointer to true"), &b)
 		}(),
 		expected:     "true",
 		expectedText: "true",
@@ -2281,7 +2281,7 @@ var KVTestCases = []struct {
 		input: func() log64.KV {
 			b := true
 			b2 := &b
-			return log64.TextAny(marshal8.String("any twice pointer to bool true"), &b2)
+			return log64.TextAny(marshal.String("any twice pointer to bool true"), &b2)
 		}(),
 		expected:     "true",
 		expectedText: "true",
@@ -2293,7 +2293,7 @@ var KVTestCases = []struct {
 		line: line(),
 		input: func() log64.KV {
 			b := true
-			return log64.TextReflect(marshal8.String("reflect bool pointer to true"), &b)
+			return log64.TextReflect(marshal.String("reflect bool pointer to true"), &b)
 		}(),
 		expected:     "true",
 		expectedText: "true",
@@ -2306,7 +2306,7 @@ var KVTestCases = []struct {
 		input: func() log64.KV {
 			b := true
 			b2 := &b
-			return log64.TextReflect(marshal8.String("reflect bool twice pointer to true"), &b2)
+			return log64.TextReflect(marshal.String("reflect bool twice pointer to true"), &b2)
 		}(),
 		expected:     "true",
 		expectedText: "true",
@@ -2318,7 +2318,7 @@ var KVTestCases = []struct {
 		line: line(),
 		input: func() log64.KV {
 			var b *bool
-			return log64.TextReflect(marshal8.String("reflect bool pointer to nil"), b)
+			return log64.TextReflect(marshal.String("reflect bool pointer to nil"), b)
 		}(),
 		expected:     "null",
 		expectedText: "null",
@@ -2328,7 +2328,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextBytes(marshal8.String("bytes"), []byte("Hello, Wörld!")),
+		input:        log64.TextBytes(marshal.String("bytes"), []byte("Hello, Wörld!")),
 		expected:     "Hello, Wörld!",
 		expectedText: "Hello, Wörld!",
 		expectedJSON: `{
@@ -2337,7 +2337,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextBytes(marshal8.String("bytes with quote"), []byte(`Hello, "World"!`)),
+		input:        log64.TextBytes(marshal.String("bytes with quote"), []byte(`Hello, "World"!`)),
 		expected:     `Hello, \"World\"!`,
 		expectedText: `Hello, \"World\"!`,
 		expectedJSON: `{
@@ -2346,7 +2346,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextBytes(marshal8.String("bytes quote"), []byte(`"Hello, World!"`)),
+		input:        log64.TextBytes(marshal.String("bytes quote"), []byte(`"Hello, World!"`)),
 		expected:     `\"Hello, World!\"`,
 		expectedText: `\"Hello, World!\"`,
 		expectedJSON: `{
@@ -2355,7 +2355,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextBytes(marshal8.String("bytes nested quote"), []byte(`"Hello, "World"!"`)),
+		input:        log64.TextBytes(marshal.String("bytes nested quote"), []byte(`"Hello, "World"!"`)),
 		expected:     `\"Hello, \"World\"!\"`,
 		expectedText: `\"Hello, \"World\"!\"`,
 		expectedJSON: `{
@@ -2364,7 +2364,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextBytes(marshal8.String("bytes json"), []byte(`{"foo":"bar"}`)),
+		input:        log64.TextBytes(marshal.String("bytes json"), []byte(`{"foo":"bar"}`)),
 		expected:     `{\"foo\":\"bar\"}`,
 		expectedText: `{\"foo\":\"bar\"}`,
 		expectedJSON: `{
@@ -2373,7 +2373,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextBytes(marshal8.String("bytes json quote"), []byte(`"{"foo":"bar"}"`)),
+		input:        log64.TextBytes(marshal.String("bytes json quote"), []byte(`"{"foo":"bar"}"`)),
 		expected:     `\"{\"foo\":\"bar\"}\"`,
 		expectedText: `\"{\"foo\":\"bar\"}\"`,
 		expectedJSON: `{
@@ -2382,7 +2382,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextBytes(marshal8.String("empty bytes"), []byte{}),
+		input:        log64.TextBytes(marshal.String("empty bytes"), []byte{}),
 		expected:     "",
 		expectedText: "",
 		expectedJSON: `{
@@ -2391,7 +2391,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextBytes(marshal8.String("nil bytes"), nil),
+		input:        log64.TextBytes(marshal.String("nil bytes"), nil),
 		expected:     "null",
 		expectedText: "null",
 		expectedJSON: `{
@@ -2400,7 +2400,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextAny(marshal8.String("any bytes"), []byte("Hello, Wörld!")),
+		input:        log64.TextAny(marshal.String("any bytes"), []byte("Hello, Wörld!")),
 		expected:     "Hello, Wörld!",
 		expectedText: "Hello, Wörld!",
 		expectedJSON: `{
@@ -2409,7 +2409,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextAny(marshal8.String("any empty bytes"), []byte{}),
+		input:        log64.TextAny(marshal.String("any empty bytes"), []byte{}),
 		expected:     "",
 		expectedText: "",
 		expectedJSON: `{
@@ -2418,7 +2418,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextReflect(marshal8.String("reflect bytes"), []byte("Hello, Wörld!")),
+		input:        log64.TextReflect(marshal.String("reflect bytes"), []byte("Hello, Wörld!")),
 		expected:     "SGVsbG8sIFfDtnJsZCE=",
 		expectedText: "SGVsbG8sIFfDtnJsZCE=",
 		expectedJSON: `{
@@ -2427,7 +2427,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextReflect(marshal8.String("reflect empty bytes"), []byte{}),
+		input:        log64.TextReflect(marshal.String("reflect empty bytes"), []byte{}),
 		expected:     "",
 		expectedText: "",
 		expectedJSON: `{
@@ -2438,7 +2438,7 @@ var KVTestCases = []struct {
 		line: line(),
 		input: func() log64.KV {
 			p := []byte("Hello, Wörld!")
-			return log64.TextBytesp(marshal8.String("bytes pointer"), &p)
+			return log64.TextBytesp(marshal.String("bytes pointer"), &p)
 		}(),
 		expected:     "Hello, Wörld!",
 		expectedText: "Hello, Wörld!",
@@ -2450,7 +2450,7 @@ var KVTestCases = []struct {
 		line: line(),
 		input: func() log64.KV {
 			p := []byte{}
-			return log64.TextBytesp(marshal8.String("empty bytes pointer"), &p)
+			return log64.TextBytesp(marshal.String("empty bytes pointer"), &p)
 		}(),
 		expected:     "",
 		expectedText: "",
@@ -2460,7 +2460,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextBytesp(marshal8.String("nil bytes pointer"), nil),
+		input:        log64.TextBytesp(marshal.String("nil bytes pointer"), nil),
 		expected:     "null",
 		expectedText: "null",
 		expectedJSON: `{
@@ -2471,7 +2471,7 @@ var KVTestCases = []struct {
 		line: line(),
 		input: func() log64.KV {
 			p := []byte("Hello, Wörld!")
-			return log64.TextAny(marshal8.String("any bytes pointer"), &p)
+			return log64.TextAny(marshal.String("any bytes pointer"), &p)
 		}(),
 		expected:     "Hello, Wörld!",
 		expectedText: "Hello, Wörld!",
@@ -2483,7 +2483,7 @@ var KVTestCases = []struct {
 		line: line(),
 		input: func() log64.KV {
 			p := []byte{}
-			return log64.TextAny(marshal8.String("any empty bytes pointer"), &p)
+			return log64.TextAny(marshal.String("any empty bytes pointer"), &p)
 		}(),
 		expected:     "",
 		expectedText: "",
@@ -2495,7 +2495,7 @@ var KVTestCases = []struct {
 		line: line(),
 		input: func() log64.KV {
 			p := []byte("Hello, Wörld!")
-			return log64.TextReflect(marshal8.String("reflect bytes pointer"), &p)
+			return log64.TextReflect(marshal.String("reflect bytes pointer"), &p)
 		}(),
 		expected:     "SGVsbG8sIFfDtnJsZCE=",
 		expectedText: "SGVsbG8sIFfDtnJsZCE=",
@@ -2507,7 +2507,7 @@ var KVTestCases = []struct {
 		line: line(),
 		input: func() log64.KV {
 			p := []byte{}
-			return log64.TextReflect(marshal8.String("reflect empty bytes pointer"), &p)
+			return log64.TextReflect(marshal.String("reflect empty bytes pointer"), &p)
 		}(),
 		expected: "",
 		expectedJSON: `{
@@ -2516,7 +2516,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextComplex128(marshal8.String("complex128"), complex(1, 23)),
+		input:        log64.TextComplex128(marshal.String("complex128"), complex(1, 23)),
 		expected:     "1+23i",
 		expectedText: "1+23i",
 		expectedJSON: `{
@@ -2525,7 +2525,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextAny(marshal8.String("any complex128"), complex(1, 23)),
+		input:        log64.TextAny(marshal.String("any complex128"), complex(1, 23)),
 		expected:     "1+23i",
 		expectedText: "1+23i",
 		expectedJSON: `{
@@ -2534,7 +2534,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextReflect(marshal8.String("reflect complex128"), complex(1, 23)),
+		input:        log64.TextReflect(marshal.String("reflect complex128"), complex(1, 23)),
 		expected:     "(1+23i)",
 		expectedText: "(1+23i)",
 		error:        errors.New("json: error calling MarshalJSON for type json.Marshaler: json: unsupported type: complex128"),
@@ -2543,7 +2543,7 @@ var KVTestCases = []struct {
 		line: line(),
 		input: func() log64.KV {
 			var c complex128 = complex(1, 23)
-			return log64.TextComplex128p(marshal8.String("complex128 pointer"), &c)
+			return log64.TextComplex128p(marshal.String("complex128 pointer"), &c)
 		}(),
 		expected:     "1+23i",
 		expectedText: "1+23i",
@@ -2553,7 +2553,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextComplex128p(marshal8.String("nil complex128 pointer"), nil),
+		input:        log64.TextComplex128p(marshal.String("nil complex128 pointer"), nil),
 		expected:     "null",
 		expectedText: "null",
 		expectedJSON: `{
@@ -2564,7 +2564,7 @@ var KVTestCases = []struct {
 		line: line(),
 		input: func() log64.KV {
 			var c complex128 = complex(1, 23)
-			return log64.TextAny(marshal8.String("any complex128 pointer"), &c)
+			return log64.TextAny(marshal.String("any complex128 pointer"), &c)
 		}(),
 		expected:     "1+23i",
 		expectedText: "1+23i",
@@ -2576,7 +2576,7 @@ var KVTestCases = []struct {
 		line: line(),
 		input: func() log64.KV {
 			var c complex128 = complex(1, 23)
-			return log64.TextReflect(marshal8.String("reflect complex128 pointer"), &c)
+			return log64.TextReflect(marshal.String("reflect complex128 pointer"), &c)
 		}(),
 		expected:     "(1+23i)",
 		expectedText: "(1+23i)",
@@ -2584,7 +2584,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextComplex64(marshal8.String("complex64"), complex(3, 21)),
+		input:        log64.TextComplex64(marshal.String("complex64"), complex(3, 21)),
 		expected:     "3+21i",
 		expectedText: "3+21i",
 		expectedJSON: `{
@@ -2593,7 +2593,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextAny(marshal8.String("any complex64"), complex(3, 21)),
+		input:        log64.TextAny(marshal.String("any complex64"), complex(3, 21)),
 		expected:     "3+21i",
 		expectedText: "3+21i",
 		expectedJSON: `{
@@ -2602,14 +2602,14 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextReflect(marshal8.String("reflect complex64"), complex(3, 21)),
+		input:        log64.TextReflect(marshal.String("reflect complex64"), complex(3, 21)),
 		expected:     "(3+21i)",
 		expectedText: "(3+21i)",
 		error:        errors.New("json: error calling MarshalJSON for type json.Marshaler: json: unsupported type: complex128"),
 	},
 	{
 		line:         line(),
-		input:        log64.TextError(marshal8.String("error"), errors.New("something went wrong")),
+		input:        log64.TextError(marshal.String("error"), errors.New("something went wrong")),
 		expected:     "something went wrong",
 		expectedText: "something went wrong",
 		expectedJSON: `{
@@ -2618,7 +2618,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextError(marshal8.String("nil error"), nil),
+		input:        log64.TextError(marshal.String("nil error"), nil),
 		expected:     "null",
 		expectedText: "null",
 		expectedJSON: `{
@@ -2627,7 +2627,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextAny(marshal8.String("any error"), errors.New("something went wrong")),
+		input:        log64.TextAny(marshal.String("any error"), errors.New("something went wrong")),
 		expected:     "something went wrong",
 		expectedText: "something went wrong",
 		expectedJSON: `{
@@ -2636,7 +2636,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextReflect(marshal8.String("reflect error"), errors.New("something went wrong")),
+		input:        log64.TextReflect(marshal.String("reflect error"), errors.New("something went wrong")),
 		expected:     "{something went wrong}",
 		expectedText: "{something went wrong}",
 		expectedJSON: `{
@@ -2647,7 +2647,7 @@ var KVTestCases = []struct {
 		line: line(),
 		input: func() log64.KV {
 			var c complex64 = complex(1, 23)
-			return log64.TextComplex64p(marshal8.String("complex64 pointer"), &c)
+			return log64.TextComplex64p(marshal.String("complex64 pointer"), &c)
 		}(),
 		expected:     "1+23i",
 		expectedText: "1+23i",
@@ -2657,7 +2657,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextComplex64p(marshal8.String("nil complex64 pointer"), nil),
+		input:        log64.TextComplex64p(marshal.String("nil complex64 pointer"), nil),
 		expected:     "null",
 		expectedText: "null",
 		expectedJSON: `{
@@ -2668,7 +2668,7 @@ var KVTestCases = []struct {
 		line: line(),
 		input: func() log64.KV {
 			var c complex64 = complex(1, 23)
-			return log64.TextAny(marshal8.String("any complex64 pointer"), &c)
+			return log64.TextAny(marshal.String("any complex64 pointer"), &c)
 		}(),
 		expected:     "1+23i",
 		expectedText: "1+23i",
@@ -2680,7 +2680,7 @@ var KVTestCases = []struct {
 		line: line(),
 		input: func() log64.KV {
 			var c complex64 = complex(1, 23)
-			return log64.TextReflect(marshal8.String("reflect complex64 pointer"), &c)
+			return log64.TextReflect(marshal.String("reflect complex64 pointer"), &c)
 		}(),
 		expected:     "(1+23i)",
 		expectedText: "(1+23i)",
@@ -2688,7 +2688,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextFloat32(marshal8.String("float32"), 4.2),
+		input:        log64.TextFloat32(marshal.String("float32"), 4.2),
 		expected:     "4.2",
 		expectedText: "4.2",
 		expectedJSON: `{
@@ -2697,7 +2697,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextFloat32(marshal8.String("high precision float32"), 0.123456789),
+		input:        log64.TextFloat32(marshal.String("high precision float32"), 0.123456789),
 		expected:     "0.12345679",
 		expectedText: "0.12345679",
 		expectedJSON: `{
@@ -2706,7 +2706,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextFloat32(marshal8.String("zero float32"), 0),
+		input:        log64.TextFloat32(marshal.String("zero float32"), 0),
 		expected:     "0",
 		expectedText: "0",
 		expectedJSON: `{
@@ -2715,7 +2715,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextAny(marshal8.String("any float32"), 4.2),
+		input:        log64.TextAny(marshal.String("any float32"), 4.2),
 		expected:     "4.2",
 		expectedText: "4.2",
 		expectedJSON: `{
@@ -2724,7 +2724,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextAny(marshal8.String("any zero float32"), 0),
+		input:        log64.TextAny(marshal.String("any zero float32"), 0),
 		expected:     "0",
 		expectedText: "0",
 		expectedJSON: `{
@@ -2733,7 +2733,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextReflect(marshal8.String("reflect float32"), 4.2),
+		input:        log64.TextReflect(marshal.String("reflect float32"), 4.2),
 		expected:     "4.2",
 		expectedText: "4.2",
 		expectedJSON: `{
@@ -2742,7 +2742,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextReflect(marshal8.String("reflect zero float32"), 0),
+		input:        log64.TextReflect(marshal.String("reflect zero float32"), 0),
 		expected:     "0",
 		expectedText: "0",
 		expectedJSON: `{
@@ -2753,7 +2753,7 @@ var KVTestCases = []struct {
 		line: line(),
 		input: func() log64.KV {
 			var f float32 = 4.2
-			return log64.TextFloat32p(marshal8.String("float32 pointer"), &f)
+			return log64.TextFloat32p(marshal.String("float32 pointer"), &f)
 		}(),
 		expected:     "4.2",
 		expectedText: "4.2",
@@ -2765,7 +2765,7 @@ var KVTestCases = []struct {
 		line: line(),
 		input: func() log64.KV {
 			var f float32 = 0.123456789
-			return log64.TextFloat32p(marshal8.String("high precision float32 pointer"), &f)
+			return log64.TextFloat32p(marshal.String("high precision float32 pointer"), &f)
 		}(),
 		expected:     "0.12345679",
 		expectedText: "0.12345679",
@@ -2775,7 +2775,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextFloat32p(marshal8.String("float32 nil pointer"), nil),
+		input:        log64.TextFloat32p(marshal.String("float32 nil pointer"), nil),
 		expected:     "null",
 		expectedText: "null",
 		expectedJSON: `{
@@ -2786,7 +2786,7 @@ var KVTestCases = []struct {
 		line: line(),
 		input: func() log64.KV {
 			var f float32 = 4.2
-			return log64.TextAny(marshal8.String("any float32 pointer"), &f)
+			return log64.TextAny(marshal.String("any float32 pointer"), &f)
 		}(),
 		expected:     "4.2",
 		expectedText: "4.2",
@@ -2798,7 +2798,7 @@ var KVTestCases = []struct {
 		line: line(),
 		input: func() log64.KV {
 			var f float32 = 4.2
-			return log64.TextReflect(marshal8.String("reflect float32 pointer"), &f)
+			return log64.TextReflect(marshal.String("reflect float32 pointer"), &f)
 		}(),
 		expected:     "4.2",
 		expectedText: "4.2",
@@ -2810,7 +2810,7 @@ var KVTestCases = []struct {
 		line: line(),
 		input: func() log64.KV {
 			var f *float32
-			return log64.TextReflect(marshal8.String("reflect float32 pointer to nil"), f)
+			return log64.TextReflect(marshal.String("reflect float32 pointer to nil"), f)
 		}(),
 		expected:     "null",
 		expectedText: "null",
@@ -2820,7 +2820,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextFloat64(marshal8.String("float64"), 4.2),
+		input:        log64.TextFloat64(marshal.String("float64"), 4.2),
 		expected:     "4.2",
 		expectedText: "4.2",
 		expectedJSON: `{
@@ -2829,7 +2829,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextFloat64(marshal8.String("high precision float64"), 0.123456789),
+		input:        log64.TextFloat64(marshal.String("high precision float64"), 0.123456789),
 		expected:     "0.123456789",
 		expectedText: "0.123456789",
 		expectedJSON: `{
@@ -2838,7 +2838,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextFloat64(marshal8.String("zero float64"), 0),
+		input:        log64.TextFloat64(marshal.String("zero float64"), 0),
 		expected:     "0",
 		expectedText: "0",
 		expectedJSON: `{
@@ -2847,7 +2847,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextAny(marshal8.String("any float64"), 4.2),
+		input:        log64.TextAny(marshal.String("any float64"), 4.2),
 		expected:     "4.2",
 		expectedText: "4.2",
 		expectedJSON: `{
@@ -2856,7 +2856,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextAny(marshal8.String("any zero float64"), 0),
+		input:        log64.TextAny(marshal.String("any zero float64"), 0),
 		expected:     "0",
 		expectedText: "0",
 		expectedJSON: `{
@@ -2865,7 +2865,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextReflect(marshal8.String("reflect float64"), 4.2),
+		input:        log64.TextReflect(marshal.String("reflect float64"), 4.2),
 		expected:     "4.2",
 		expectedText: "4.2",
 		expectedJSON: `{
@@ -2874,7 +2874,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextReflect(marshal8.String("reflect zero float64"), 0),
+		input:        log64.TextReflect(marshal.String("reflect zero float64"), 0),
 		expected:     "0",
 		expectedText: "0",
 		expectedJSON: `{
@@ -2885,7 +2885,7 @@ var KVTestCases = []struct {
 		line: line(),
 		input: func() log64.KV {
 			var f float64 = 4.2
-			return log64.TextFloat64p(marshal8.String("float64 pointer"), &f)
+			return log64.TextFloat64p(marshal.String("float64 pointer"), &f)
 		}(),
 		expected:     "4.2",
 		expectedText: "4.2",
@@ -2897,7 +2897,7 @@ var KVTestCases = []struct {
 		line: line(),
 		input: func() log64.KV {
 			var f float64 = 0.123456789
-			return log64.TextFloat64p(marshal8.String("high precision float64 pointer"), &f)
+			return log64.TextFloat64p(marshal.String("high precision float64 pointer"), &f)
 		}(),
 		expected:     "0.123456789",
 		expectedText: "0.123456789",
@@ -2907,7 +2907,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextFloat64p(marshal8.String("float64 nil pointer"), nil),
+		input:        log64.TextFloat64p(marshal.String("float64 nil pointer"), nil),
 		expected:     "null",
 		expectedText: "null",
 		expectedJSON: `{
@@ -2918,7 +2918,7 @@ var KVTestCases = []struct {
 		line: line(),
 		input: func() log64.KV {
 			var f float64 = 4.2
-			return log64.TextAny(marshal8.String("any float64 pointer"), &f)
+			return log64.TextAny(marshal.String("any float64 pointer"), &f)
 		}(),
 		expected:     "4.2",
 		expectedText: "4.2",
@@ -2930,7 +2930,7 @@ var KVTestCases = []struct {
 		line: line(),
 		input: func() log64.KV {
 			var f float64 = 4.2
-			return log64.TextReflect(marshal8.String("reflect float64 pointer"), &f)
+			return log64.TextReflect(marshal.String("reflect float64 pointer"), &f)
 		}(),
 		expected:     "4.2",
 		expectedText: "4.2",
@@ -2942,7 +2942,7 @@ var KVTestCases = []struct {
 		line: line(),
 		input: func() log64.KV {
 			var f *float64
-			return log64.TextReflect(marshal8.String("reflect float64 pointer to nil"), f)
+			return log64.TextReflect(marshal.String("reflect float64 pointer to nil"), f)
 		}(),
 		expected:     "null",
 		expectedText: "null",
@@ -2952,7 +2952,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextInt(marshal8.String("int"), 42),
+		input:        log64.TextInt(marshal.String("int"), 42),
 		expected:     "42",
 		expectedText: "42",
 		expectedJSON: `{
@@ -2961,7 +2961,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextAny(marshal8.String("any int"), 42),
+		input:        log64.TextAny(marshal.String("any int"), 42),
 		expected:     "42",
 		expectedText: "42",
 		expectedJSON: `{
@@ -2970,7 +2970,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextReflect(marshal8.String("reflect int"), 42),
+		input:        log64.TextReflect(marshal.String("reflect int"), 42),
 		expected:     "42",
 		expectedText: "42",
 		expectedJSON: `{
@@ -2981,7 +2981,7 @@ var KVTestCases = []struct {
 		line: line(),
 		input: func() log64.KV {
 			var i int = 42
-			return log64.TextIntp(marshal8.String("int pointer"), &i)
+			return log64.TextIntp(marshal.String("int pointer"), &i)
 		}(),
 		expected:     "42",
 		expectedText: "42",
@@ -2993,7 +2993,7 @@ var KVTestCases = []struct {
 		line: line(),
 		input: func() log64.KV {
 			var i int = 42
-			return log64.TextAny(marshal8.String("any int pointer"), &i)
+			return log64.TextAny(marshal.String("any int pointer"), &i)
 		}(),
 		expected:     "42",
 		expectedText: "42",
@@ -3005,7 +3005,7 @@ var KVTestCases = []struct {
 		line: line(),
 		input: func() log64.KV {
 			var i int = 42
-			return log64.TextReflect(marshal8.String("reflect int pointer"), &i)
+			return log64.TextReflect(marshal.String("reflect int pointer"), &i)
 		}(),
 		expected:     "42",
 		expectedText: "42",
@@ -3015,7 +3015,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextInt16(marshal8.String("int16"), 42),
+		input:        log64.TextInt16(marshal.String("int16"), 42),
 		expected:     "42",
 		expectedText: "42",
 		expectedJSON: `{
@@ -3024,7 +3024,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextAny(marshal8.String("any int16"), 42),
+		input:        log64.TextAny(marshal.String("any int16"), 42),
 		expected:     "42",
 		expectedText: "42",
 		expectedJSON: `{
@@ -3033,7 +3033,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextReflect(marshal8.String("reflect int16"), 42),
+		input:        log64.TextReflect(marshal.String("reflect int16"), 42),
 		expected:     "42",
 		expectedText: "42",
 		expectedJSON: `{
@@ -3044,7 +3044,7 @@ var KVTestCases = []struct {
 		line: line(),
 		input: func() log64.KV {
 			var i int16 = 42
-			return log64.TextInt16p(marshal8.String("int16 pointer"), &i)
+			return log64.TextInt16p(marshal.String("int16 pointer"), &i)
 		}(),
 		expected:     "42",
 		expectedText: "42",
@@ -3056,7 +3056,7 @@ var KVTestCases = []struct {
 		line: line(),
 		input: func() log64.KV {
 			var i int16 = 42
-			return log64.TextAny(marshal8.String("any int16 pointer"), &i)
+			return log64.TextAny(marshal.String("any int16 pointer"), &i)
 		}(),
 		expected:     "42",
 		expectedText: "42",
@@ -3068,7 +3068,7 @@ var KVTestCases = []struct {
 		line: line(),
 		input: func() log64.KV {
 			var i int16 = 42
-			return log64.TextReflect(marshal8.String("reflect int16 pointer"), &i)
+			return log64.TextReflect(marshal.String("reflect int16 pointer"), &i)
 		}(),
 		expected:     "42",
 		expectedText: "42",
@@ -3078,7 +3078,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextInt32(marshal8.String("int32"), 42),
+		input:        log64.TextInt32(marshal.String("int32"), 42),
 		expected:     "42",
 		expectedText: "42",
 		expectedJSON: `{
@@ -3087,7 +3087,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextAny(marshal8.String("any int32"), 42),
+		input:        log64.TextAny(marshal.String("any int32"), 42),
 		expected:     "42",
 		expectedText: "42",
 		expectedJSON: `{
@@ -3096,7 +3096,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextReflect(marshal8.String("reflect int32"), 42),
+		input:        log64.TextReflect(marshal.String("reflect int32"), 42),
 		expected:     "42",
 		expectedText: "42",
 		expectedJSON: `{
@@ -3107,7 +3107,7 @@ var KVTestCases = []struct {
 		line: line(),
 		input: func() log64.KV {
 			var i int32 = 42
-			return log64.TextInt32p(marshal8.String("int32 pointer"), &i)
+			return log64.TextInt32p(marshal.String("int32 pointer"), &i)
 		}(),
 		expected:     "42",
 		expectedText: "42",
@@ -3119,7 +3119,7 @@ var KVTestCases = []struct {
 		line: line(),
 		input: func() log64.KV {
 			var i int32 = 42
-			return log64.TextAny(marshal8.String("any int32 pointer"), &i)
+			return log64.TextAny(marshal.String("any int32 pointer"), &i)
 		}(),
 		expected:     "42",
 		expectedText: "42",
@@ -3131,7 +3131,7 @@ var KVTestCases = []struct {
 		line: line(),
 		input: func() log64.KV {
 			var i int32 = 42
-			return log64.TextReflect(marshal8.String("reflect int32 pointer"), &i)
+			return log64.TextReflect(marshal.String("reflect int32 pointer"), &i)
 		}(),
 		expected:     "42",
 		expectedText: "42",
@@ -3141,7 +3141,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextInt64(marshal8.String("int64"), 42),
+		input:        log64.TextInt64(marshal.String("int64"), 42),
 		expected:     "42",
 		expectedText: "42",
 		expectedJSON: `{
@@ -3150,7 +3150,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextAny(marshal8.String("any int64"), 42),
+		input:        log64.TextAny(marshal.String("any int64"), 42),
 		expected:     "42",
 		expectedText: "42",
 		expectedJSON: `{
@@ -3159,7 +3159,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextReflect(marshal8.String("reflect int64"), 42),
+		input:        log64.TextReflect(marshal.String("reflect int64"), 42),
 		expected:     "42",
 		expectedText: "42",
 		expectedJSON: `{
@@ -3170,7 +3170,7 @@ var KVTestCases = []struct {
 		line: line(),
 		input: func() log64.KV {
 			var i int64 = 42
-			return log64.TextInt64p(marshal8.String("int64 pointer"), &i)
+			return log64.TextInt64p(marshal.String("int64 pointer"), &i)
 		}(),
 		expected:     "42",
 		expectedText: "42",
@@ -3182,7 +3182,7 @@ var KVTestCases = []struct {
 		line: line(),
 		input: func() log64.KV {
 			var i int64 = 42
-			return log64.TextAny(marshal8.String("any int64 pointer"), &i)
+			return log64.TextAny(marshal.String("any int64 pointer"), &i)
 		}(),
 		expected:     "42",
 		expectedText: "42",
@@ -3194,7 +3194,7 @@ var KVTestCases = []struct {
 		line: line(),
 		input: func() log64.KV {
 			var i int64 = 42
-			return log64.TextReflect(marshal8.String("reflect int64 pointer"), &i)
+			return log64.TextReflect(marshal.String("reflect int64 pointer"), &i)
 		}(),
 		expected:     "42",
 		expectedText: "42",
@@ -3204,7 +3204,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextInt8(marshal8.String("int8"), 42),
+		input:        log64.TextInt8(marshal.String("int8"), 42),
 		expected:     "42",
 		expectedText: "42",
 		expectedJSON: `{
@@ -3213,7 +3213,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextAny(marshal8.String("any int8"), 42),
+		input:        log64.TextAny(marshal.String("any int8"), 42),
 		expected:     "42",
 		expectedText: "42",
 		expectedJSON: `{
@@ -3222,7 +3222,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextReflect(marshal8.String("reflect int8"), 42),
+		input:        log64.TextReflect(marshal.String("reflect int8"), 42),
 		expected:     "42",
 		expectedText: "42",
 		expectedJSON: `{
@@ -3233,7 +3233,7 @@ var KVTestCases = []struct {
 		line: line(),
 		input: func() log64.KV {
 			var i int8 = 42
-			return log64.TextInt8p(marshal8.String("int8 pointer"), &i)
+			return log64.TextInt8p(marshal.String("int8 pointer"), &i)
 		}(),
 		expected:     "42",
 		expectedText: "42",
@@ -3245,7 +3245,7 @@ var KVTestCases = []struct {
 		line: line(),
 		input: func() log64.KV {
 			var i int8 = 42
-			return log64.TextAny(marshal8.String("any int8 pointer"), &i)
+			return log64.TextAny(marshal.String("any int8 pointer"), &i)
 		}(),
 		expected:     "42",
 		expectedText: "42",
@@ -3257,7 +3257,7 @@ var KVTestCases = []struct {
 		line: line(),
 		input: func() log64.KV {
 			var i int8 = 42
-			return log64.TextReflect(marshal8.String("reflect int8 pointer"), &i)
+			return log64.TextReflect(marshal.String("reflect int8 pointer"), &i)
 		}(),
 		expected:     "42",
 		expectedText: "42",
@@ -3267,7 +3267,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextRunes(marshal8.String("runes"), []rune("Hello, Wörld!")),
+		input:        log64.TextRunes(marshal.String("runes"), []rune("Hello, Wörld!")),
 		expected:     "Hello, Wörld!",
 		expectedText: "Hello, Wörld!",
 		expectedJSON: `{
@@ -3276,7 +3276,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextRunes(marshal8.String("empty runes"), []rune{}),
+		input:        log64.TextRunes(marshal.String("empty runes"), []rune{}),
 		expected:     "",
 		expectedText: "",
 		expectedJSON: `{
@@ -3285,7 +3285,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextRunes(marshal8.String("nil runes"), nil),
+		input:        log64.TextRunes(marshal.String("nil runes"), nil),
 		expected:     "null",
 		expectedText: "null",
 		expectedJSON: `{
@@ -3294,7 +3294,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextRunes(marshal8.String("rune slice with zero rune"), []rune{rune(0)}),
+		input:        log64.TextRunes(marshal.String("rune slice with zero rune"), []rune{rune(0)}),
 		expected:     "\\u0000",
 		expectedText: "\\u0000",
 		expectedJSON: `{
@@ -3303,7 +3303,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextAny(marshal8.String("any runes"), []rune("Hello, Wörld!")),
+		input:        log64.TextAny(marshal.String("any runes"), []rune("Hello, Wörld!")),
 		expected:     "Hello, Wörld!",
 		expectedText: "Hello, Wörld!",
 		expectedJSON: `{
@@ -3312,7 +3312,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextAny(marshal8.String("any empty runes"), []rune{}),
+		input:        log64.TextAny(marshal.String("any empty runes"), []rune{}),
 		expected:     "",
 		expectedText: "",
 		expectedJSON: `{
@@ -3321,7 +3321,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextAny(marshal8.String("any rune slice with zero rune"), []rune{rune(0)}),
+		input:        log64.TextAny(marshal.String("any rune slice with zero rune"), []rune{rune(0)}),
 		expected:     "\\u0000",
 		expectedText: "\\u0000",
 		expectedJSON: `{
@@ -3330,7 +3330,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextReflect(marshal8.String("reflect runes"), []rune("Hello, Wörld!")),
+		input:        log64.TextReflect(marshal.String("reflect runes"), []rune("Hello, Wörld!")),
 		expected:     "[72 101 108 108 111 44 32 87 246 114 108 100 33]",
 		expectedText: "[72 101 108 108 111 44 32 87 246 114 108 100 33]",
 		expectedJSON: `{
@@ -3339,7 +3339,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextReflect(marshal8.String("reflect empty runes"), []rune{}),
+		input:        log64.TextReflect(marshal.String("reflect empty runes"), []rune{}),
 		expected:     "[]",
 		expectedText: "[]",
 		expectedJSON: `{
@@ -3348,7 +3348,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextReflect(marshal8.String("reflect rune slice with zero rune"), []rune{rune(0)}),
+		input:        log64.TextReflect(marshal.String("reflect rune slice with zero rune"), []rune{rune(0)}),
 		expected:     "[0]",
 		expectedText: "[0]",
 		expectedJSON: `{
@@ -3359,7 +3359,7 @@ var KVTestCases = []struct {
 		line: line(),
 		input: func() log64.KV {
 			p := []rune("Hello, Wörld!")
-			return log64.TextRunesp(marshal8.String("runes pointer"), &p)
+			return log64.TextRunesp(marshal.String("runes pointer"), &p)
 		}(),
 		expected:     "Hello, Wörld!",
 		expectedText: "Hello, Wörld!",
@@ -3371,7 +3371,7 @@ var KVTestCases = []struct {
 		line: line(),
 		input: func() log64.KV {
 			p := []rune{}
-			return log64.TextRunesp(marshal8.String("empty runes pointer"), &p)
+			return log64.TextRunesp(marshal.String("empty runes pointer"), &p)
 		}(),
 		expected:     "",
 		expectedText: "",
@@ -3381,7 +3381,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextRunesp(marshal8.String("nil runes pointer"), nil),
+		input:        log64.TextRunesp(marshal.String("nil runes pointer"), nil),
 		expected:     "null",
 		expectedText: "null",
 		expectedJSON: `{
@@ -3392,7 +3392,7 @@ var KVTestCases = []struct {
 		line: line(),
 		input: func() log64.KV {
 			p := []rune("Hello, Wörld!")
-			return log64.TextAny(marshal8.String("any runes pointer"), &p)
+			return log64.TextAny(marshal.String("any runes pointer"), &p)
 		}(),
 		expected:     "Hello, Wörld!",
 		expectedText: "Hello, Wörld!",
@@ -3404,7 +3404,7 @@ var KVTestCases = []struct {
 		line: line(),
 		input: func() log64.KV {
 			p := []rune{}
-			return log64.TextAny(marshal8.String("any empty runes pointer"), &p)
+			return log64.TextAny(marshal.String("any empty runes pointer"), &p)
 		}(),
 		expected:     "",
 		expectedText: "",
@@ -3416,7 +3416,7 @@ var KVTestCases = []struct {
 		line: line(),
 		input: func() log64.KV {
 			p := []rune("Hello, Wörld!")
-			return log64.TextReflect(marshal8.String("reflect runes pointer"), &p)
+			return log64.TextReflect(marshal.String("reflect runes pointer"), &p)
 		}(),
 		expected:     "[72 101 108 108 111 44 32 87 246 114 108 100 33]",
 		expectedText: "[72 101 108 108 111 44 32 87 246 114 108 100 33]",
@@ -3428,7 +3428,7 @@ var KVTestCases = []struct {
 		line: line(),
 		input: func() log64.KV {
 			p := []rune{}
-			return log64.TextReflect(marshal8.String("reflect empty runes pointer"), &p)
+			return log64.TextReflect(marshal.String("reflect empty runes pointer"), &p)
 		}(),
 		expected:     "[]",
 		expectedText: "[]",
@@ -3438,7 +3438,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.Text(marshal8.String("string"), marshal8.String("Hello, Wörld!")),
+		input:        log64.Text(marshal.String("string"), marshal.String("Hello, Wörld!")),
 		expected:     "Hello, Wörld!",
 		expectedText: "Hello, Wörld!",
 		expectedJSON: `{
@@ -3447,7 +3447,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.Text(marshal8.String("empty string"), marshal8.String("")),
+		input:        log64.Text(marshal.String("empty string"), marshal.String("")),
 		expected:     "",
 		expectedText: "",
 		expectedJSON: `{
@@ -3456,7 +3456,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.Text(marshal8.String("string with zero byte"), marshal8.String((string(byte(0))))),
+		input:        log64.Text(marshal.String("string with zero byte"), marshal.String((string(byte(0))))),
 		expected:     "\\u0000",
 		expectedText: "\\u0000",
 		expectedJSON: `{
@@ -3465,7 +3465,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextString(marshal8.String("string"), "Hello, Wörld!"),
+		input:        log64.TextString(marshal.String("string"), "Hello, Wörld!"),
 		expected:     "Hello, Wörld!",
 		expectedText: "Hello, Wörld!",
 		expectedJSON: `{
@@ -3474,7 +3474,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextString(marshal8.String("empty string"), ""),
+		input:        log64.TextString(marshal.String("empty string"), ""),
 		expected:     "",
 		expectedText: "",
 		expectedJSON: `{
@@ -3483,7 +3483,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextString(marshal8.String("string with zero byte"), string(byte(0))),
+		input:        log64.TextString(marshal.String("string with zero byte"), string(byte(0))),
 		expected:     "\\u0000",
 		expectedText: "\\u0000",
 		expectedJSON: `{
@@ -3492,7 +3492,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextAny(marshal8.String("any string"), "Hello, Wörld!"),
+		input:        log64.TextAny(marshal.String("any string"), "Hello, Wörld!"),
 		expected:     "Hello, Wörld!",
 		expectedText: "Hello, Wörld!",
 		expectedJSON: `{
@@ -3501,7 +3501,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextAny(marshal8.String("any empty string"), ""),
+		input:        log64.TextAny(marshal.String("any empty string"), ""),
 		expected:     "",
 		expectedText: "",
 		expectedJSON: `{
@@ -3510,7 +3510,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextAny(marshal8.String("any string with zero byte"), string(byte(0))),
+		input:        log64.TextAny(marshal.String("any string with zero byte"), string(byte(0))),
 		expected:     "\\u0000",
 		expectedText: "\\u0000",
 		expectedJSON: `{
@@ -3519,7 +3519,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextReflect(marshal8.String("reflect string"), "Hello, Wörld!"),
+		input:        log64.TextReflect(marshal.String("reflect string"), "Hello, Wörld!"),
 		expected:     "Hello, Wörld!",
 		expectedText: "Hello, Wörld!",
 		expectedJSON: `{
@@ -3528,7 +3528,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextReflect(marshal8.String("reflect empty string"), ""),
+		input:        log64.TextReflect(marshal.String("reflect empty string"), ""),
 		expected:     "",
 		expectedText: "",
 		expectedJSON: `{
@@ -3537,7 +3537,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextReflect(marshal8.String("reflect string with zero byte"), string(byte(0))),
+		input:        log64.TextReflect(marshal.String("reflect string with zero byte"), string(byte(0))),
 		expected:     "\u0000",
 		expectedText: "\u0000",
 		expectedJSON: `{
@@ -3548,7 +3548,7 @@ var KVTestCases = []struct {
 		line: line(),
 		input: func() log64.KV {
 			p := "Hello, Wörld!"
-			return log64.TextStringp(marshal8.String("string pointer"), &p)
+			return log64.TextStringp(marshal.String("string pointer"), &p)
 		}(),
 		expected:     "Hello, Wörld!",
 		expectedText: "Hello, Wörld!",
@@ -3560,7 +3560,7 @@ var KVTestCases = []struct {
 		line: line(),
 		input: func() log64.KV {
 			p := ""
-			return log64.TextStringp(marshal8.String("empty string pointer"), &p)
+			return log64.TextStringp(marshal.String("empty string pointer"), &p)
 		}(),
 		expected:     "",
 		expectedText: "",
@@ -3570,7 +3570,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextStringp(marshal8.String("nil string pointer"), nil),
+		input:        log64.TextStringp(marshal.String("nil string pointer"), nil),
 		expected:     "null",
 		expectedText: "null",
 		expectedJSON: `{
@@ -3581,7 +3581,7 @@ var KVTestCases = []struct {
 		line: line(),
 		input: func() log64.KV {
 			p := "Hello, Wörld!"
-			return log64.TextAny(marshal8.String("any string pointer"), &p)
+			return log64.TextAny(marshal.String("any string pointer"), &p)
 		}(),
 		expected:     "Hello, Wörld!",
 		expectedText: "Hello, Wörld!",
@@ -3593,7 +3593,7 @@ var KVTestCases = []struct {
 		line: line(),
 		input: func() log64.KV {
 			p := ""
-			return log64.TextAny(marshal8.String("any empty string pointer"), &p)
+			return log64.TextAny(marshal.String("any empty string pointer"), &p)
 		}(),
 		expected:     "",
 		expectedText: "",
@@ -3605,7 +3605,7 @@ var KVTestCases = []struct {
 		line: line(),
 		input: func() log64.KV {
 			p := "Hello, Wörld!"
-			return log64.TextReflect(marshal8.String("reflect string pointer"), &p)
+			return log64.TextReflect(marshal.String("reflect string pointer"), &p)
 		}(),
 		expected:     "Hello, Wörld!",
 		expectedText: "Hello, Wörld!",
@@ -3617,7 +3617,7 @@ var KVTestCases = []struct {
 		line: line(),
 		input: func() log64.KV {
 			p := ""
-			return log64.TextReflect(marshal8.String("reflect empty string pointer"), &p)
+			return log64.TextReflect(marshal.String("reflect empty string pointer"), &p)
 		}(),
 		expected:     "",
 		expectedText: "",
@@ -3627,7 +3627,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextUint(marshal8.String("uint"), 42),
+		input:        log64.TextUint(marshal.String("uint"), 42),
 		expected:     "42",
 		expectedText: "42",
 		expectedJSON: `{
@@ -3636,7 +3636,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextAny(marshal8.String("any uint"), 42),
+		input:        log64.TextAny(marshal.String("any uint"), 42),
 		expected:     "42",
 		expectedText: "42",
 		expectedJSON: `{
@@ -3645,7 +3645,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextReflect(marshal8.String("reflect uint"), 42),
+		input:        log64.TextReflect(marshal.String("reflect uint"), 42),
 		expected:     "42",
 		expectedText: "42",
 		expectedJSON: `{
@@ -3656,7 +3656,7 @@ var KVTestCases = []struct {
 		line: line(),
 		input: func() log64.KV {
 			var i uint = 42
-			return log64.TextUintp(marshal8.String("uint pointer"), &i)
+			return log64.TextUintp(marshal.String("uint pointer"), &i)
 		}(),
 		expected:     "42",
 		expectedText: "42",
@@ -3666,7 +3666,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextUintp(marshal8.String("nil uint pointer"), nil),
+		input:        log64.TextUintp(marshal.String("nil uint pointer"), nil),
 		expected:     "null",
 		expectedText: "null",
 		expectedJSON: `{
@@ -3677,7 +3677,7 @@ var KVTestCases = []struct {
 		line: line(),
 		input: func() log64.KV {
 			var i uint = 42
-			return log64.TextAny(marshal8.String("any uint pointer"), &i)
+			return log64.TextAny(marshal.String("any uint pointer"), &i)
 		}(),
 		expected:     "42",
 		expectedText: "42",
@@ -3689,7 +3689,7 @@ var KVTestCases = []struct {
 		line: line(),
 		input: func() log64.KV {
 			var i uint = 42
-			return log64.TextReflect(marshal8.String("reflect uint pointer"), &i)
+			return log64.TextReflect(marshal.String("reflect uint pointer"), &i)
 		}(),
 		expected:     "42",
 		expectedText: "42",
@@ -3699,7 +3699,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextUint16(marshal8.String("uint16"), 42),
+		input:        log64.TextUint16(marshal.String("uint16"), 42),
 		expected:     "42",
 		expectedText: "42",
 		expectedJSON: `{
@@ -3708,7 +3708,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextAny(marshal8.String("any uint16"), 42),
+		input:        log64.TextAny(marshal.String("any uint16"), 42),
 		expected:     "42",
 		expectedText: "42",
 		expectedJSON: `{
@@ -3717,7 +3717,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextReflect(marshal8.String("reflect uint16"), 42),
+		input:        log64.TextReflect(marshal.String("reflect uint16"), 42),
 		expected:     "42",
 		expectedText: "42",
 		expectedJSON: `{
@@ -3728,7 +3728,7 @@ var KVTestCases = []struct {
 		line: line(),
 		input: func() log64.KV {
 			var i uint16 = 42
-			return log64.TextUint16p(marshal8.String("uint16 pointer"), &i)
+			return log64.TextUint16p(marshal.String("uint16 pointer"), &i)
 		}(),
 		expected:     "42",
 		expectedText: "42",
@@ -3738,7 +3738,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextUint16p(marshal8.String("uint16 pointer"), nil),
+		input:        log64.TextUint16p(marshal.String("uint16 pointer"), nil),
 		expected:     "null",
 		expectedText: "null",
 		expectedJSON: `{
@@ -3749,7 +3749,7 @@ var KVTestCases = []struct {
 		line: line(),
 		input: func() log64.KV {
 			var i uint16 = 42
-			return log64.TextAny(marshal8.String("any uint16 pointer"), &i)
+			return log64.TextAny(marshal.String("any uint16 pointer"), &i)
 		}(),
 		expected:     "42",
 		expectedText: "42",
@@ -3761,7 +3761,7 @@ var KVTestCases = []struct {
 		line: line(),
 		input: func() log64.KV {
 			var i uint16 = 42
-			return log64.TextReflect(marshal8.String("reflect uint16 pointer"), &i)
+			return log64.TextReflect(marshal.String("reflect uint16 pointer"), &i)
 		}(),
 		expected:     "42",
 		expectedText: "42",
@@ -3773,7 +3773,7 @@ var KVTestCases = []struct {
 		line: line(),
 		input: func() log64.KV {
 			var i *uint16
-			return log64.TextReflect(marshal8.String("reflect uint16 pointer to nil"), i)
+			return log64.TextReflect(marshal.String("reflect uint16 pointer to nil"), i)
 		}(),
 		expected:     "null",
 		expectedText: "null",
@@ -3783,7 +3783,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextUint32(marshal8.String("uint32"), 42),
+		input:        log64.TextUint32(marshal.String("uint32"), 42),
 		expected:     "42",
 		expectedText: "42",
 		expectedJSON: `{
@@ -3792,7 +3792,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextAny(marshal8.String("any uint32"), 42),
+		input:        log64.TextAny(marshal.String("any uint32"), 42),
 		expected:     "42",
 		expectedText: "42",
 		expectedJSON: `{
@@ -3801,7 +3801,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextReflect(marshal8.String("reflect uint32"), 42),
+		input:        log64.TextReflect(marshal.String("reflect uint32"), 42),
 		expected:     "42",
 		expectedText: "42",
 		expectedJSON: `{
@@ -3812,7 +3812,7 @@ var KVTestCases = []struct {
 		line: line(),
 		input: func() log64.KV {
 			var i uint32 = 42
-			return log64.TextUint32p(marshal8.String("uint32 pointer"), &i)
+			return log64.TextUint32p(marshal.String("uint32 pointer"), &i)
 		}(),
 		expected:     "42",
 		expectedText: "42",
@@ -3822,7 +3822,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextUint32p(marshal8.String("nil uint32 pointer"), nil),
+		input:        log64.TextUint32p(marshal.String("nil uint32 pointer"), nil),
 		expected:     "null",
 		expectedText: "null",
 		expectedJSON: `{
@@ -3833,7 +3833,7 @@ var KVTestCases = []struct {
 		line: line(),
 		input: func() log64.KV {
 			var i uint32 = 42
-			return log64.TextAny(marshal8.String("any uint32 pointer"), &i)
+			return log64.TextAny(marshal.String("any uint32 pointer"), &i)
 		}(),
 		expected:     "42",
 		expectedText: "42",
@@ -3845,7 +3845,7 @@ var KVTestCases = []struct {
 		line: line(),
 		input: func() log64.KV {
 			var i uint32 = 42
-			return log64.TextReflect(marshal8.String("reflect uint32 pointer"), &i)
+			return log64.TextReflect(marshal.String("reflect uint32 pointer"), &i)
 		}(),
 		expected:     "42",
 		expectedText: "42",
@@ -3855,7 +3855,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextUint64(marshal8.String("uint64"), 42),
+		input:        log64.TextUint64(marshal.String("uint64"), 42),
 		expected:     "42",
 		expectedText: "42",
 		expectedJSON: `{
@@ -3865,7 +3865,7 @@ var KVTestCases = []struct {
 
 	{
 		line:         line(),
-		input:        log64.TextAny(marshal8.String("any uint64"), 42),
+		input:        log64.TextAny(marshal.String("any uint64"), 42),
 		expected:     "42",
 		expectedText: "42",
 		expectedJSON: `{
@@ -3874,7 +3874,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextReflect(marshal8.String("reflect uint64"), 42),
+		input:        log64.TextReflect(marshal.String("reflect uint64"), 42),
 		expected:     "42",
 		expectedText: "42",
 		expectedJSON: `{
@@ -3885,7 +3885,7 @@ var KVTestCases = []struct {
 		line: line(),
 		input: func() log64.KV {
 			var i uint64 = 42
-			return log64.TextUint64p(marshal8.String("uint64 pointer"), &i)
+			return log64.TextUint64p(marshal.String("uint64 pointer"), &i)
 		}(),
 		expected:     "42",
 		expectedText: "42",
@@ -3895,7 +3895,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextUint64p(marshal8.String("nil uint64 pointer"), nil),
+		input:        log64.TextUint64p(marshal.String("nil uint64 pointer"), nil),
 		expected:     "null",
 		expectedText: "null",
 		expectedJSON: `{
@@ -3906,7 +3906,7 @@ var KVTestCases = []struct {
 		line: line(),
 		input: func() log64.KV {
 			var i uint64 = 42
-			return log64.TextAny(marshal8.String("any uint64 pointer"), &i)
+			return log64.TextAny(marshal.String("any uint64 pointer"), &i)
 		}(),
 		expected:     "42",
 		expectedText: "42",
@@ -3918,7 +3918,7 @@ var KVTestCases = []struct {
 		line: line(),
 		input: func() log64.KV {
 			var i uint64 = 42
-			return log64.TextReflect(marshal8.String("reflect uint64 pointer"), &i)
+			return log64.TextReflect(marshal.String("reflect uint64 pointer"), &i)
 		}(),
 		expected:     "42",
 		expectedText: "42",
@@ -3928,7 +3928,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextUint8(marshal8.String("uint8"), 42),
+		input:        log64.TextUint8(marshal.String("uint8"), 42),
 		expected:     "42",
 		expectedText: "42",
 		expectedJSON: `{
@@ -3937,7 +3937,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextAny(marshal8.String("any uint8"), 42),
+		input:        log64.TextAny(marshal.String("any uint8"), 42),
 		expected:     "42",
 		expectedText: "42",
 		expectedJSON: `{
@@ -3946,7 +3946,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextReflect(marshal8.String("reflect uint8"), 42),
+		input:        log64.TextReflect(marshal.String("reflect uint8"), 42),
 		expected:     "42",
 		expectedText: "42",
 		expectedJSON: `{
@@ -3957,7 +3957,7 @@ var KVTestCases = []struct {
 		line: line(),
 		input: func() log64.KV {
 			var i uint8 = 42
-			return log64.TextUint8p(marshal8.String("uint8 pointer"), &i)
+			return log64.TextUint8p(marshal.String("uint8 pointer"), &i)
 		}(),
 		expected:     "42",
 		expectedText: "42",
@@ -3967,7 +3967,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextUint8p(marshal8.String("nil uint8 pointer"), nil),
+		input:        log64.TextUint8p(marshal.String("nil uint8 pointer"), nil),
 		expected:     "null",
 		expectedText: "null",
 		expectedJSON: `{
@@ -3978,7 +3978,7 @@ var KVTestCases = []struct {
 		line: line(),
 		input: func() log64.KV {
 			var i uint8 = 42
-			return log64.TextAny(marshal8.String("any uint8 pointer"), &i)
+			return log64.TextAny(marshal.String("any uint8 pointer"), &i)
 		}(),
 		expected:     "42",
 		expectedText: "42",
@@ -3990,7 +3990,7 @@ var KVTestCases = []struct {
 		line: line(),
 		input: func() log64.KV {
 			var i uint8 = 42
-			return log64.TextReflect(marshal8.String("reflect uint8 pointer"), &i)
+			return log64.TextReflect(marshal.String("reflect uint8 pointer"), &i)
 		}(),
 		expected:     "42",
 		expectedText: "42",
@@ -4000,7 +4000,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextUintptr(marshal8.String("uintptr"), 42),
+		input:        log64.TextUintptr(marshal.String("uintptr"), 42),
 		expected:     "42",
 		expectedText: "42",
 		expectedJSON: `{
@@ -4009,7 +4009,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextAny(marshal8.String("any uintptr"), 42),
+		input:        log64.TextAny(marshal.String("any uintptr"), 42),
 		expected:     "42",
 		expectedText: "42",
 		expectedJSON: `{
@@ -4018,7 +4018,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextReflect(marshal8.String("reflect uintptr"), 42),
+		input:        log64.TextReflect(marshal.String("reflect uintptr"), 42),
 		expected:     "42",
 		expectedText: "42",
 		expectedJSON: `{
@@ -4029,7 +4029,7 @@ var KVTestCases = []struct {
 		line: line(),
 		input: func() log64.KV {
 			var i uintptr = 42
-			return log64.TextUintptrp(marshal8.String("uintptr pointer"), &i)
+			return log64.TextUintptrp(marshal.String("uintptr pointer"), &i)
 		}(),
 		expected:     "42",
 		expectedText: "42",
@@ -4039,7 +4039,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextUintptrp(marshal8.String("nil uintptr pointer"), nil),
+		input:        log64.TextUintptrp(marshal.String("nil uintptr pointer"), nil),
 		expected:     "null",
 		expectedText: "null",
 		expectedJSON: `{
@@ -4050,7 +4050,7 @@ var KVTestCases = []struct {
 		line: line(),
 		input: func() log64.KV {
 			var i uintptr = 42
-			return log64.TextAny(marshal8.String("any uintptr pointer"), &i)
+			return log64.TextAny(marshal.String("any uintptr pointer"), &i)
 		}(),
 		expected:     "42",
 		expectedText: "42",
@@ -4062,7 +4062,7 @@ var KVTestCases = []struct {
 		line: line(),
 		input: func() log64.KV {
 			var i uintptr = 42
-			return log64.TextReflect(marshal8.String("reflect uintptr pointer"), &i)
+			return log64.TextReflect(marshal.String("reflect uintptr pointer"), &i)
 		}(),
 		expected:     "42",
 		expectedText: "42",
@@ -4072,7 +4072,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextTime(marshal8.String("time"), time.Date(1970, time.January, 1, 0, 0, 0, 42, time.UTC)),
+		input:        log64.TextTime(marshal.String("time"), time.Date(1970, time.January, 1, 0, 0, 0, 42, time.UTC)),
 		expected:     "1970-01-01 00:00:00.000000042 +0000 UTC",
 		expectedText: "1970-01-01T00:00:00.000000042Z",
 		expectedJSON: `{
@@ -4081,7 +4081,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextAny(marshal8.String("any time"), time.Date(1970, time.January, 1, 0, 0, 0, 42, time.UTC)),
+		input:        log64.TextAny(marshal.String("any time"), time.Date(1970, time.January, 1, 0, 0, 0, 42, time.UTC)),
 		expected:     `"1970-01-01T00:00:00.000000042Z"`,
 		expectedText: `1970-01-01T00:00:00.000000042Z`,
 		expectedJSON: `{
@@ -4090,7 +4090,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextReflect(marshal8.String("reflect time"), time.Date(1970, time.January, 1, 0, 0, 0, 42, time.UTC)),
+		input:        log64.TextReflect(marshal.String("reflect time"), time.Date(1970, time.January, 1, 0, 0, 0, 42, time.UTC)),
 		expected:     "1970-01-01 00:00:00.000000042 +0000 UTC",
 		expectedText: "1970-01-01 00:00:00.000000042 +0000 UTC",
 		expectedJSON: `{
@@ -4101,7 +4101,7 @@ var KVTestCases = []struct {
 		line: line(),
 		input: func() log64.KV {
 			t := time.Date(1970, time.January, 1, 0, 0, 0, 42, time.UTC)
-			return log64.TextTimep(marshal8.String("time pointer"), &t)
+			return log64.TextTimep(marshal.String("time pointer"), &t)
 		}(),
 		expected:     "1970-01-01 00:00:00.000000042 +0000 UTC",
 		expectedText: "1970-01-01T00:00:00.000000042Z",
@@ -4113,7 +4113,7 @@ var KVTestCases = []struct {
 		line: line(),
 		input: func() log64.KV {
 			var t *time.Time
-			return log64.TextTimep(marshal8.String("nil time pointer"), t)
+			return log64.TextTimep(marshal.String("nil time pointer"), t)
 		}(),
 		expected:     "0001-01-01 00:00:00 +0000 UTC",
 		expectedText: "0001-01-01T00:00:00Z",
@@ -4125,7 +4125,7 @@ var KVTestCases = []struct {
 		line: line(),
 		input: func() log64.KV {
 			t := time.Date(1970, time.January, 1, 0, 0, 0, 42, time.UTC)
-			return log64.TextAny(marshal8.String("any time pointer"), &t)
+			return log64.TextAny(marshal.String("any time pointer"), &t)
 		}(),
 		expected:     `"1970-01-01T00:00:00.000000042Z"`,
 		expectedText: `1970-01-01T00:00:00.000000042Z`,
@@ -4137,7 +4137,7 @@ var KVTestCases = []struct {
 		line: line(),
 		input: func() log64.KV {
 			t := time.Date(1970, time.January, 1, 0, 0, 0, 42, time.UTC)
-			return log64.TextReflect(marshal8.String("reflect time pointer"), &t)
+			return log64.TextReflect(marshal.String("reflect time pointer"), &t)
 		}(),
 		expected:     "1970-01-01 00:00:00.000000042 +0000 UTC",
 		expectedText: "1970-01-01 00:00:00.000000042 +0000 UTC",
@@ -4147,7 +4147,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextDuration(marshal8.String("duration"), 42*time.Nanosecond),
+		input:        log64.TextDuration(marshal.String("duration"), 42*time.Nanosecond),
 		expected:     "42ns",
 		expectedText: "42ns",
 		expectedJSON: `{
@@ -4156,7 +4156,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextAny(marshal8.String("any duration"), 42*time.Nanosecond),
+		input:        log64.TextAny(marshal.String("any duration"), 42*time.Nanosecond),
 		expected:     "42ns",
 		expectedText: "42ns",
 		expectedJSON: `{
@@ -4165,7 +4165,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextReflect(marshal8.String("reflect duration"), 42*time.Nanosecond),
+		input:        log64.TextReflect(marshal.String("reflect duration"), 42*time.Nanosecond),
 		expected:     "42ns",
 		expectedText: "42ns",
 		expectedJSON: `{
@@ -4176,7 +4176,7 @@ var KVTestCases = []struct {
 		line: line(),
 		input: func() log64.KV {
 			d := 42 * time.Nanosecond
-			return log64.TextDurationp(marshal8.String("duration pointer"), &d)
+			return log64.TextDurationp(marshal.String("duration pointer"), &d)
 		}(),
 		expected:     "42ns",
 		expectedText: "42ns",
@@ -4186,7 +4186,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextDurationp(marshal8.String("nil duration pointer"), nil),
+		input:        log64.TextDurationp(marshal.String("nil duration pointer"), nil),
 		expected:     "null",
 		expectedText: "null",
 		expectedJSON: `{
@@ -4197,7 +4197,7 @@ var KVTestCases = []struct {
 		line: line(),
 		input: func() log64.KV {
 			d := 42 * time.Nanosecond
-			return log64.TextAny(marshal8.String("any duration pointer"), &d)
+			return log64.TextAny(marshal.String("any duration pointer"), &d)
 		}(),
 		expected:     "42ns",
 		expectedText: "42ns",
@@ -4209,7 +4209,7 @@ var KVTestCases = []struct {
 		line: line(),
 		input: func() log64.KV {
 			d := 42 * time.Nanosecond
-			return log64.TextReflect(marshal8.String("reflect duration pointer"), &d)
+			return log64.TextReflect(marshal.String("reflect duration pointer"), &d)
 		}(),
 		expected:     "42ns",
 		expectedText: "42ns",
@@ -4219,7 +4219,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextAny(marshal8.String("any struct"), Struct{Name: "John Doe", Age: 42}),
+		input:        log64.TextAny(marshal.String("any struct"), Struct{Name: "John Doe", Age: 42}),
 		expected:     "{John Doe 42}",
 		expectedText: "{John Doe 42}",
 		expectedJSON: `{
@@ -4233,7 +4233,7 @@ var KVTestCases = []struct {
 		line: line(),
 		input: func() log64.KV {
 			s := Struct{Name: "John Doe", Age: 42}
-			return log64.TextAny(marshal8.String("any struct pointer"), &s)
+			return log64.TextAny(marshal.String("any struct pointer"), &s)
 		}(),
 		expected:     "{John Doe 42}",
 		expectedText: "{John Doe 42}",
@@ -4246,7 +4246,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextReflect(marshal8.String("struct reflect"), Struct{Name: "John Doe", Age: 42}),
+		input:        log64.TextReflect(marshal.String("struct reflect"), Struct{Name: "John Doe", Age: 42}),
 		expected:     "{John Doe 42}",
 		expectedText: "{John Doe 42}",
 		expectedJSON: `{
@@ -4260,7 +4260,7 @@ var KVTestCases = []struct {
 		line: line(),
 		input: func() log64.KV {
 			s := Struct{Name: "John Doe", Age: 42}
-			return log64.TextReflect(marshal8.String("struct reflect pointer"), &s)
+			return log64.TextReflect(marshal.String("struct reflect pointer"), &s)
 		}(),
 		expected:     "{John Doe 42}",
 		expectedText: "{John Doe 42}",
@@ -4273,7 +4273,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextRaw(marshal8.String("raw json"), []byte(`{"foo":"bar"}`)),
+		input:        log64.TextRaw(marshal.String("raw json"), []byte(`{"foo":"bar"}`)),
 		expected:     `{"foo":"bar"}`,
 		expectedText: `{"foo":"bar"}`,
 		expectedJSON: `{
@@ -4282,28 +4282,28 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextRaw(marshal8.String("raw malformed json object"), []byte(`xyz{"foo":"bar"}`)),
+		input:        log64.TextRaw(marshal.String("raw malformed json object"), []byte(`xyz{"foo":"bar"}`)),
 		expected:     `xyz{"foo":"bar"}`,
 		expectedText: `xyz{"foo":"bar"}`,
 		error:        errors.New("json: error calling MarshalJSON for type json.Marshaler: invalid character 'x' looking for beginning of value"),
 	},
 	{
 		line:         line(),
-		input:        log64.TextRaw(marshal8.String("raw malformed json key/value"), []byte(`{"foo":"bar""}`)),
+		input:        log64.TextRaw(marshal.String("raw malformed json key/value"), []byte(`{"foo":"bar""}`)),
 		expected:     `{"foo":"bar""}`,
 		expectedText: `{"foo":"bar""}`,
 		error:        errors.New(`json: error calling MarshalJSON for type json.Marshaler: invalid character '"' after object key:value pair`),
 	},
 	{
 		line:         line(),
-		input:        log64.TextRaw(marshal8.String("raw json with unescaped null byte"), append([]byte(`{"foo":"`), append([]byte{0}, []byte(`xyz"}`)...)...)),
+		input:        log64.TextRaw(marshal.String("raw json with unescaped null byte"), append([]byte(`{"foo":"`), append([]byte{0}, []byte(`xyz"}`)...)...)),
 		expected:     "{\"foo\":\"\u0000xyz\"}",
 		expectedText: "{\"foo\":\"\u0000xyz\"}",
 		error:        errors.New("json: error calling MarshalJSON for type json.Marshaler: invalid character '\\x00' in string literal"),
 	},
 	{
 		line:         line(),
-		input:        log64.TextRaw(marshal8.String("raw nil"), nil),
+		input:        log64.TextRaw(marshal.String("raw nil"), nil),
 		expected:     "null",
 		expectedText: "null",
 		expectedJSON: `{
@@ -4312,7 +4312,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextAny(marshal8.String("any byte array"), [3]byte{'f', 'o', 'o'}),
+		input:        log64.TextAny(marshal.String("any byte array"), [3]byte{'f', 'o', 'o'}),
 		expected:     "[102 111 111]",
 		expectedText: "[102 111 111]",
 		expectedJSON: `{
@@ -4323,7 +4323,7 @@ var KVTestCases = []struct {
 		line: line(),
 		input: func() log64.KV {
 			a := [3]byte{'f', 'o', 'o'}
-			return log64.TextAny(marshal8.String("any byte array pointer"), &a)
+			return log64.TextAny(marshal.String("any byte array pointer"), &a)
 		}(),
 		expected:     "[102 111 111]",
 		expectedText: "[102 111 111]",
@@ -4335,7 +4335,7 @@ var KVTestCases = []struct {
 		line: line(),
 		input: func() log64.KV {
 			var a *[3]byte
-			return log64.TextAny(marshal8.String("any byte array pointer to nil"), a)
+			return log64.TextAny(marshal.String("any byte array pointer to nil"), a)
 		}(),
 		expected:     "null",
 		expectedText: "null",
@@ -4345,7 +4345,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextReflect(marshal8.String("reflect byte array"), [3]byte{'f', 'o', 'o'}),
+		input:        log64.TextReflect(marshal.String("reflect byte array"), [3]byte{'f', 'o', 'o'}),
 		expected:     "[102 111 111]",
 		expectedText: "[102 111 111]",
 		expectedJSON: `{
@@ -4356,7 +4356,7 @@ var KVTestCases = []struct {
 		line: line(),
 		input: func() log64.KV {
 			a := [3]byte{'f', 'o', 'o'}
-			return log64.TextReflect(marshal8.String("reflect byte array pointer"), &a)
+			return log64.TextReflect(marshal.String("reflect byte array pointer"), &a)
 		}(),
 		expected:     "[102 111 111]",
 		expectedText: "[102 111 111]",
@@ -4368,7 +4368,7 @@ var KVTestCases = []struct {
 		line: line(),
 		input: func() log64.KV {
 			var a *[3]byte
-			return log64.TextReflect(marshal8.String("reflect byte array pointer to nil"), a)
+			return log64.TextReflect(marshal.String("reflect byte array pointer to nil"), a)
 		}(),
 		expected:     "null",
 		expectedText: "null",
@@ -4378,7 +4378,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextAny(marshal8.String("any untyped nil"), nil),
+		input:        log64.TextAny(marshal.String("any untyped nil"), nil),
 		expected:     "null",
 		expectedText: "null",
 		expectedJSON: `{
@@ -4387,7 +4387,7 @@ var KVTestCases = []struct {
 	},
 	{
 		line:         line(),
-		input:        log64.TextReflect(marshal8.String("reflect untyped nil"), nil),
+		input:        log64.TextReflect(marshal.String("reflect untyped nil"), nil),
 		expected:     "null",
 		expectedText: "null",
 		expectedJSON: `{
