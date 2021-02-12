@@ -15,6 +15,16 @@ import (
 	jsoniter "github.com/json-iterator/go"
 )
 
+type Logger interface {
+	io.Writer
+	With(...KV) Logger
+}
+
+type KV interface {
+	encoding.TextMarshaler
+	json.Marshaler
+}
+
 const (
 	Original = iota
 	Excerpt
@@ -39,11 +49,6 @@ type Log struct {
 	Trunc   int                       // Maximum length of the message excerpt after which the message excerpt is truncated.
 	Marks   [3][]byte                 // Marks: 0 = truncate; 1 = empty; 2 = blank.
 	Replace [][2][]byte               // Replace ia a pairs of byte slices to replace in the message excerpt.
-}
-
-type KV interface {
-	encoding.TextMarshaler
-	json.Marshaler
 }
 
 func (lg Log) Write(src []byte) (int, error) {
