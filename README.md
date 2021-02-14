@@ -27,7 +27,7 @@ its extremely slow and allocates a lots of memory)
 Install
 -------
 
-    go get github.com/danil/log30@v0.96.0
+    go get github.com/danil/log30@v0.97.0
 
 Usage
 -----
