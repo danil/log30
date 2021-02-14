@@ -771,7 +771,7 @@ func TestWrite(t *testing.T) {
 			}
 			l64.Output = &buf
 
-			_, err := tc.log.With(tc.kv...).Write(tc.input)
+			_, err := tc.log.New(tc.kv...).Write(tc.input)
 			if err != nil {
 				t.Fatalf("write error: %s", err)
 			}
@@ -1382,7 +1382,7 @@ func BenchmarkLog30(b *testing.B) {
 
 				l := tc.log
 				for _, kv := range tc.kv {
-					l = l.With(kv)
+					l = l.New(kv)
 				}
 				_, err := l.Write(tc.input)
 				if err != nil {
@@ -1678,7 +1678,7 @@ func TestWith(t *testing.T) {
 
 			l64.Output = &buf
 
-			_, err := tc.log.With(tc.kv...).Write(nil)
+			_, err := tc.log.New(tc.kv...).Write(nil)
 			if err != nil {
 				t.Fatalf("write error: %s", err)
 			}

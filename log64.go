@@ -17,7 +17,7 @@ import (
 
 type Logger interface {
 	io.Writer
-	With(...KV) Logger
+	New(...KV) Logger
 }
 
 type KV interface {
@@ -321,9 +321,9 @@ replace:
 	return n, nil
 }
 
-// With returns copy of the logger with additional key-values.
+// New returns copy of the logger with additional key-values.
 // Copy of the original key-values overwritten by the additional key-values.
-func (l *Log) With(kv ...KV) Logger {
+func (l *Log) New(kv ...KV) Logger {
 	l2 := *l
 	l2.KV = append(kv[:0], append(l.KV, kv...)...)
 	return &l2
