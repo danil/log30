@@ -763,11 +763,11 @@ func TestWrite(t *testing.T) {
 
 			var buf bytes.Buffer
 
-			l, ok := tc.log.(*log64.Log)
+			l64, ok := tc.log.(*log64.Log)
 			if !ok {
 				t.Fatal("logger type is not appropriate")
 			}
-			l.Output = &buf
+			l64.Output = &buf
 
 			_, err := tc.log.With(tc.kv...).Write(tc.input)
 			if err != nil {
@@ -807,14 +807,14 @@ var FprintWriteTestCases = []struct {
 		name: "readme example 2",
 		line: line(),
 		log: func() *log64.Log {
-			lg := log64.GELF()
-			lg.KVF = []func() log64.KV{
+			l := log64.GELF()
+			l.KVF = []func() log64.KV{
 				func() log64.KV {
 					return log64.StringInt64("timestamp", time.Date(2020, time.October, 15, 18, 9, 0, 0, time.UTC).Unix())
 				},
 			}
-			lg.KV = []log64.KV{log64.String("version", "1.1")}
-			return lg
+			l.KV = []log64.KV{log64.String("version", "1.1")}
+			return l
 		}(),
 		input: "Hello,\nGELF!",
 		expected: `{
@@ -1285,14 +1285,14 @@ var FprintWriteTestCases = []struct {
 		name: "GELF",
 		line: line(),
 		log: func() *log64.Log {
-			lg := log64.GELF()
-			lg.KVF = []func() log64.KV{
+			l := log64.GELF()
+			l.KVF = []func() log64.KV{
 				func() log64.KV {
 					return log64.StringInt64("timestamp", time.Date(2020, time.October, 15, 18, 9, 0, 0, time.UTC).Unix())
 				},
 			}
-			lg.KV = []log64.KV{log64.String("version", "1.1"), log64.String("host", "example.tld")}
-			return lg
+			l.KV = []log64.KV{log64.String("version", "1.1"), log64.String("host", "example.tld")}
+			return l
 		}(),
 		input: "Hello, GELF!",
 		expected: `{
@@ -1306,15 +1306,15 @@ var FprintWriteTestCases = []struct {
 		name: "GELF with file path",
 		line: line(),
 		log: func() *log64.Log {
-			lg := log64.GELF()
-			lg.Flag = log.Llongfile
-			lg.KVF = []func() log64.KV{
+			l := log64.GELF()
+			l.Flag = log.Llongfile
+			l.KVF = []func() log64.KV{
 				func() log64.KV {
 					return log64.StringInt64("timestamp", time.Date(2020, time.October, 15, 18, 9, 0, 0, time.UTC).Unix())
 				},
 			}
-			lg.KV = []log64.KV{log64.String("version", "1.1"), log64.String("host", "example.tld")}
-			return lg
+			l.KV = []log64.KV{log64.String("version", "1.1"), log64.String("host", "example.tld")}
+			return l
 		}(),
 		input: "path/to/file7:89: Hello, GELF!",
 		expected: `{
@@ -1365,18 +1365,18 @@ func BenchmarkLog64(b *testing.B) {
 			for i := 0; i < b.N; i++ {
 				var buf bytes.Buffer
 
-				l, ok := tc.log.(*log64.Log)
+				l64, ok := tc.log.(*log64.Log)
 				if !ok {
 					b.Fatal("logger type is not appropriate")
 				}
 
-				l.Output = &buf
+				l64.Output = &buf
 
-				lg := tc.log
+				l := tc.log
 				for _, kv := range tc.kv {
-					lg = lg.With(kv)
+					l = l.With(kv)
 				}
-				_, err := lg.Write(tc.input)
+				_, err := l.Write(tc.input)
 				if err != nil {
 					fmt.Println(err)
 				}
@@ -1392,12 +1392,12 @@ func BenchmarkLog64(b *testing.B) {
 			for i := 0; i < b.N; i++ {
 				var buf bytes.Buffer
 
-				l, ok := tc.log.(*log64.Log)
+				l64, ok := tc.log.(*log64.Log)
 				if !ok {
 					b.Fatal("logger type is not appropriate")
 				}
 
-				l.Output = &buf
+				l64.Output = &buf
 
 				_, err := fmt.Fprint(tc.log, tc.input)
 				if err != nil {
@@ -1419,9 +1419,9 @@ var dummy = &log64.Log{
 func TestLogWriteTrailingNewLine(t *testing.T) {
 	var buf bytes.Buffer
 
-	lg := &log64.Log{Output: &buf}
+	l := &log64.Log{Output: &buf}
 
-	_, err := lg.Write([]byte("Hello, Wrold!"))
+	_, err := l.Write([]byte("Hello, Wrold!"))
 	if err != nil {
 		t.Fatalf("write error: %s", err)
 	}
@@ -1529,13 +1529,13 @@ func TestTruncate(t *testing.T) {
 			t.Parallel()
 			linkToExample := fmt.Sprintf("%s:%d", testFile, tc.line)
 
-			l, ok := tc.log.(*log64.Log)
+			l64, ok := tc.log.(*log64.Log)
 			if !ok {
 				t.Fatal("logger type is not appropriate")
 			}
 
 			n := len(tc.input) + 10*10
-			for _, m := range l.Marks {
+			for _, m := range l64.Marks {
 				if n < len(m) {
 					n = len(m)
 				}
@@ -1543,7 +1543,7 @@ func TestTruncate(t *testing.T) {
 
 			excerpt := make([]byte, n)
 
-			n, err := l.Truncate(excerpt, tc.input)
+			n, err := l64.Truncate(excerpt, tc.input)
 			if err != nil {
 				t.Fatalf("write error: %s", err)
 			}
@@ -1663,12 +1663,12 @@ func TestWith(t *testing.T) {
 
 			var buf bytes.Buffer
 
-			l, ok := tc.log.(*log64.Log)
+			l64, ok := tc.log.(*log64.Log)
 			if !ok {
 				t.Fatal("logger type is not appropriate")
 			}
 
-			l.Output = &buf
+			l64.Output = &buf
 
 			_, err := tc.log.With(tc.kv...).Write(nil)
 			if err != nil {

@@ -51,12 +51,12 @@ type Log struct {
 	Replace [][2][]byte               // Replace ia a pairs of byte slices to replace in the message excerpt.
 }
 
-func (lg Log) Write(src []byte) (int, error) {
-	j, err := lg.json(src)
+func (l Log) Write(src []byte) (int, error) {
+	j, err := l.json(src)
 	if err != nil {
 		return 0, err
 	}
-	return lg.Output.Write(j)
+	return l.Output.Write(j)
 }
 
 var asciiSpace = [256]uint8{'\t': 1, '\n': 1, '\v': 1, '\f': 1, '\r': 1, ' ': 1}
@@ -66,14 +66,14 @@ var (
 	excerptPool = sync.Pool{New: func() interface{} { return new([]byte) }}
 )
 
-func (lg Log) json(src []byte) ([]byte, error) {
+func (l Log) json(src []byte) ([]byte, error) {
 	tmpKV := mapPool.Get().(map[string]json.Marshaler)
 	for k := range tmpKV {
 		delete(tmpKV, k)
 	}
 	defer mapPool.Put(tmpKV)
 
-	for _, kv := range lg.KV {
+	for _, kv := range l.KV {
 		p, err := kv.MarshalText()
 		if err != nil {
 			return nil, err
@@ -81,7 +81,7 @@ func (lg Log) json(src []byte) ([]byte, error) {
 		tmpKV[string(p)] = kv
 	}
 
-	for _, fn := range lg.KVF {
+	for _, fn := range l.KVF {
 		kv := fn()
 		p, err := kv.MarshalText()
 		if err != nil {
@@ -97,7 +97,7 @@ func (lg Log) json(src []byte) ([]byte, error) {
 	var tail, file int
 
 	if len(src) != 0 {
-		switch lg.Flag {
+		switch l.Flag {
 		case log.Lshortfile, log.Llongfile:
 			i := bytes.Index(src, []byte(": "))
 			if i == -1 {
@@ -112,10 +112,10 @@ func (lg Log) json(src []byte) ([]byte, error) {
 
 	var originalKey string
 
-	if lg.Keys[Original] == nil {
+	if l.Keys[Original] == nil {
 		originalKey = ""
 	} else {
-		p, err := lg.Keys[Original].MarshalText()
+		p, err := l.Keys[Original].MarshalText()
 		if err != nil {
 			return nil, err
 		}
@@ -124,10 +124,10 @@ func (lg Log) json(src []byte) ([]byte, error) {
 
 	var excerptKey string
 
-	if lg.Keys[Excerpt] == nil {
+	if l.Keys[Excerpt] == nil {
 		excerptKey = ""
 	} else {
-		p, err := lg.Keys[Excerpt].MarshalText()
+		p, err := l.Keys[Excerpt].MarshalText()
 		if err != nil {
 			return nil, err
 		}
@@ -140,18 +140,18 @@ func (lg Log) json(src []byte) ([]byte, error) {
 
 	if tmpKV[excerptKey] == nil {
 		if tail == len(src) && tmpKV[originalKey] == nil {
-			excerpt = append(excerpt[:0], lg.Marks[Empty]...)
+			excerpt = append(excerpt[:0], l.Marks[Empty]...)
 
 		} else if tail != len(src) {
-			n := len(src) + len(lg.Marks[Trunc])
-			for _, m := range lg.Marks {
+			n := len(src) + len(l.Marks[Trunc])
+			for _, m := range l.Marks {
 				if n < len(m) {
 					n = len(m)
 				}
 			}
 
 			excerpt = append(excerpt[:0], make([]byte, n)...)
-			n, err := lg.Truncate(excerpt, src[tail:])
+			n, err := l.Truncate(excerpt, src[tail:])
 			if err != nil {
 				return nil, err
 			}
@@ -162,10 +162,10 @@ func (lg Log) json(src []byte) ([]byte, error) {
 
 	var trailKey string
 
-	if lg.Keys[Trail] == nil {
+	if l.Keys[Trail] == nil {
 		trailKey = ""
 	} else {
-		p, err := lg.Keys[Trail].MarshalText()
+		p, err := l.Keys[Trail].MarshalText()
 		if err != nil {
 			return nil, err
 		}
@@ -173,7 +173,7 @@ func (lg Log) json(src []byte) ([]byte, error) {
 	}
 
 	if bytes.Equal(src, excerpt) && src != nil {
-		if lg.Key == Excerpt {
+		if l.Key == Excerpt {
 			tmpKV[excerptKey] = marshal.Bytes(src)
 
 		} else {
@@ -198,10 +198,10 @@ func (lg Log) json(src []byte) ([]byte, error) {
 
 	var fileKey string
 
-	if lg.Keys[File] == nil {
+	if l.Keys[File] == nil {
 		fileKey = ""
 	} else {
-		p, err := lg.Keys[File].MarshalText()
+		p, err := l.Keys[File].MarshalText()
 		if err != nil {
 			return nil, err
 		}
@@ -240,7 +240,7 @@ func lastIndexFunc(s []byte, f func(r rune) bool, truth bool) int {
 
 // Truncate writes excerpt of the src to the dst and returns number of the written bytes
 // and error if occurre.
-func (lg Log) Truncate(dst, src []byte) (int, error) {
+func (l Log) Truncate(dst, src []byte) (int, error) {
 	var start, end int
 	begin := true
 
@@ -272,7 +272,7 @@ func (lg Log) Truncate(dst, src []byte) (int, error) {
 			}
 		}
 
-		if end-start >= len(src) || (lg.Trunc > 0 && end-start >= lg.Trunc) {
+		if end-start >= len(src) || (l.Trunc > 0 && end-start >= l.Trunc) {
 			break
 		}
 
@@ -304,7 +304,7 @@ func (lg Log) Truncate(dst, src []byte) (int, error) {
 	n := copy(dst, src[start:end])
 
 replace:
-	for _, r := range lg.Replace {
+	for _, r := range l.Replace {
 		for offset := 0; offset < n; {
 			if len(r[0]) == 0 || bytes.Equal(r[0], r[1]) {
 				continue replace
@@ -325,11 +325,11 @@ replace:
 	}
 
 	if end-start == 0 {
-		n += copy(dst[n:], lg.Marks[Blank])
+		n += copy(dst[n:], l.Marks[Blank])
 	}
 
 	if end-start != 0 && truncate {
-		n += copy(dst[n:], lg.Marks[Trunc])
+		n += copy(dst[n:], l.Marks[Trunc])
 	}
 
 	return n, nil
@@ -337,9 +337,9 @@ replace:
 
 // With returns copy of the logger with additional key-values.
 // Copy of the original key-values overwritten by the additional key-values.
-func (lg *Log) With(kv ...KV) Logger {
-	l2 := *lg
-	l2.KV = append(kv[:0], append(lg.KV, kv...)...)
+func (l *Log) With(kv ...KV) Logger {
+	l2 := *l
+	l2.KV = append(kv[:0], append(l.KV, kv...)...)
 	return &l2
 }
 
