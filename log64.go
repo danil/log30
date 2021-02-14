@@ -43,7 +43,7 @@ type Log struct {
 	Output  io.Writer                 // Output is a destination for output.
 	Flag    int                       // Flag is a log properties.
 	KV      []KV                      // Key-values.
-	FKV     []func() KV               // FKV ia a dynamically calculated key-values. Existing kv will not overwritten by the dynamically calculated key-values.
+	KVF     []func() KV               // KVF ia a dynamically calculated key-values. Existing kv will not overwritten by the dynamically calculated key-values.
 	Keys    [4]encoding.TextMarshaler // Keys: 0 = original message; 1 = message excerpt; 2 = message trail; 3 = file path.
 	Key     uint8                     // Key is a default/sticky message key: all except 1 = original message; 1 = message excerpt.
 	Trunc   int                       // Maximum length of the message excerpt after which the message excerpt is truncated.
@@ -81,7 +81,7 @@ func (lg Log) json(src []byte) ([]byte, error) {
 		tmpKV[string(p)] = kv
 	}
 
-	for _, fn := range lg.FKV {
+	for _, fn := range lg.KVF {
 		kv := fn()
 		p, err := kv.MarshalText()
 		if err != nil {
@@ -350,7 +350,7 @@ func GELF() *Log {
 		// <https://docs.graylog.org/en/latest/pages/gelf.html#gelf-payload-specification>,
 		// <https://github.com/graylog-labs/gelf-rb/issues/41#issuecomment-198266505>.
 		KV: []KV{String("version", "1.1")},
-		FKV: []func() KV{
+		KVF: []func() KV{
 			func() KV { return StringInt64("timestamp", time.Now().Unix()) },
 		},
 		Trunc: 120,
