@@ -27,7 +27,7 @@ its extremely slow and allocates a lots of memory)
 Install
 -------
 
-    go get github.com/danil/log64@v0.91.0
+    go get github.com/danil/log64@v0.92.0
 
 Usage
 -----

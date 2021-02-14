@@ -1925,6 +1925,20 @@ var KVTestCases = []struct {
 	{
 		line: line(),
 		input: func() log64.KV {
+			return log64.StringFunc("function", func() json.Marshaler {
+				t := time.Date(1970, time.January, 1, 0, 0, 0, 42, time.UTC)
+				return marshal.Time(t)
+			})
+		}(),
+		expected:     "1970-01-01 00:00:00.000000042 +0000 UTC",
+		expectedText: "1970-01-01T00:00:00.000000042Z",
+		expectedJSON: `{
+			"function":"1970-01-01T00:00:00.000000042Z"
+		}`,
+	},
+	{
+		line: line(),
+		input: func() log64.KV {
 			t := time.Date(1970, time.January, 1, 0, 0, 0, 42, time.UTC)
 			return log64.StringAny("any time pointer", &t)
 		}(),
@@ -4119,6 +4133,20 @@ var KVTestCases = []struct {
 		expectedText: "0001-01-01T00:00:00Z",
 		expectedJSON: `{
 			"nil time pointer":null
+		}`,
+	},
+	{
+		line: line(),
+		input: func() log64.KV {
+			return log64.TextFunc(marshal.String("function"), func() json.Marshaler {
+				t := time.Date(1970, time.January, 1, 0, 0, 0, 42, time.UTC)
+				return marshal.Time(t)
+			})
+		}(),
+		expected:     "1970-01-01 00:00:00.000000042 +0000 UTC",
+		expectedText: "1970-01-01T00:00:00.000000042Z",
+		expectedJSON: `{
+			"function":"1970-01-01T00:00:00.000000042Z"
 		}`,
 	},
 	{

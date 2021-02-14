@@ -3,6 +3,7 @@ package log64_test
 import (
 	"bytes"
 	"encoding"
+	"encoding/json"
 	"fmt"
 	"log"
 	"runtime"
@@ -10,6 +11,7 @@ import (
 	"time"
 
 	"github.com/danil/log64"
+	"github.com/danil/log64/marshal"
 	"github.com/kinbiko/jsonassert"
 )
 
@@ -808,12 +810,13 @@ var FprintWriteTestCases = []struct {
 		line: line(),
 		log: func() *log64.Log {
 			l := log64.GELF()
-			l.KVF = []func() log64.KV{
-				func() log64.KV {
-					return log64.StringInt64("timestamp", time.Date(2020, time.October, 15, 18, 9, 0, 0, time.UTC).Unix())
-				},
+			l.KV = []log64.KV{
+				log64.String("version", "1.1"),
+				log64.StringFunc("timestamp", func() json.Marshaler {
+					t := time.Date(2020, time.October, 15, 18, 9, 0, 0, time.UTC)
+					return marshal.Int64(t.Unix())
+				}),
 			}
-			l.KV = []log64.KV{log64.String("version", "1.1")}
 			return l
 		}(),
 		input: "Hello,\nGELF!",
@@ -1141,10 +1144,11 @@ var FprintWriteTestCases = []struct {
 		name: `dynamic "time" key`,
 		line: line(),
 		log: &log64.Log{
-			KVF: []func() log64.KV{
-				func() log64.KV {
-					return log64.String("time", time.Date(2020, time.October, 15, 18, 9, 0, 0, time.UTC).String())
-				},
+			KV: []log64.KV{
+				log64.StringFunc("time", func() json.Marshaler {
+					t := time.Date(2020, time.October, 15, 18, 9, 0, 0, time.UTC)
+					return marshal.String(t.String())
+				}),
 			},
 			Keys: [4]encoding.TextMarshaler{log64.String("message")},
 		},
@@ -1286,12 +1290,14 @@ var FprintWriteTestCases = []struct {
 		line: line(),
 		log: func() *log64.Log {
 			l := log64.GELF()
-			l.KVF = []func() log64.KV{
-				func() log64.KV {
-					return log64.StringInt64("timestamp", time.Date(2020, time.October, 15, 18, 9, 0, 0, time.UTC).Unix())
-				},
+			l.KV = []log64.KV{
+				log64.String("version", "1.1"),
+				log64.String("host", "example.tld"),
+				log64.StringFunc("timestamp", func() json.Marshaler {
+					t := time.Date(2020, time.October, 15, 18, 9, 0, 0, time.UTC)
+					return marshal.Int64(t.Unix())
+				}),
 			}
-			l.KV = []log64.KV{log64.String("version", "1.1"), log64.String("host", "example.tld")}
 			return l
 		}(),
 		input: "Hello, GELF!",
@@ -1308,12 +1314,14 @@ var FprintWriteTestCases = []struct {
 		log: func() *log64.Log {
 			l := log64.GELF()
 			l.Flag = log.Llongfile
-			l.KVF = []func() log64.KV{
-				func() log64.KV {
-					return log64.StringInt64("timestamp", time.Date(2020, time.October, 15, 18, 9, 0, 0, time.UTC).Unix())
-				},
+			l.KV = []log64.KV{
+				log64.String("version", "1.1"),
+				log64.String("host", "example.tld"),
+				log64.StringFunc("timestamp", func() json.Marshaler {
+					t := time.Date(2020, time.October, 15, 18, 9, 0, 0, time.UTC)
+					return marshal.Int64(t.Unix())
+				}),
 			}
-			l.KV = []log64.KV{log64.String("version", "1.1"), log64.String("host", "example.tld")}
 			return l
 		}(),
 		input: "path/to/file7:89: Hello, GELF!",

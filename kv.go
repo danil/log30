@@ -196,6 +196,10 @@ func StringTimep(k string, v *time.Time) kvp {
 	return kvp{K: marshal.String(k), V: marshal.Timep(v)}
 }
 
+func StringFunc(k string, v func() json.Marshaler) kvp {
+	return kvp{K: marshal.String(k), V: v()}
+}
+
 func StringRaw(k string, v []byte) kvp {
 	return kvp{K: marshal.String(k), V: marshal.Raw(v)}
 }
@@ -389,6 +393,10 @@ func TextTime(k encoding.TextMarshaler, v time.Time) kvp {
 
 func TextTimep(k encoding.TextMarshaler, v *time.Time) kvp {
 	return kvp{K: k, V: marshal.Timep(v)}
+}
+
+func TextFunc(k encoding.TextMarshaler, v func() json.Marshaler) kvp {
+	return kvp{K: k, V: v()}
 }
 
 func TextRaw(k encoding.TextMarshaler, v []byte) kvp {
