@@ -322,7 +322,8 @@ replace:
 }
 
 // New returns copy of the logger with additional key-values.
-// Copy of the original key-values overwritten by the additional key-values.
+// Copy of the original key-values has the priority lower
+// than the priority of the newer key-values.
 func (l *Log) New(kv ...KV) Logger {
 	l2 := *l
 	l2.KV = append(kv[:0], append(l.KV, kv...)...)
