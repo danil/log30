@@ -17,6 +17,9 @@ import (
 
 type Logger interface {
 	io.Writer
+	// New returns copy of the logger with additional key-values.
+	// Copy of the original key-values should have a lower priority
+	// than the priority of the newer key-values.
 	New(...KV) Logger
 }
 
@@ -326,7 +329,8 @@ replace:
 // than the priority of the newer key-values.
 func (l *Log) New(kv ...KV) Logger {
 	l2 := *l
-	l2.KV = append(l2.KV[:0], append(l2.KV, kv...)...)
+	l2.KV = append(l2.KV[:0], l2.KV...)
+	l2.KV = append(l2.KV, kv...)
 	l2.Replace = append(l2.Replace[:0], l2.Replace...)
 	return &l2
 }
