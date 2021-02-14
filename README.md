@@ -1,8 +1,8 @@
-log64
+log30
 =====
 
-[![Build Status](https://cloud.drone.io/api/badges/danil/log64/status.svg)](https://cloud.drone.io/danil/log64)
-[![Go Reference](https://pkg.go.dev/badge/github.com/danil/log64.svg)](https://pkg.go.dev/github.com/danil/log64)
+[![Build Status](https://cloud.drone.io/api/badges/danil/log30/status.svg)](https://cloud.drone.io/danil/log30)
+[![Go Reference](https://pkg.go.dev/badge/github.com/danil/log30.svg)](https://pkg.go.dev/github.com/danil/log30)
 
 JSON logging for Go.
 
@@ -27,12 +27,12 @@ its extremely slow and allocates a lots of memory)
 Install
 -------
 
-    go get github.com/danil/log64@v0.93.0
+    go get github.com/danil/log30@v0.94.0
 
 Usage
 -----
 
-Set log64 as global logger
+Set log30 as global logger
 
 ```go
 package main
@@ -41,14 +41,14 @@ import (
     "os"
     "log"
 
-    "github.com/danil/log64"
+    "github.com/danil/log30"
 )
 
 func main() {
-    l := log64.Log{
+    l := log30.Log{
         Output: os.Stdout,
         Trunc: 12,
-        Keys: [4]json.Marshaler{log64.String("message"), log64.String("excerpt")},
+        Keys: [4]json.Marshaler{log30.String("message"), log30.String("excerpt")},
         Marks: [3][]byte{[]byte("…")},
         Replace: [][]byte{[]byte("\n"), []byte(" ")},
     }
@@ -78,11 +78,11 @@ import (
     "log"
     "os"
 
-    "github.com/danil/log64"
+    "github.com/danil/log30"
 )
 
 func main() {
-    l := log64.GELF()
+    l := log30.GELF()
     l.Output = os.Stdout
     log.SetFlags(0)
     log.SetOutput(l)
@@ -111,13 +111,13 @@ import (
     "log"
     "os"
 
-    "github.com/danil/log64"
+    "github.com/danil/log30"
 )
 
 func main() {
-    l := log64.Log{
+    l := log30.Log{
         Output: os.Stdout,
-        Keys: [4]json.Marshaler{log64.String("message")},
+        Keys: [4]json.Marshaler{log30.String("message")},
     }
     log.SetFlags(0)
     log.SetOutput(l)
@@ -150,9 +150,9 @@ Benchmark
 go test -bench=. ./...
 goos: linux
 goarch: amd64
-pkg: github.com/danil/log64
-BenchmarkLog64/io.Writer_36-8         	  323197	      3678 ns/op
-BenchmarkLog64/fmt.Fprint_io.Writer_1009-8         	  121657	     10417 ns/op
+pkg: github.com/danil/log30
+BenchmarkLog30/io.Writer_36-8         	  323197	      3678 ns/op
+BenchmarkLog30/fmt.Fprint_io.Writer_1009-8         	  121657	     10417 ns/op
 ```
 
 License

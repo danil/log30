@@ -1,4 +1,4 @@
-package encode64
+package encode30
 
 import (
 	"bytes"

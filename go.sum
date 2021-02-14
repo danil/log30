@@ -1,5 +1,5 @@
-github.com/danil/eq32 v0.5.0 h1:df4bepIeIW8XLuVQb3KuoVmF9sC09DN4wXX96JXCsXQ=
-github.com/danil/eq32 v0.5.0/go.mod h1:fab46rBABFwCW39Zj3WDq83sXjLmlzf3LnDWTFb5wh0=
+github.com/danil/equal4 v0.6.0 h1:5aHgseKJlIyWsO75aksy5VNG5Sv1a89ug/JN2tGBJB4=
+github.com/danil/equal4 v0.6.0/go.mod h1:qu64NaFdu/shV3jfhGUMuv/TrS4QQLLPMk0xTFQkpgM=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/google/gofuzz v1.0.0/go.mod h1:dBl0BpW6vV/+mYPU4Po3pmUjxk6FQPldtuIdl/M65Eg=

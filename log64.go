@@ -1,4 +1,4 @@
-package log64
+package log30
 
 import (
 	"bytes"
@@ -11,7 +11,7 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	"github.com/danil/log64/marshal64"
+	"github.com/danil/log30/marshal30"
 	jsoniter "github.com/json-iterator/go"
 )
 
@@ -160,25 +160,25 @@ func (l Log) json(src []byte) ([]byte, error) {
 
 	if bytes.Equal(src, excerpt) && src != nil {
 		if l.Key == Excerpt {
-			tmpKV[excerptKey] = marshal64.Bytes(src)
+			tmpKV[excerptKey] = marshal30.Bytes(src)
 
 		} else {
 			if tmpKV[originalKey] == nil {
-				tmpKV[originalKey] = marshal64.Bytes(src)
+				tmpKV[originalKey] = marshal30.Bytes(src)
 			} else if len(src) != 0 {
-				tmpKV[trailKey] = marshal64.Bytes(src)
+				tmpKV[trailKey] = marshal30.Bytes(src)
 			}
 		}
 
 	} else if !bytes.Equal(src, excerpt) {
 		if tmpKV[originalKey] == nil {
-			tmpKV[originalKey] = marshal64.Bytes(src)
+			tmpKV[originalKey] = marshal30.Bytes(src)
 		} else if tmpKV[originalKey] != nil && len(src) != 0 {
-			tmpKV[trailKey] = marshal64.Bytes(src)
+			tmpKV[trailKey] = marshal30.Bytes(src)
 		}
 
 		if tmpKV[excerptKey] == nil && len(excerpt) != 0 {
-			tmpKV[excerptKey] = marshal64.Bytes(excerpt)
+			tmpKV[excerptKey] = marshal30.Bytes(excerpt)
 		}
 	}
 
@@ -195,7 +195,7 @@ func (l Log) json(src []byte) ([]byte, error) {
 	}
 
 	if file != 0 {
-		tmpKV[fileKey] = marshal64.Bytes(src[:file])
+		tmpKV[fileKey] = marshal30.Bytes(src[:file])
 	}
 
 	p, err := jsoniter.ConfigCompatibleWithStandardLibrary.Marshal(tmpKV)
@@ -338,7 +338,7 @@ func GELF() *Log {
 		KV: []KV{
 			String("version", "1.1"),
 			StringFunc("timestamp", func() json.Marshaler {
-				return marshal64.Int64(time.Now().Unix())
+				return marshal30.Int64(time.Now().Unix())
 			}),
 		},
 		Trunc: 120,

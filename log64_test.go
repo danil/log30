@@ -1,4 +1,4 @@
-package log64_test
+package log30_test
 
 import (
 	"bytes"
@@ -10,17 +10,17 @@ import (
 	"testing"
 	"time"
 
-	"github.com/danil/log64"
-	"github.com/danil/log64/marshal64"
+	"github.com/danil/log30"
+	"github.com/danil/log30/marshal30"
 	"github.com/kinbiko/jsonassert"
 )
 
 var WriteTestCases = []struct {
 	name      string
 	line      int
-	log       log64.Logger
+	log       log30.Logger
 	input     []byte
-	kv        []log64.KV
+	kv        []log30.KV
 	expected  string
 	benchmark bool
 }{
@@ -36,13 +36,13 @@ var WriteTestCases = []struct {
 	{
 		name: `"string" key with "foo" value and "string" key with "bar" value`,
 		line: line(),
-		log: &log64.Log{
+		log: &log30.Log{
 			Trunc: 120,
-			KV:    []log64.KV{log64.String("string", "foo")},
-			Keys:  [4]encoding.TextMarshaler{log64.String("message")},
+			KV:    []log30.KV{log30.String("string", "foo")},
+			Keys:  [4]encoding.TextMarshaler{log30.String("message")},
 		},
 		input: []byte("Hello, World!"),
-		kv:    []log64.KV{log64.String("string", "bar")},
+		kv:    []log30.KV{log30.String("string", "bar")},
 		expected: `{
 			"message":"Hello, World!",
 		  "string": "bar"
@@ -62,10 +62,10 @@ var WriteTestCases = []struct {
 	{
 		name: `bytes appends to the "message" key with "string value"`,
 		line: line(),
-		log: &log64.Log{
-			KV:      []log64.KV{log64.String("message", "string value")},
+		log: &log30.Log{
+			KV:      []log30.KV{log30.String("message", "string value")},
 			Trunc:   120,
-			Keys:    [4]encoding.TextMarshaler{log64.String("message"), log64.String("excerpt"), log64.String("trail")},
+			Keys:    [4]encoding.TextMarshaler{log30.String("message"), log30.String("excerpt"), log30.String("trail")},
 			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 		},
 		input: []byte("Hello,\nWorld!"),
@@ -80,7 +80,7 @@ var WriteTestCases = []struct {
 		line:  line(),
 		log:   dummy,
 		input: []byte("Hello,\nWorld!"),
-		kv:    []log64.KV{log64.String("message", "string value")},
+		kv:    []log30.KV{log30.String("message", "string value")},
 		expected: `{
 			"message":"string value",
 			"excerpt":"Hello, World!",
@@ -90,10 +90,10 @@ var WriteTestCases = []struct {
 	{
 		name: `bytes is nil and "message" key with "string value"`,
 		line: line(),
-		log: &log64.Log{
-			KV:    []log64.KV{log64.String("message", "string value")},
+		log: &log30.Log{
+			KV:    []log30.KV{log30.String("message", "string value")},
 			Trunc: 120,
-			Keys:  [4]encoding.TextMarshaler{log64.String("message")},
+			Keys:  [4]encoding.TextMarshaler{log30.String("message")},
 		},
 		expected: `{
 			"message":"string value"
@@ -103,7 +103,7 @@ var WriteTestCases = []struct {
 		name: `input is nil and "message" key with "string value"`,
 		line: line(),
 		log:  dummy,
-		kv:   []log64.KV{log64.String("message", "string value")},
+		kv:   []log30.KV{log30.String("message", "string value")},
 		expected: `{
 			"message":"string value"
 		}`,
@@ -113,7 +113,7 @@ var WriteTestCases = []struct {
 		line:  line(),
 		log:   dummy,
 		input: []byte("Hello, World!\n"),
-		kv:    []log64.KV{log64.StringInt("message", 1)},
+		kv:    []log30.KV{log30.StringInt("message", 1)},
 		expected: `{
 			"message":1,
 			"excerpt":"Hello, World!",
@@ -125,7 +125,7 @@ var WriteTestCases = []struct {
 		line:  line(),
 		log:   dummy,
 		input: []byte("Hello,\nWorld!"),
-		kv:    []log64.KV{log64.StringFloat32("message", 4.2)},
+		kv:    []log30.KV{log30.StringFloat32("message", 4.2)},
 		expected: `{
 			"message":4.2,
 			"excerpt":"Hello, World!",
@@ -137,7 +137,7 @@ var WriteTestCases = []struct {
 		line:  line(),
 		log:   dummy,
 		input: []byte("Hello,\nWorld!"),
-		kv:    []log64.KV{log64.StringFloat64("message", 4.2)},
+		kv:    []log30.KV{log30.StringFloat64("message", 4.2)},
 		expected: `{
 			"message":4.2,
 			"excerpt":"Hello, World!",
@@ -149,7 +149,7 @@ var WriteTestCases = []struct {
 		line:  line(),
 		log:   dummy,
 		input: []byte("Hello,\nWorld!"),
-		kv:    []log64.KV{log64.StringBool("message", true)},
+		kv:    []log30.KV{log30.StringBool("message", true)},
 		expected: `{
 			"message":true,
 			"excerpt":"Hello, World!",
@@ -161,7 +161,7 @@ var WriteTestCases = []struct {
 		line:  line(),
 		log:   dummy,
 		input: []byte("Hello, World!"),
-		kv:    []log64.KV{log64.StringReflect("message", nil)},
+		kv:    []log30.KV{log30.StringReflect("message", nil)},
 		expected: `{
 			"message":null,
 			"trail":"Hello, World!"
@@ -170,12 +170,12 @@ var WriteTestCases = []struct {
 	{
 		name: `default key is original and bytes is nil and "message" key is present`,
 		line: line(),
-		log: &log64.Log{
+		log: &log30.Log{
 			Trunc: 120,
-			Keys:  [4]encoding.TextMarshaler{log64.String("message")},
-			Key:   log64.Original,
+			Keys:  [4]encoding.TextMarshaler{log30.String("message")},
+			Key:   log30.Original,
 		},
-		kv: []log64.KV{log64.String("message", "foo")},
+		kv: []log30.KV{log30.String("message", "foo")},
 		expected: `{
 			"message":"foo"
 		}`,
@@ -183,13 +183,13 @@ var WriteTestCases = []struct {
 	{
 		name: `default key is original and bytes is nil and "message" key is present and with replace`,
 		line: line(),
-		log: &log64.Log{
+		log: &log30.Log{
 			Trunc:   120,
-			Keys:    [4]encoding.TextMarshaler{log64.String("message")},
-			Key:     log64.Original,
+			Keys:    [4]encoding.TextMarshaler{log30.String("message")},
+			Key:     log30.Original,
 			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 		},
-		kv: []log64.KV{log64.String("message", "foo\n")},
+		kv: []log30.KV{log30.String("message", "foo\n")},
 		expected: `{
 			"message":"foo\n"
 		}`,
@@ -197,14 +197,14 @@ var WriteTestCases = []struct {
 	{
 		name: `default key is original and bytes is present and "message" key is present`,
 		line: line(),
-		log: &log64.Log{
+		log: &log30.Log{
 			Trunc:   120,
-			Keys:    [4]encoding.TextMarshaler{log64.String("message"), log64.String("excerpt"), log64.String("trail")},
-			Key:     log64.Original,
+			Keys:    [4]encoding.TextMarshaler{log30.String("message"), log30.String("excerpt"), log30.String("trail")},
+			Key:     log30.Original,
 			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 		},
 		input: []byte("foo"),
-		kv:    []log64.KV{log64.String("message", "bar")},
+		kv:    []log30.KV{log30.String("message", "bar")},
 		expected: `{
 			"message":"bar",
 			"trail":"foo"
@@ -213,13 +213,13 @@ var WriteTestCases = []struct {
 	{
 		name: `default key is original and bytes is present and "message" key is present and with replace input bytes`,
 		line: line(),
-		log: &log64.Log{
+		log: &log30.Log{
 			Trunc: 120,
-			Keys:  [4]encoding.TextMarshaler{log64.String("message"), log64.String("excerpt"), log64.String("trail")},
-			Key:   log64.Original,
+			Keys:  [4]encoding.TextMarshaler{log30.String("message"), log30.String("excerpt"), log30.String("trail")},
+			Key:   log30.Original,
 		},
 		input: []byte("foo\n"),
-		kv:    []log64.KV{log64.String("message", "bar")},
+		kv:    []log30.KV{log30.String("message", "bar")},
 		expected: `{
 			"message":"bar",
 			"excerpt":"foo",
@@ -229,14 +229,14 @@ var WriteTestCases = []struct {
 	{
 		name: `default key is original and bytes is present and "message" key is present and with replace input bytes and key`,
 		line: line(),
-		log: &log64.Log{
+		log: &log30.Log{
 			Trunc:   120,
-			Keys:    [4]encoding.TextMarshaler{log64.String("message"), log64.String("excerpt"), log64.String("trail")},
-			Key:     log64.Original,
+			Keys:    [4]encoding.TextMarshaler{log30.String("message"), log30.String("excerpt"), log30.String("trail")},
+			Key:     log30.Original,
 			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 		},
 		input: []byte("foo\n"),
-		kv:    []log64.KV{log64.String("message", "bar\n")},
+		kv:    []log30.KV{log30.String("message", "bar\n")},
 		expected: `{
 			"message":"bar\n",
 			"excerpt":"foo",
@@ -246,12 +246,12 @@ var WriteTestCases = []struct {
 	{
 		name: `default key is original and bytes is nil and "excerpt" key is present`,
 		line: line(),
-		log: &log64.Log{
+		log: &log30.Log{
 			Trunc: 120,
-			Keys:  [4]encoding.TextMarshaler{log64.String("message"), log64.String("excerpt")},
-			Key:   log64.Original,
+			Keys:  [4]encoding.TextMarshaler{log30.String("message"), log30.String("excerpt")},
+			Key:   log30.Original,
 		},
-		kv: []log64.KV{log64.String("excerpt", "foo")},
+		kv: []log30.KV{log30.String("excerpt", "foo")},
 		expected: `{
 			"excerpt":"foo"
 		}`,
@@ -259,13 +259,13 @@ var WriteTestCases = []struct {
 	{
 		name: `default key is original and bytes is nil and "excerpt" key is present and with replace`,
 		line: line(),
-		log: &log64.Log{
+		log: &log30.Log{
 			Trunc:   120,
-			Keys:    [4]encoding.TextMarshaler{log64.String("message"), log64.String("excerpt")},
-			Key:     log64.Original,
+			Keys:    [4]encoding.TextMarshaler{log30.String("message"), log30.String("excerpt")},
+			Key:     log30.Original,
 			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 		},
-		kv: []log64.KV{log64.String("excerpt", "foo\n")},
+		kv: []log30.KV{log30.String("excerpt", "foo\n")},
 		expected: `{
 			"excerpt":"foo\n"
 		}`,
@@ -273,13 +273,13 @@ var WriteTestCases = []struct {
 	{
 		name: `default key is original and bytes is present and "excerpt" key is present`,
 		line: line(),
-		log: &log64.Log{
+		log: &log30.Log{
 			Trunc: 120,
-			Keys:  [4]encoding.TextMarshaler{log64.String("message"), log64.String("excerpt")},
-			Key:   log64.Original,
+			Keys:  [4]encoding.TextMarshaler{log30.String("message"), log30.String("excerpt")},
+			Key:   log30.Original,
 		},
 		input: []byte("foo"),
-		kv:    []log64.KV{log64.String("excerpt", "bar")},
+		kv:    []log30.KV{log30.String("excerpt", "bar")},
 		expected: `{
 			"message":"foo",
 			"excerpt":"bar"
@@ -288,14 +288,14 @@ var WriteTestCases = []struct {
 	{
 		name: `default key is original and bytes is present and "excerpt" key is present and with replace input bytes`,
 		line: line(),
-		log: &log64.Log{
+		log: &log30.Log{
 			Trunc:   120,
-			Keys:    [4]encoding.TextMarshaler{log64.String("message"), log64.String("excerpt")},
-			Key:     log64.Original,
+			Keys:    [4]encoding.TextMarshaler{log30.String("message"), log30.String("excerpt")},
+			Key:     log30.Original,
 			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 		},
 		input: []byte("foo\n"),
-		kv:    []log64.KV{log64.String("excerpt", "bar")},
+		kv:    []log30.KV{log30.String("excerpt", "bar")},
 		expected: `{
 			"message":"foo\n",
 			"excerpt":"bar"
@@ -304,14 +304,14 @@ var WriteTestCases = []struct {
 	{
 		name: `default key is original and bytes is present and "excerpt" key is present and with replace input bytes`,
 		line: line(),
-		log: &log64.Log{
+		log: &log30.Log{
 			Trunc:   120,
-			Keys:    [4]encoding.TextMarshaler{log64.String("message"), log64.String("excerpt")},
-			Key:     log64.Original,
+			Keys:    [4]encoding.TextMarshaler{log30.String("message"), log30.String("excerpt")},
+			Key:     log30.Original,
 			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 		},
 		input: []byte("foo\n"),
-		kv:    []log64.KV{log64.String("excerpt", "bar")},
+		kv:    []log30.KV{log30.String("excerpt", "bar")},
 		expected: `{
 			"message":"foo\n",
 			"excerpt":"bar"
@@ -320,14 +320,14 @@ var WriteTestCases = []struct {
 	{
 		name: `default key is original and bytes is present and "excerpt" key is present and with replace input bytes and rey`,
 		line: line(),
-		log: &log64.Log{
+		log: &log30.Log{
 			Trunc:   120,
-			Keys:    [4]encoding.TextMarshaler{log64.String("message"), log64.String("excerpt")},
-			Key:     log64.Original,
+			Keys:    [4]encoding.TextMarshaler{log30.String("message"), log30.String("excerpt")},
+			Key:     log30.Original,
 			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 		},
 		input: []byte("foo\n"),
-		kv:    []log64.KV{log64.String("excerpt", "bar\n")},
+		kv:    []log30.KV{log30.String("excerpt", "bar\n")},
 		expected: `{
 			"message":"foo\n",
 			"excerpt":"bar\n"
@@ -336,12 +336,12 @@ var WriteTestCases = []struct {
 	{
 		name: `default key is original and bytes is nil and "excerpt" and "message" keys is present`,
 		line: line(),
-		log: &log64.Log{
+		log: &log30.Log{
 			Trunc: 120,
-			Keys:  [4]encoding.TextMarshaler{log64.String("message"), log64.String("excerpt")},
-			Key:   log64.Original,
+			Keys:  [4]encoding.TextMarshaler{log30.String("message"), log30.String("excerpt")},
+			Key:   log30.Original,
 		},
-		kv: []log64.KV{log64.String("message", "foo"), log64.String("excerpt", "bar")},
+		kv: []log30.KV{log30.String("message", "foo"), log30.String("excerpt", "bar")},
 		expected: `{
 			"message":"foo",
 			"excerpt":"bar"
@@ -350,13 +350,13 @@ var WriteTestCases = []struct {
 	{
 		name: `default key is original and bytes is nil and "excerpt" and "message" keys is present and replace keys`,
 		line: line(),
-		log: &log64.Log{
+		log: &log30.Log{
 			Trunc:   120,
-			Keys:    [4]encoding.TextMarshaler{log64.String("message"), log64.String("excerpt")},
-			Key:     log64.Original,
+			Keys:    [4]encoding.TextMarshaler{log30.String("message"), log30.String("excerpt")},
+			Key:     log30.Original,
 			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 		},
-		kv: []log64.KV{log64.String("message", "foo\n"), log64.String("excerpt", "bar\n")},
+		kv: []log30.KV{log30.String("message", "foo\n"), log30.String("excerpt", "bar\n")},
 		expected: `{
 			"message":"foo\n",
 			"excerpt":"bar\n"
@@ -365,13 +365,13 @@ var WriteTestCases = []struct {
 	{
 		name: `default key is original and bytes is present and "excerpt" and "message" keys is present`,
 		line: line(),
-		log: &log64.Log{
+		log: &log30.Log{
 			Trunc: 120,
-			Keys:  [4]encoding.TextMarshaler{log64.String("message"), log64.String("excerpt"), log64.String("trail")},
-			Key:   log64.Original,
+			Keys:  [4]encoding.TextMarshaler{log30.String("message"), log30.String("excerpt"), log30.String("trail")},
+			Key:   log30.Original,
 		},
 		input: []byte("foo"),
-		kv:    []log64.KV{log64.String("message", "bar"), log64.String("excerpt", "xyz")},
+		kv:    []log30.KV{log30.String("message", "bar"), log30.String("excerpt", "xyz")},
 		expected: `{
 			"message":"bar",
 			"excerpt":"xyz",
@@ -381,16 +381,16 @@ var WriteTestCases = []struct {
 	{
 		name: `default key is original and bytes is present and "excerpt" and "message" keys is present and replace input bytes`,
 		line: line(),
-		log: &log64.Log{
+		log: &log30.Log{
 			Trunc:   120,
-			Keys:    [4]encoding.TextMarshaler{log64.String("message"), log64.String("excerpt"), log64.String("trail")},
-			Key:     log64.Original,
+			Keys:    [4]encoding.TextMarshaler{log30.String("message"), log30.String("excerpt"), log30.String("trail")},
+			Key:     log30.Original,
 			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 		},
 		input: []byte("foo\n"),
-		kv: []log64.KV{
-			log64.String("message", "bar"),
-			log64.String("excerpt", "xyz"),
+		kv: []log30.KV{
+			log30.String("message", "bar"),
+			log30.String("excerpt", "xyz"),
 		},
 		expected: `{
 			"message":"bar",
@@ -401,14 +401,14 @@ var WriteTestCases = []struct {
 	{
 		name: `default key is original and bytes is present and "excerpt" and "message" keys is present and replace input bytes and keys`,
 		line: line(),
-		log: &log64.Log{
+		log: &log30.Log{
 			Trunc:   120,
-			Keys:    [4]encoding.TextMarshaler{log64.String("message"), log64.String("excerpt"), log64.String("trail")},
-			Key:     log64.Original,
+			Keys:    [4]encoding.TextMarshaler{log30.String("message"), log30.String("excerpt"), log30.String("trail")},
+			Key:     log30.Original,
 			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 		},
 		input: []byte("foo\n"),
-		kv:    []log64.KV{log64.String("message", "bar\n"), log64.String("excerpt", "xyz\n")},
+		kv:    []log30.KV{log30.String("message", "bar\n"), log30.String("excerpt", "xyz\n")},
 		expected: `{
 			"message":"bar\n",
 			"excerpt":"xyz\n",
@@ -418,12 +418,12 @@ var WriteTestCases = []struct {
 	{
 		name: `default key is excerpt and bytes is nil and "message" key is present`,
 		line: line(),
-		log: &log64.Log{
+		log: &log30.Log{
 			Trunc: 120,
-			Keys:  [4]encoding.TextMarshaler{log64.String("message")},
-			Key:   log64.Excerpt,
+			Keys:  [4]encoding.TextMarshaler{log30.String("message")},
+			Key:   log30.Excerpt,
 		},
-		kv: []log64.KV{log64.String("message", "foo")},
+		kv: []log30.KV{log30.String("message", "foo")},
 		expected: `{
 			"message":"foo"
 		}`,
@@ -431,13 +431,13 @@ var WriteTestCases = []struct {
 	{
 		name: `default key is excerpt and bytes is nil and "message" key is present and with replace`,
 		line: line(),
-		log: &log64.Log{
+		log: &log30.Log{
 			Trunc:   120,
-			Keys:    [4]encoding.TextMarshaler{log64.String("message")},
-			Key:     log64.Excerpt,
+			Keys:    [4]encoding.TextMarshaler{log30.String("message")},
+			Key:     log30.Excerpt,
 			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 		},
-		kv: []log64.KV{log64.String("message", "foo\n")},
+		kv: []log30.KV{log30.String("message", "foo\n")},
 		expected: `{
 			"message":"foo\n"
 		}`,
@@ -445,14 +445,14 @@ var WriteTestCases = []struct {
 	{
 		name: `default key is excerpt and bytes is present and "message" key is present`,
 		line: line(),
-		log: &log64.Log{
+		log: &log30.Log{
 			Trunc:   120,
-			Keys:    [4]encoding.TextMarshaler{log64.String("message"), log64.String("excerpt"), log64.String("trail")},
-			Key:     log64.Excerpt,
+			Keys:    [4]encoding.TextMarshaler{log30.String("message"), log30.String("excerpt"), log30.String("trail")},
+			Key:     log30.Excerpt,
 			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 		},
 		input: []byte("foo"),
-		kv:    []log64.KV{log64.String("message", "bar")},
+		kv:    []log30.KV{log30.String("message", "bar")},
 		expected: `{
 			"message":"bar",
 			"excerpt":"foo"
@@ -461,13 +461,13 @@ var WriteTestCases = []struct {
 	{
 		name: `default key is excerpt and bytes is present and "message" key is present and with replace input bytes`,
 		line: line(),
-		log: &log64.Log{
+		log: &log30.Log{
 			Trunc: 120,
-			Keys:  [4]encoding.TextMarshaler{log64.String("message"), log64.String("excerpt"), log64.String("trail")},
-			Key:   log64.Excerpt,
+			Keys:  [4]encoding.TextMarshaler{log30.String("message"), log30.String("excerpt"), log30.String("trail")},
+			Key:   log30.Excerpt,
 		},
 		input: []byte("foo\n"),
-		kv:    []log64.KV{log64.String("message", "bar")},
+		kv:    []log30.KV{log30.String("message", "bar")},
 		expected: `{
 			"message":"bar",
 			"excerpt":"foo",
@@ -477,14 +477,14 @@ var WriteTestCases = []struct {
 	{
 		name: `default key is excerpt and bytes is present and "message" key is present and with replace input bytes and key`,
 		line: line(),
-		log: &log64.Log{
+		log: &log30.Log{
 			Trunc:   120,
-			Keys:    [4]encoding.TextMarshaler{log64.String("message"), log64.String("excerpt"), log64.String("trail")},
-			Key:     log64.Excerpt,
+			Keys:    [4]encoding.TextMarshaler{log30.String("message"), log30.String("excerpt"), log30.String("trail")},
+			Key:     log30.Excerpt,
 			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 		},
 		input: []byte("foo\n"),
-		kv:    []log64.KV{log64.String("message", "bar\n")},
+		kv:    []log30.KV{log30.String("message", "bar\n")},
 		expected: `{
 			"message":"bar\n",
 			"excerpt":"foo",
@@ -494,12 +494,12 @@ var WriteTestCases = []struct {
 	{
 		name: `default key is excerpt and bytes is nil and "excerpt" key is present`,
 		line: line(),
-		log: &log64.Log{
+		log: &log30.Log{
 			Trunc: 120,
-			Keys:  [4]encoding.TextMarshaler{log64.String("message"), log64.String("excerpt")},
-			Key:   log64.Excerpt,
+			Keys:  [4]encoding.TextMarshaler{log30.String("message"), log30.String("excerpt")},
+			Key:   log30.Excerpt,
 		},
-		kv: []log64.KV{log64.String("excerpt", "foo")},
+		kv: []log30.KV{log30.String("excerpt", "foo")},
 		expected: `{
 			"excerpt":"foo"
 		}`,
@@ -507,13 +507,13 @@ var WriteTestCases = []struct {
 	{
 		name: `default key is excerpt and bytes is nil and "excerpt" key is present and with replace`,
 		line: line(),
-		log: &log64.Log{
+		log: &log30.Log{
 			Trunc:   120,
-			Keys:    [4]encoding.TextMarshaler{log64.String("message"), log64.String("excerpt")},
-			Key:     log64.Excerpt,
+			Keys:    [4]encoding.TextMarshaler{log30.String("message"), log30.String("excerpt")},
+			Key:     log30.Excerpt,
 			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 		},
-		kv: []log64.KV{log64.String("excerpt", "foo\n")},
+		kv: []log30.KV{log30.String("excerpt", "foo\n")},
 		expected: `{
 			"excerpt":"foo\n"
 		}`,
@@ -521,13 +521,13 @@ var WriteTestCases = []struct {
 	{
 		name: `default key is excerpt and bytes is present and "excerpt" key is present`,
 		line: line(),
-		log: &log64.Log{
+		log: &log30.Log{
 			Trunc: 120,
-			Keys:  [4]encoding.TextMarshaler{log64.String("message"), log64.String("excerpt")},
-			Key:   log64.Excerpt,
+			Keys:  [4]encoding.TextMarshaler{log30.String("message"), log30.String("excerpt")},
+			Key:   log30.Excerpt,
 		},
 		input: []byte("foo"),
-		kv:    []log64.KV{log64.String("excerpt", "bar")},
+		kv:    []log30.KV{log30.String("excerpt", "bar")},
 		expected: `{
 			"message":"foo",
 			"excerpt":"bar"
@@ -536,14 +536,14 @@ var WriteTestCases = []struct {
 	{
 		name: `default key is excerpt and bytes is present and "excerpt" key is present and with replace input bytes`,
 		line: line(),
-		log: &log64.Log{
+		log: &log30.Log{
 			Trunc:   120,
-			Keys:    [4]encoding.TextMarshaler{log64.String("message"), log64.String("excerpt")},
-			Key:     log64.Excerpt,
+			Keys:    [4]encoding.TextMarshaler{log30.String("message"), log30.String("excerpt")},
+			Key:     log30.Excerpt,
 			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 		},
 		input: []byte("foo\n"),
-		kv:    []log64.KV{log64.String("excerpt", "bar")},
+		kv:    []log30.KV{log30.String("excerpt", "bar")},
 		expected: `{
 			"message":"foo\n",
 			"excerpt":"bar"
@@ -552,14 +552,14 @@ var WriteTestCases = []struct {
 	{
 		name: `default key is excerpt and bytes is present and "excerpt" key is present and with replace input bytes`,
 		line: line(),
-		log: &log64.Log{
+		log: &log30.Log{
 			Trunc:   120,
-			Keys:    [4]encoding.TextMarshaler{log64.String("message"), log64.String("excerpt")},
-			Key:     log64.Excerpt,
+			Keys:    [4]encoding.TextMarshaler{log30.String("message"), log30.String("excerpt")},
+			Key:     log30.Excerpt,
 			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 		},
 		input: []byte("foo\n"),
-		kv:    []log64.KV{log64.String("excerpt", "bar")},
+		kv:    []log30.KV{log30.String("excerpt", "bar")},
 		expected: `{
 			"message":"foo\n",
 			"excerpt":"bar"
@@ -568,14 +568,14 @@ var WriteTestCases = []struct {
 	{
 		name: `default key is excerpt and bytes is present and "excerpt" key is present and with replace input bytes and rey`,
 		line: line(),
-		log: &log64.Log{
+		log: &log30.Log{
 			Trunc:   120,
-			Keys:    [4]encoding.TextMarshaler{log64.String("message"), log64.String("excerpt")},
-			Key:     log64.Excerpt,
+			Keys:    [4]encoding.TextMarshaler{log30.String("message"), log30.String("excerpt")},
+			Key:     log30.Excerpt,
 			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 		},
 		input: []byte("foo\n"),
-		kv:    []log64.KV{log64.String("excerpt", "bar\n")},
+		kv:    []log30.KV{log30.String("excerpt", "bar\n")},
 		expected: `{
 			"message":"foo\n",
 			"excerpt":"bar\n"
@@ -584,12 +584,12 @@ var WriteTestCases = []struct {
 	{
 		name: `default key is excerpt and bytes is nil and "excerpt" and "message" keys is present`,
 		line: line(),
-		log: &log64.Log{
+		log: &log30.Log{
 			Trunc: 120,
-			Keys:  [4]encoding.TextMarshaler{log64.String("message"), log64.String("excerpt")},
-			Key:   log64.Excerpt,
+			Keys:  [4]encoding.TextMarshaler{log30.String("message"), log30.String("excerpt")},
+			Key:   log30.Excerpt,
 		},
-		kv: []log64.KV{log64.String("message", "foo"), log64.String("excerpt", "bar")},
+		kv: []log30.KV{log30.String("message", "foo"), log30.String("excerpt", "bar")},
 		expected: `{
 			"message":"foo",
 			"excerpt":"bar"
@@ -598,13 +598,13 @@ var WriteTestCases = []struct {
 	{
 		name: `default key is excerpt and bytes is nil and "excerpt" and "message" keys is present and replace keys`,
 		line: line(),
-		log: &log64.Log{
+		log: &log30.Log{
 			Trunc:   120,
-			Keys:    [4]encoding.TextMarshaler{log64.String("message"), log64.String("excerpt")},
-			Key:     log64.Excerpt,
+			Keys:    [4]encoding.TextMarshaler{log30.String("message"), log30.String("excerpt")},
+			Key:     log30.Excerpt,
 			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 		},
-		kv: []log64.KV{log64.String("message", "foo\n"), log64.String("excerpt", "bar\n")},
+		kv: []log30.KV{log30.String("message", "foo\n"), log30.String("excerpt", "bar\n")},
 		expected: `{
 			"message":"foo\n",
 			"excerpt":"bar\n"
@@ -613,13 +613,13 @@ var WriteTestCases = []struct {
 	{
 		name: `default key is excerpt and bytes is present and "excerpt" and "message" keys is present`,
 		line: line(),
-		log: &log64.Log{
+		log: &log30.Log{
 			Trunc: 120,
-			Keys:  [4]encoding.TextMarshaler{log64.String("message"), log64.String("excerpt"), log64.String("trail")},
-			Key:   log64.Excerpt,
+			Keys:  [4]encoding.TextMarshaler{log30.String("message"), log30.String("excerpt"), log30.String("trail")},
+			Key:   log30.Excerpt,
 		},
 		input: []byte("foo"),
-		kv:    []log64.KV{log64.String("message", "bar"), log64.String("excerpt", "xyz")},
+		kv:    []log30.KV{log30.String("message", "bar"), log30.String("excerpt", "xyz")},
 		expected: `{
 			"message":"bar",
 			"excerpt":"xyz",
@@ -629,14 +629,14 @@ var WriteTestCases = []struct {
 	{
 		name: `default key is excerpt and bytes is present and "excerpt" and "message" keys is present and replace input bytes`,
 		line: line(),
-		log: &log64.Log{
+		log: &log30.Log{
 			Trunc:   120,
-			Keys:    [4]encoding.TextMarshaler{log64.String("message"), log64.String("excerpt"), log64.String("trail")},
-			Key:     log64.Excerpt,
+			Keys:    [4]encoding.TextMarshaler{log30.String("message"), log30.String("excerpt"), log30.String("trail")},
+			Key:     log30.Excerpt,
 			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 		},
 		input: []byte("foo\n"),
-		kv:    []log64.KV{log64.String("message", "bar"), log64.String("excerpt", "xyz")},
+		kv:    []log30.KV{log30.String("message", "bar"), log30.String("excerpt", "xyz")},
 		expected: `{
 			"message":"bar",
 			"excerpt":"xyz",
@@ -646,14 +646,14 @@ var WriteTestCases = []struct {
 	{
 		name: `default key is excerpt and bytes is present and "excerpt" and "message" keys is present and replace input bytes and keys`,
 		line: line(),
-		log: &log64.Log{
+		log: &log30.Log{
 			Trunc:   120,
-			Keys:    [4]encoding.TextMarshaler{log64.String("message"), log64.String("excerpt"), log64.String("trail")},
-			Key:     log64.Excerpt,
+			Keys:    [4]encoding.TextMarshaler{log30.String("message"), log30.String("excerpt"), log30.String("trail")},
+			Key:     log30.Excerpt,
 			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 		},
 		input: []byte("foo\n"),
-		kv:    []log64.KV{log64.String("message", "bar\n"), log64.String("excerpt", "xyz\n")},
+		kv:    []log30.KV{log30.String("message", "bar\n"), log30.String("excerpt", "xyz\n")},
 		expected: `{
 			"message":"bar\n",
 			"excerpt":"xyz\n",
@@ -664,7 +664,7 @@ var WriteTestCases = []struct {
 		name: `bytes is nil and bytes "message" key with json`,
 		line: line(),
 		log:  dummy,
-		kv:   []log64.KV{log64.StringBytes("message", []byte(`{"foo":"bar"}`))},
+		kv:   []log30.KV{log30.StringBytes("message", []byte(`{"foo":"bar"}`))},
 		expected: `{
 			"message":"{\"foo\":\"bar\"}"
 		}`,
@@ -673,7 +673,7 @@ var WriteTestCases = []struct {
 		name: `bytes is nil and raw "message" key with json`,
 		line: line(),
 		log:  dummy,
-		kv:   []log64.KV{log64.StringRaw("message", []byte(`{"foo":"bar"}`))},
+		kv:   []log30.KV{log30.StringRaw("message", []byte(`{"foo":"bar"}`))},
 		expected: `{
 			"message":{"foo":"bar"}
 		}`,
@@ -681,11 +681,11 @@ var WriteTestCases = []struct {
 	{
 		name: "bytes is nil and flag is long file",
 		line: line(),
-		log: &log64.Log{
+		log: &log30.Log{
 			Flag: log.Llongfile,
-			Keys: [4]encoding.TextMarshaler{log64.String("message")},
+			Keys: [4]encoding.TextMarshaler{log30.String("message")},
 		},
-		kv: []log64.KV{log64.String("foo", "bar")},
+		kv: []log30.KV{log30.String("foo", "bar")},
 		expected: `{
 			"foo":"bar"
 		}`,
@@ -693,9 +693,9 @@ var WriteTestCases = []struct {
 	{
 		name: "bytes is one char and flag is long file",
 		line: line(),
-		log: &log64.Log{
+		log: &log30.Log{
 			Flag: log.Llongfile,
-			Keys: [4]encoding.TextMarshaler{log64.String("message")},
+			Keys: [4]encoding.TextMarshaler{log30.String("message")},
 		},
 		input: []byte("a"),
 		expected: `{
@@ -705,9 +705,9 @@ var WriteTestCases = []struct {
 	{
 		name: "bytes is two chars and flag is long file",
 		line: line(),
-		log: &log64.Log{
+		log: &log30.Log{
 			Flag: log.Llongfile,
-			Keys: [4]encoding.TextMarshaler{log64.String("message"), log64.String("excerpt"), log64.String("trail"), log64.String("file")},
+			Keys: [4]encoding.TextMarshaler{log30.String("message"), log30.String("excerpt"), log30.String("trail"), log30.String("file")},
 		},
 		input: []byte("ab"),
 		expected: `{
@@ -718,9 +718,9 @@ var WriteTestCases = []struct {
 	{
 		name: "bytes is three chars and flag is long file",
 		line: line(),
-		log: &log64.Log{
+		log: &log30.Log{
 			Flag: log.Llongfile,
-			Keys: [4]encoding.TextMarshaler{log64.String("message"), log64.String("excerpt"), log64.String("trail"), log64.String("file")},
+			Keys: [4]encoding.TextMarshaler{log30.String("message"), log30.String("excerpt"), log30.String("trail"), log30.String("file")},
 		},
 		input: []byte("abc"),
 		expected: `{
@@ -731,10 +731,10 @@ var WriteTestCases = []struct {
 	{
 		name: "permanent kv overwritten by the additional kv",
 		line: line(),
-		log: &log64.Log{
-			KV: []log64.KV{log64.String("foo", "bar")},
+		log: &log30.Log{
+			KV: []log30.KV{log30.String("foo", "bar")},
 		},
-		kv: []log64.KV{log64.String("foo", "baz")},
+		kv: []log30.KV{log30.String("foo", "baz")},
 		expected: `{
 			"foo":"baz"
 		}`,
@@ -742,12 +742,12 @@ var WriteTestCases = []struct {
 	{
 		name: "permanent kv and first additional kv overwritten by the second additional kv",
 		line: line(),
-		log: &log64.Log{
-			KV: []log64.KV{log64.String("foo", "bar")},
+		log: &log30.Log{
+			KV: []log30.KV{log30.String("foo", "bar")},
 		},
-		kv: []log64.KV{
-			log64.String("foo", "baz"),
-			log64.String("foo", "xyz"),
+		kv: []log30.KV{
+			log30.String("foo", "baz"),
+			log30.String("foo", "xyz"),
 		},
 		expected: `{
 			"foo":"xyz"
@@ -765,7 +765,7 @@ func TestWrite(t *testing.T) {
 
 			var buf bytes.Buffer
 
-			l64, ok := tc.log.(*log64.Log)
+			l64, ok := tc.log.(*log30.Log)
 			if !ok {
 				t.Fatal("logger type is not appropriate")
 			}
@@ -785,16 +785,16 @@ func TestWrite(t *testing.T) {
 var FprintWriteTestCases = []struct {
 	name      string
 	line      int
-	log       log64.Logger
+	log       log30.Logger
 	input     interface{}
 	expected  string
 	benchmark bool
 }{
 	{
 		name: "readme example 1",
-		log: &log64.Log{
+		log: &log30.Log{
 			Trunc:   12,
-			Keys:    [4]encoding.TextMarshaler{log64.String("message"), log64.String("excerpt")},
+			Keys:    [4]encoding.TextMarshaler{log30.String("message"), log30.String("excerpt")},
 			Marks:   [3][]byte{[]byte("…")},
 			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 		},
@@ -808,13 +808,13 @@ var FprintWriteTestCases = []struct {
 	{
 		name: "readme example 2",
 		line: line(),
-		log: func() *log64.Log {
-			l := log64.GELF()
-			l.KV = []log64.KV{
-				log64.String("version", "1.1"),
-				log64.StringFunc("timestamp", func() json.Marshaler {
+		log: func() *log30.Log {
+			l := log30.GELF()
+			l.KV = []log30.KV{
+				log30.String("version", "1.1"),
+				log30.StringFunc("timestamp", func() json.Marshaler {
 					t := time.Date(2020, time.October, 15, 18, 9, 0, 0, time.UTC)
-					return marshal64.Int64(t.Unix())
+					return marshal30.Int64(t.Unix())
 				}),
 			}
 			return l
@@ -829,8 +829,8 @@ var FprintWriteTestCases = []struct {
 	},
 	{
 		name: "readme example 3.1",
-		log: &log64.Log{
-			Keys: [4]encoding.TextMarshaler{log64.String("message")},
+		log: &log30.Log{
+			Keys: [4]encoding.TextMarshaler{log30.String("message")},
 		},
 		line:  line(),
 		input: 3.21,
@@ -840,8 +840,8 @@ var FprintWriteTestCases = []struct {
 	},
 	{
 		name: "readme example 3.2",
-		log: &log64.Log{
-			Keys: [4]encoding.TextMarshaler{log64.String("message")},
+		log: &log30.Log{
+			Keys: [4]encoding.TextMarshaler{log30.String("message")},
 		},
 		line:  line(),
 		input: 123,
@@ -936,9 +936,9 @@ var FprintWriteTestCases = []struct {
 	{
 		name: `"string" key with "foo" value`,
 		line: line(),
-		log: &log64.Log{
-			KV:   []log64.KV{log64.String("string", "foo")},
-			Keys: [4]encoding.TextMarshaler{log64.String("message")},
+		log: &log30.Log{
+			KV:   []log30.KV{log30.String("string", "foo")},
+			Keys: [4]encoding.TextMarshaler{log30.String("message")},
 		},
 		input: "Hello, World!",
 		expected: `{
@@ -949,9 +949,9 @@ var FprintWriteTestCases = []struct {
 	{
 		name: `"integer" key with 123 value`,
 		line: line(),
-		log: &log64.Log{
-			KV:   []log64.KV{log64.StringInt("integer", 123)},
-			Keys: [4]encoding.TextMarshaler{log64.String("message")},
+		log: &log30.Log{
+			KV:   []log30.KV{log30.StringInt("integer", 123)},
+			Keys: [4]encoding.TextMarshaler{log30.String("message")},
 		},
 		input: "Hello, World!",
 		expected: `{
@@ -962,9 +962,9 @@ var FprintWriteTestCases = []struct {
 	{
 		name: `"float" key with 3.21 value`,
 		line: line(),
-		log: &log64.Log{
-			KV:   []log64.KV{log64.StringFloat32("float", 3.21)},
-			Keys: [4]encoding.TextMarshaler{log64.String("message")},
+		log: &log30.Log{
+			KV:   []log30.KV{log30.StringFloat32("float", 3.21)},
+			Keys: [4]encoding.TextMarshaler{log30.String("message")},
 		},
 		input: "Hello, World!",
 		expected: `{
@@ -1024,8 +1024,8 @@ var FprintWriteTestCases = []struct {
 	},
 	{
 		name: "zero maximum length",
-		log: &log64.Log{
-			Keys:  [4]encoding.TextMarshaler{log64.String("message")},
+		log: &log30.Log{
+			Keys:  [4]encoding.TextMarshaler{log30.String("message")},
 			Trunc: 0,
 		},
 		line:  line(),
@@ -1036,7 +1036,7 @@ var FprintWriteTestCases = []struct {
 	},
 	{
 		name: "without message key names",
-		log: &log64.Log{
+		log: &log30.Log{
 			Keys: [4]encoding.TextMarshaler{},
 		},
 		line:  line(),
@@ -1047,8 +1047,8 @@ var FprintWriteTestCases = []struct {
 	},
 	{
 		name: "only original message key name",
-		log: &log64.Log{
-			Keys: [4]encoding.TextMarshaler{log64.String("message")},
+		log: &log30.Log{
+			Keys: [4]encoding.TextMarshaler{log30.String("message")},
 		},
 		line:  line(),
 		input: "Hello, World!",
@@ -1059,10 +1059,10 @@ var FprintWriteTestCases = []struct {
 	{
 		name: "explicit byte slice as message excerpt key",
 		line: line(),
-		log: &log64.Log{
-			KV:    []log64.KV{log64.StringBytes("excerpt", []byte("Explicit byte slice"))},
+		log: &log30.Log{
+			KV:    []log30.KV{log30.StringBytes("excerpt", []byte("Explicit byte slice"))},
 			Trunc: 120,
-			Keys:  [4]encoding.TextMarshaler{log64.String("message"), log64.String("excerpt")},
+			Keys:  [4]encoding.TextMarshaler{log30.String("message"), log30.String("excerpt")},
 		},
 		input: "Hello, World!",
 		expected: `{
@@ -1073,10 +1073,10 @@ var FprintWriteTestCases = []struct {
 	{
 		name: "explicit string as message excerpt key",
 		line: line(),
-		log: &log64.Log{
-			KV:    []log64.KV{log64.String("excerpt", "Explicit string")},
+		log: &log30.Log{
+			KV:    []log30.KV{log30.String("excerpt", "Explicit string")},
 			Trunc: 120,
-			Keys:  [4]encoding.TextMarshaler{log64.String("message"), log64.String("excerpt")},
+			Keys:  [4]encoding.TextMarshaler{log30.String("message"), log30.String("excerpt")},
 		},
 		input: "Hello, World!",
 		expected: `{
@@ -1087,10 +1087,10 @@ var FprintWriteTestCases = []struct {
 	{
 		name: "explicit integer as message excerpt key",
 		line: line(),
-		log: &log64.Log{
-			KV:    []log64.KV{log64.StringInt("excerpt", 42)},
+		log: &log30.Log{
+			KV:    []log30.KV{log30.StringInt("excerpt", 42)},
 			Trunc: 120,
-			Keys:  [4]encoding.TextMarshaler{log64.String("message"), log64.String("excerpt")},
+			Keys:  [4]encoding.TextMarshaler{log30.String("message"), log30.String("excerpt")},
 		},
 		input: "Hello, World!",
 		expected: `{
@@ -1101,10 +1101,10 @@ var FprintWriteTestCases = []struct {
 	{
 		name: "explicit float as message excerpt key",
 		line: line(),
-		log: &log64.Log{
-			KV:    []log64.KV{log64.StringFloat32("excerpt", 4.2)},
+		log: &log30.Log{
+			KV:    []log30.KV{log30.StringFloat32("excerpt", 4.2)},
 			Trunc: 120,
-			Keys:  [4]encoding.TextMarshaler{log64.String("message"), log64.String("excerpt")},
+			Keys:  [4]encoding.TextMarshaler{log30.String("message"), log30.String("excerpt")},
 		},
 		input: "Hello, World!",
 		expected: `{
@@ -1115,10 +1115,10 @@ var FprintWriteTestCases = []struct {
 	{
 		name: "explicit boolean as message excerpt key",
 		line: line(),
-		log: &log64.Log{
-			KV:    []log64.KV{log64.StringBool("excerpt", true)},
+		log: &log30.Log{
+			KV:    []log30.KV{log30.StringBool("excerpt", true)},
 			Trunc: 120,
-			Keys:  [4]encoding.TextMarshaler{log64.String("message"), log64.String("excerpt")},
+			Keys:  [4]encoding.TextMarshaler{log30.String("message"), log30.String("excerpt")},
 		},
 		input: "Hello, World!",
 		expected: `{
@@ -1129,10 +1129,10 @@ var FprintWriteTestCases = []struct {
 	{
 		name: "explicit rune slice as messages excerpt key",
 		line: line(),
-		log: &log64.Log{
-			KV:    []log64.KV{log64.StringRunes("excerpt", []rune("Explicit rune slice"))},
+		log: &log30.Log{
+			KV:    []log30.KV{log30.StringRunes("excerpt", []rune("Explicit rune slice"))},
 			Trunc: 120,
-			Keys:  [4]encoding.TextMarshaler{log64.String("message"), log64.String("excerpt")},
+			Keys:  [4]encoding.TextMarshaler{log30.String("message"), log30.String("excerpt")},
 		},
 		input: "Hello, World!",
 		expected: `{
@@ -1143,14 +1143,14 @@ var FprintWriteTestCases = []struct {
 	{
 		name: `dynamic "time" key`,
 		line: line(),
-		log: &log64.Log{
-			KV: []log64.KV{
-				log64.StringFunc("time", func() json.Marshaler {
+		log: &log30.Log{
+			KV: []log30.KV{
+				log30.StringFunc("time", func() json.Marshaler {
 					t := time.Date(2020, time.October, 15, 18, 9, 0, 0, time.UTC)
-					return marshal64.String(t.String())
+					return marshal30.String(t.String())
 				}),
 			},
-			Keys: [4]encoding.TextMarshaler{log64.String("message")},
+			Keys: [4]encoding.TextMarshaler{log30.String("message")},
 		},
 		input: "Hello, World!",
 		expected: `{
@@ -1161,9 +1161,9 @@ var FprintWriteTestCases = []struct {
 	{
 		name: `"standard flag" do not respects file path`,
 		line: line(),
-		log: &log64.Log{
+		log: &log30.Log{
 			Flag: log.LstdFlags,
-			Keys: [4]encoding.TextMarshaler{log64.String("message")},
+			Keys: [4]encoding.TextMarshaler{log30.String("message")},
 		},
 		input: "path/to/file1:23: Hello, World!",
 		expected: `{
@@ -1173,10 +1173,10 @@ var FprintWriteTestCases = []struct {
 	{
 		name: `"long file" flag respects file path`,
 		line: line(),
-		log: &log64.Log{
+		log: &log30.Log{
 			Flag:  log.Llongfile,
 			Trunc: 120,
-			Keys:  [4]encoding.TextMarshaler{log64.String("message"), log64.String("excerpt"), log64.String("trail"), log64.String("file")},
+			Keys:  [4]encoding.TextMarshaler{log30.String("message"), log30.String("excerpt"), log30.String("trail"), log30.String("file")},
 		},
 		input: "path/to/file1:23: Hello, World!",
 		expected: `{
@@ -1188,9 +1188,9 @@ var FprintWriteTestCases = []struct {
 	{
 		name: "replace newline character by whitespace character",
 		line: line(),
-		log: &log64.Log{
+		log: &log30.Log{
 			Trunc:   120,
-			Keys:    [4]encoding.TextMarshaler{log64.String("message"), log64.String("excerpt")},
+			Keys:    [4]encoding.TextMarshaler{log30.String("message"), log30.String("excerpt")},
 			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 		},
 		input: "Hello,\nWorld!",
@@ -1202,9 +1202,9 @@ var FprintWriteTestCases = []struct {
 	{
 		name: "remove exclamation marks",
 		line: line(),
-		log: &log64.Log{
+		log: &log30.Log{
 			Trunc:   120,
-			Keys:    [4]encoding.TextMarshaler{log64.String("message"), log64.String("excerpt")},
+			Keys:    [4]encoding.TextMarshaler{log30.String("message"), log30.String("excerpt")},
 			Replace: [][2][]byte{[2][]byte{[]byte("!")}},
 		},
 		input: "Hello, World!!!",
@@ -1216,9 +1216,9 @@ var FprintWriteTestCases = []struct {
 	{
 		name: `replace word "World" by world "Work"`,
 		line: line(),
-		log: &log64.Log{
+		log: &log30.Log{
 			Trunc:   120,
-			Keys:    [4]encoding.TextMarshaler{log64.String("message"), log64.String("excerpt")},
+			Keys:    [4]encoding.TextMarshaler{log30.String("message"), log30.String("excerpt")},
 			Replace: [][2][]byte{[2][]byte{[]byte("World"), []byte("Work")}},
 		},
 		input: "Hello, World!",
@@ -1230,9 +1230,9 @@ var FprintWriteTestCases = []struct {
 	{
 		name: "ignore pointless replace",
 		line: line(),
-		log: &log64.Log{
+		log: &log30.Log{
 			Trunc:   120,
-			Keys:    [4]encoding.TextMarshaler{log64.String("message")},
+			Keys:    [4]encoding.TextMarshaler{log30.String("message")},
 			Replace: [][2][]byte{[2][]byte{[]byte("!"), []byte("!")}},
 		},
 		input: "Hello, World!",
@@ -1243,9 +1243,9 @@ var FprintWriteTestCases = []struct {
 	{
 		name: "ignore empty replace",
 		line: line(),
-		log: &log64.Log{
+		log: &log30.Log{
 			Trunc:   120,
-			Keys:    [4]encoding.TextMarshaler{log64.String("message")},
+			Keys:    [4]encoding.TextMarshaler{log30.String("message")},
 			Replace: [][2][]byte{[2][]byte{}},
 		},
 		input: "Hello, World!",
@@ -1256,10 +1256,10 @@ var FprintWriteTestCases = []struct {
 	{
 		name: "file path with empty message",
 		line: line(),
-		log: &log64.Log{
+		log: &log30.Log{
 			Flag:  log.Llongfile,
 			Trunc: 120,
-			Keys:  [4]encoding.TextMarshaler{log64.String("message"), log64.String("excerpt"), log64.String("trail"), log64.String("file")},
+			Keys:  [4]encoding.TextMarshaler{log30.String("message"), log30.String("excerpt"), log30.String("trail"), log30.String("file")},
 			Marks: [3][]byte{[]byte("…"), []byte("_EMPTY_")},
 		},
 		input: "path/to/file1:23:",
@@ -1272,10 +1272,10 @@ var FprintWriteTestCases = []struct {
 	{
 		name: "file path with blank message",
 		line: line(),
-		log: &log64.Log{
+		log: &log30.Log{
 			Flag:  log.Llongfile,
 			Trunc: 120,
-			Keys:  [4]encoding.TextMarshaler{log64.String("message"), log64.String("excerpt"), log64.String("trail"), log64.String("file")},
+			Keys:  [4]encoding.TextMarshaler{log30.String("message"), log30.String("excerpt"), log30.String("trail"), log30.String("file")},
 			Marks: [3][]byte{[]byte("…"), []byte("_EMPTY_"), []byte("_BLANK_")},
 		},
 		input: "path/to/file4:56:  ",
@@ -1288,14 +1288,14 @@ var FprintWriteTestCases = []struct {
 	{
 		name: "GELF",
 		line: line(),
-		log: func() *log64.Log {
-			l := log64.GELF()
-			l.KV = []log64.KV{
-				log64.String("version", "1.1"),
-				log64.String("host", "example.tld"),
-				log64.StringFunc("timestamp", func() json.Marshaler {
+		log: func() *log30.Log {
+			l := log30.GELF()
+			l.KV = []log30.KV{
+				log30.String("version", "1.1"),
+				log30.String("host", "example.tld"),
+				log30.StringFunc("timestamp", func() json.Marshaler {
 					t := time.Date(2020, time.October, 15, 18, 9, 0, 0, time.UTC)
-					return marshal64.Int64(t.Unix())
+					return marshal30.Int64(t.Unix())
 				}),
 			}
 			return l
@@ -1311,15 +1311,15 @@ var FprintWriteTestCases = []struct {
 	{
 		name: "GELF with file path",
 		line: line(),
-		log: func() *log64.Log {
-			l := log64.GELF()
+		log: func() *log30.Log {
+			l := log30.GELF()
 			l.Flag = log.Llongfile
-			l.KV = []log64.KV{
-				log64.String("version", "1.1"),
-				log64.String("host", "example.tld"),
-				log64.StringFunc("timestamp", func() json.Marshaler {
+			l.KV = []log30.KV{
+				log30.String("version", "1.1"),
+				log30.String("host", "example.tld"),
+				log30.StringFunc("timestamp", func() json.Marshaler {
 					t := time.Date(2020, time.October, 15, 18, 9, 0, 0, time.UTC)
-					return marshal64.Int64(t.Unix())
+					return marshal30.Int64(t.Unix())
 				}),
 			}
 			return l
@@ -1346,7 +1346,7 @@ func TestFprintWrite(t *testing.T) {
 
 			var buf bytes.Buffer
 
-			l, ok := tc.log.(*log64.Log)
+			l, ok := tc.log.(*log30.Log)
 			if !ok {
 				t.Fatal("logger type is not appropriate")
 			}
@@ -1364,7 +1364,7 @@ func TestFprintWrite(t *testing.T) {
 	}
 }
 
-func BenchmarkLog64(b *testing.B) {
+func BenchmarkLog30(b *testing.B) {
 	for _, tc := range WriteTestCases {
 		if !tc.benchmark {
 			continue
@@ -1373,7 +1373,7 @@ func BenchmarkLog64(b *testing.B) {
 			for i := 0; i < b.N; i++ {
 				var buf bytes.Buffer
 
-				l64, ok := tc.log.(*log64.Log)
+				l64, ok := tc.log.(*log30.Log)
 				if !ok {
 					b.Fatal("logger type is not appropriate")
 				}
@@ -1400,7 +1400,7 @@ func BenchmarkLog64(b *testing.B) {
 			for i := 0; i < b.N; i++ {
 				var buf bytes.Buffer
 
-				l64, ok := tc.log.(*log64.Log)
+				l64, ok := tc.log.(*log30.Log)
 				if !ok {
 					b.Fatal("logger type is not appropriate")
 				}
@@ -1416,10 +1416,10 @@ func BenchmarkLog64(b *testing.B) {
 	}
 }
 
-var dummy = &log64.Log{
+var dummy = &log30.Log{
 	Trunc:   120,
-	Keys:    [4]encoding.TextMarshaler{log64.String("message"), log64.String("excerpt"), log64.String("trail"), log64.String("file")},
-	Key:     log64.Original,
+	Keys:    [4]encoding.TextMarshaler{log30.String("message"), log30.String("excerpt"), log30.String("trail"), log30.String("file")},
+	Key:     log30.Original,
 	Marks:   [3][]byte{[]byte("…"), []byte("_EMPTY_"), []byte("_BLANK_")},
 	Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 }
@@ -1427,7 +1427,7 @@ var dummy = &log64.Log{
 func TestLogWriteTrailingNewLine(t *testing.T) {
 	var buf bytes.Buffer
 
-	l := &log64.Log{Output: &buf}
+	l := &log30.Log{Output: &buf}
 
 	_, err := l.Write([]byte("Hello, Wrold!"))
 	if err != nil {
@@ -1442,21 +1442,21 @@ func TestLogWriteTrailingNewLine(t *testing.T) {
 var TruncateTestCases = []struct {
 	name      string
 	line      int
-	log       log64.Logger
+	log       log30.Logger
 	input     []byte
 	expected  []byte
 	benchmark bool
 }{
 	{
 		name:     "do nothing",
-		log:      &log64.Log{},
+		log:      &log30.Log{},
 		line:     line(),
 		input:    []byte("Hello,\nWorld!"),
 		expected: []byte("Hello,\nWorld!"),
 	},
 	{
 		name: "truncate last character",
-		log: &log64.Log{
+		log: &log30.Log{
 			Trunc: 12,
 		},
 		line:     line(),
@@ -1465,7 +1465,7 @@ var TruncateTestCases = []struct {
 	},
 	{
 		name: "truncate last character and places ellipsis instead",
-		log: &log64.Log{
+		log: &log30.Log{
 			Trunc: 12,
 			Marks: [3][]byte{[]byte("…")},
 		},
@@ -1475,7 +1475,7 @@ var TruncateTestCases = []struct {
 	},
 	{
 		name: "replace new lines by spaces",
-		log: &log64.Log{
+		log: &log30.Log{
 			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 		},
 		line:     line(),
@@ -1484,7 +1484,7 @@ var TruncateTestCases = []struct {
 	},
 	{
 		name: "replace new lines by empty string",
-		log: &log64.Log{
+		log: &log30.Log{
 			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte("")}},
 		},
 		line:     line(),
@@ -1493,7 +1493,7 @@ var TruncateTestCases = []struct {
 	},
 	{
 		name: "remove new lines",
-		log: &log64.Log{
+		log: &log30.Log{
 			Replace: [][2][]byte{[2][]byte{[]byte("\n")}},
 		},
 		line:     line(),
@@ -1502,7 +1502,7 @@ var TruncateTestCases = []struct {
 	},
 	{
 		name: "replace three characters by one",
-		log: &log64.Log{
+		log: &log30.Log{
 			Replace: [][2][]byte{[2][]byte{[]byte("foo"), []byte("f")}, [2][]byte{[]byte("bar"), []byte("b")}},
 		},
 		line:     line(),
@@ -1511,7 +1511,7 @@ var TruncateTestCases = []struct {
 	},
 	{
 		name: "replace one characters by three",
-		log: &log64.Log{
+		log: &log30.Log{
 			Replace: [][2][]byte{[2][]byte{[]byte("f"), []byte("foo")}, [2][]byte{[]byte("b"), []byte("bar")}},
 		},
 		line:     line(),
@@ -1520,7 +1520,7 @@ var TruncateTestCases = []struct {
 	},
 	{
 		name: "remove three characters",
-		log: &log64.Log{
+		log: &log30.Log{
 			Replace: [][2][]byte{[2][]byte{[]byte("foo")}, [2][]byte{[]byte("bar")}},
 		},
 		line:     line(),
@@ -1537,7 +1537,7 @@ func TestTruncate(t *testing.T) {
 			t.Parallel()
 			linkToExample := fmt.Sprintf("%s:%d", testFile, tc.line)
 
-			l64, ok := tc.log.(*log64.Log)
+			l64, ok := tc.log.(*log30.Log)
 			if !ok {
 				t.Fatal("logger type is not appropriate")
 			}
@@ -1568,17 +1568,17 @@ func TestTruncate(t *testing.T) {
 var WithTestCases = []struct {
 	name      string
 	line      int
-	log       log64.Logger
-	kv        []log64.KV
+	log       log30.Logger
+	kv        []log30.KV
 	expected  string
 	benchmark bool
 }{
 	{
 		name: "one kv",
 		line: line(),
-		log: &log64.Log{
-			KV: []log64.KV{
-				log64.String("foo", "bar"),
+		log: &log30.Log{
+			KV: []log30.KV{
+				log30.String("foo", "bar"),
 			},
 		},
 		expected: `{
@@ -1588,10 +1588,10 @@ var WithTestCases = []struct {
 	{
 		name: "two kv",
 		line: line(),
-		log: &log64.Log{
-			KV: []log64.KV{
-				log64.String("foo", "bar"),
-				log64.String("baz", "xyz"),
+		log: &log30.Log{
+			KV: []log30.KV{
+				log30.String("foo", "bar"),
+				log30.String("baz", "xyz"),
 			},
 		},
 		expected: `{
@@ -1602,9 +1602,9 @@ var WithTestCases = []struct {
 	{
 		name: "one additional kv",
 		line: line(),
-		log:  &log64.Log{},
-		kv: []log64.KV{
-			log64.String("baz", "xyz"),
+		log:  &log30.Log{},
+		kv: []log30.KV{
+			log30.String("baz", "xyz"),
 		},
 		expected: `{
 			"baz":"xyz"
@@ -1613,10 +1613,10 @@ var WithTestCases = []struct {
 	{
 		name: "two additional kv",
 		line: line(),
-		log:  &log64.Log{},
-		kv: []log64.KV{
-			log64.String("foo", "bar"),
-			log64.String("baz", "xyz"),
+		log:  &log30.Log{},
+		kv: []log30.KV{
+			log30.String("foo", "bar"),
+			log30.String("baz", "xyz"),
 		},
 		expected: `{
 			"foo":"bar",
@@ -1626,13 +1626,13 @@ var WithTestCases = []struct {
 	{
 		name: "one kv with additional one kv",
 		line: line(),
-		log: &log64.Log{
-			KV: []log64.KV{
-				log64.String("foo", "bar"),
+		log: &log30.Log{
+			KV: []log30.KV{
+				log30.String("foo", "bar"),
 			},
 		},
-		kv: []log64.KV{
-			log64.String("baz", "xyz"),
+		kv: []log30.KV{
+			log30.String("baz", "xyz"),
 		},
 		expected: `{
 			"foo":"bar",
@@ -1642,15 +1642,15 @@ var WithTestCases = []struct {
 	{
 		name: "two kv with two additional kv",
 		line: line(),
-		log: &log64.Log{
-			KV: []log64.KV{
-				log64.String("foo", "bar"),
-				log64.String("abc", "dfg"),
+		log: &log30.Log{
+			KV: []log30.KV{
+				log30.String("foo", "bar"),
+				log30.String("abc", "dfg"),
 			},
 		},
-		kv: []log64.KV{
-			log64.String("baz", "xyz"),
-			log64.String("hjk", "lmn"),
+		kv: []log30.KV{
+			log30.String("baz", "xyz"),
+			log30.String("hjk", "lmn"),
 		},
 		expected: `{
 			"foo":"bar",
@@ -1671,7 +1671,7 @@ func TestWith(t *testing.T) {
 
 			var buf bytes.Buffer
 
-			l64, ok := tc.log.(*log64.Log)
+			l64, ok := tc.log.(*log30.Log)
 			if !ok {
 				t.Fatal("logger type is not appropriate")
 			}
