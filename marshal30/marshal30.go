@@ -609,15 +609,11 @@ func (v stringV) String() string {
 }
 
 func (v stringV) MarshalText() ([]byte, error) {
-	buf := bufPool.Get().(*bytes.Buffer)
-	buf.Reset()
-	defer bufPool.Put(buf)
-
-	err := encode30.String(buf, v.V)
+	var buf bytes.Buffer
+	err := encode30.String(&buf, v.V)
 	if err != nil {
 		return nil, err
 	}
-
 	return buf.Bytes(), nil
 }
 
