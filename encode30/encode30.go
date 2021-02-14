@@ -102,9 +102,8 @@ func Runes(dst io.Writer, src []rune) error {
 }
 
 func String(dst io.Writer, src string) error {
-	idx := 0
-
 	var (
+		idx  int
 		oldr rune
 		err  error
 	)
