@@ -27,7 +27,7 @@ var WriteTestCases = []struct {
 	{
 		name: "nil",
 		line: line(),
-		log:  dummy,
+		log:  dummy(),
 		expected: `{
 	    "message":null,
 			"excerpt":"_EMPTY_"
@@ -52,7 +52,7 @@ var WriteTestCases = []struct {
 	{
 		name:  "kv is nil",
 		line:  line(),
-		log:   dummy,
+		log:   dummy(),
 		input: []byte("Hello, World!"),
 		kv:    nil,
 		expected: `{
@@ -78,7 +78,7 @@ var WriteTestCases = []struct {
 	{
 		name:  `bytes appends to the "message" key with "string value"`,
 		line:  line(),
-		log:   dummy,
+		log:   dummy(),
 		input: []byte("Hello,\nWorld!"),
 		kv:    []log30.KV{log30.String("message", "string value")},
 		expected: `{
@@ -102,7 +102,7 @@ var WriteTestCases = []struct {
 	{
 		name: `input is nil and "message" key with "string value"`,
 		line: line(),
-		log:  dummy,
+		log:  dummy(),
 		kv:   []log30.KV{log30.String("message", "string value")},
 		expected: `{
 			"message":"string value"
@@ -111,7 +111,7 @@ var WriteTestCases = []struct {
 	{
 		name:  `bytes appends to the integer key "message"`,
 		line:  line(),
-		log:   dummy,
+		log:   dummy(),
 		input: []byte("Hello, World!\n"),
 		kv:    []log30.KV{log30.StringInt("message", 1)},
 		expected: `{
@@ -123,7 +123,7 @@ var WriteTestCases = []struct {
 	{
 		name:  `bytes appends to the float 32 bit key "message"`,
 		line:  line(),
-		log:   dummy,
+		log:   dummy(),
 		input: []byte("Hello,\nWorld!"),
 		kv:    []log30.KV{log30.StringFloat32("message", 4.2)},
 		expected: `{
@@ -135,7 +135,7 @@ var WriteTestCases = []struct {
 	{
 		name:  `bytes appends to the float 64 bit key "message"`,
 		line:  line(),
-		log:   dummy,
+		log:   dummy(),
 		input: []byte("Hello,\nWorld!"),
 		kv:    []log30.KV{log30.StringFloat64("message", 4.2)},
 		expected: `{
@@ -147,7 +147,7 @@ var WriteTestCases = []struct {
 	{
 		name:  `bytes appends to the boolean key "message"`,
 		line:  line(),
-		log:   dummy,
+		log:   dummy(),
 		input: []byte("Hello,\nWorld!"),
 		kv:    []log30.KV{log30.StringBool("message", true)},
 		expected: `{
@@ -159,7 +159,7 @@ var WriteTestCases = []struct {
 	{
 		name:  `bytes will appends to the nil key "message"`,
 		line:  line(),
-		log:   dummy,
+		log:   dummy(),
 		input: []byte("Hello, World!"),
 		kv:    []log30.KV{log30.StringReflect("message", nil)},
 		expected: `{
@@ -663,7 +663,7 @@ var WriteTestCases = []struct {
 	{
 		name: `bytes is nil and bytes "message" key with json`,
 		line: line(),
-		log:  dummy,
+		log:  dummy(),
 		kv:   []log30.KV{log30.StringBytes("message", []byte(`{"foo":"bar"}`))},
 		expected: `{
 			"message":"{\"foo\":\"bar\"}"
@@ -672,7 +672,7 @@ var WriteTestCases = []struct {
 	{
 		name: `bytes is nil and raw "message" key with json`,
 		line: line(),
-		log:  dummy,
+		log:  dummy(),
 		kv:   []log30.KV{log30.StringRaw("message", []byte(`{"foo":"bar"}`))},
 		expected: `{
 			"message":{"foo":"bar"}
@@ -852,7 +852,7 @@ var FprintWriteTestCases = []struct {
 	{
 		name:  "string",
 		line:  line(),
-		log:   dummy,
+		log:   dummy(),
 		input: "Hello, World!",
 		expected: `{
 			"message":"Hello, World!"
@@ -861,7 +861,7 @@ var FprintWriteTestCases = []struct {
 	{
 		name:  "integer type appears in the messages excerpt as a string",
 		line:  line(),
-		log:   dummy,
+		log:   dummy(),
 		input: 123,
 		expected: `{
 			"message":"123"
@@ -870,7 +870,7 @@ var FprintWriteTestCases = []struct {
 	{
 		name:  "float type appears in the messages excerpt as a string",
 		line:  line(),
-		log:   dummy,
+		log:   dummy(),
 		input: 3.21,
 		expected: `{
 			"message":"3.21"
@@ -879,7 +879,7 @@ var FprintWriteTestCases = []struct {
 	{
 		name:  "empty message",
 		line:  line(),
-		log:   dummy,
+		log:   dummy(),
 		input: "",
 		expected: `{
 	    "message":"",
@@ -889,7 +889,7 @@ var FprintWriteTestCases = []struct {
 	{
 		name:  "blank message",
 		line:  line(),
-		log:   dummy,
+		log:   dummy(),
 		input: " ",
 		expected: `{
 	    "message":" ",
@@ -899,7 +899,7 @@ var FprintWriteTestCases = []struct {
 	{
 		name:  "single quotes",
 		line:  line(),
-		log:   dummy,
+		log:   dummy(),
 		input: "foo 'bar'",
 		expected: `{
 			"message":"foo 'bar'"
@@ -908,7 +908,7 @@ var FprintWriteTestCases = []struct {
 	{
 		name:  "double quotes",
 		line:  line(),
-		log:   dummy,
+		log:   dummy(),
 		input: `foo "bar"`,
 		expected: `{
 			"message":"foo \"bar\""
@@ -917,7 +917,7 @@ var FprintWriteTestCases = []struct {
 	{
 		name:  `leading/trailing "spaces"`,
 		line:  line(),
-		log:   dummy,
+		log:   dummy(),
 		input: " \n\tHello, World! \t\n",
 		expected: `{
 			"message":" \n\tHello, World! \t\n",
@@ -927,7 +927,7 @@ var FprintWriteTestCases = []struct {
 	{
 		name:  "JSON string",
 		line:  line(),
-		log:   dummy,
+		log:   dummy(),
 		input: `{"foo":"bar"}`,
 		expected: `{
 			"message":"{\"foo\":\"bar\"}"
@@ -975,7 +975,7 @@ var FprintWriteTestCases = []struct {
 	{
 		name:  "fmt.Fprint prints nil as <nil>",
 		line:  line(),
-		log:   dummy,
+		log:   dummy(),
 		input: nil,
 		expected: `{
 			"message":"<nil>"
@@ -984,7 +984,7 @@ var FprintWriteTestCases = []struct {
 	{
 		name:  "multiline string",
 		line:  line(),
-		log:   dummy,
+		log:   dummy(),
 		input: "Hello,\nWorld\n!",
 		expected: `{
 			"message":"Hello,\nWorld\n!",
@@ -994,7 +994,7 @@ var FprintWriteTestCases = []struct {
 	{
 		name:  "long string",
 		line:  line(),
-		log:   dummy,
+		log:   dummy(),
 		input: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
 		expected: `{
 			"message":"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
@@ -1004,7 +1004,7 @@ var FprintWriteTestCases = []struct {
 	{
 		name:  "multiline long string with leading spaces",
 		line:  line(),
-		log:   dummy,
+		log:   dummy(),
 		input: " \n \tLorem ipsum dolor sit amet,\nconsectetur adipiscing elit,\nsed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
 		expected: `{
 			"message":" \n \tLorem ipsum dolor sit amet,\nconsectetur adipiscing elit,\nsed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
@@ -1014,7 +1014,7 @@ var FprintWriteTestCases = []struct {
 	{
 		name:  "multiline long string with leading spaces and multibyte character",
 		line:  line(),
-		log:   dummy,
+		log:   dummy(),
 		input: " \n \tLorem ipsum dolor sit amet,\nconsectetur adipiscing elit,\nsed do eiusmod tempor incididunt ut labore et dolore magna Ää.",
 		expected: `{
 			"message":" \n \tLorem ipsum dolor sit amet,\nconsectetur adipiscing elit,\nsed do eiusmod tempor incididunt ut labore et dolore magna Ää.",
@@ -1416,12 +1416,14 @@ func BenchmarkLog30(b *testing.B) {
 	}
 }
 
-var dummy = &log30.Log{
-	Trunc:   120,
-	Keys:    [4]encoding.TextMarshaler{log30.String("message"), log30.String("excerpt"), log30.String("trail"), log30.String("file")},
-	Key:     log30.Original,
-	Marks:   [3][]byte{[]byte("…"), []byte("_EMPTY_"), []byte("_BLANK_")},
-	Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
+var dummy = func() *log30.Log {
+	return &log30.Log{
+		Trunc:   120,
+		Keys:    [4]encoding.TextMarshaler{log30.String("message"), log30.String("excerpt"), log30.String("trail"), log30.String("file")},
+		Key:     log30.Original,
+		Marks:   [3][]byte{[]byte("…"), []byte("_EMPTY_"), []byte("_BLANK_")},
+		Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
+	}
 }
 
 func TestLogWriteTrailingNewLine(t *testing.T) {
