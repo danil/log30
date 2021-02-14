@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/danil/log64"
-	"github.com/danil/log64/marshal"
+	"github.com/danil/log64/marshal64"
 	"github.com/kinbiko/jsonassert"
 )
 
@@ -814,7 +814,7 @@ var FprintWriteTestCases = []struct {
 				log64.String("version", "1.1"),
 				log64.StringFunc("timestamp", func() json.Marshaler {
 					t := time.Date(2020, time.October, 15, 18, 9, 0, 0, time.UTC)
-					return marshal.Int64(t.Unix())
+					return marshal64.Int64(t.Unix())
 				}),
 			}
 			return l
@@ -1147,7 +1147,7 @@ var FprintWriteTestCases = []struct {
 			KV: []log64.KV{
 				log64.StringFunc("time", func() json.Marshaler {
 					t := time.Date(2020, time.October, 15, 18, 9, 0, 0, time.UTC)
-					return marshal.String(t.String())
+					return marshal64.String(t.String())
 				}),
 			},
 			Keys: [4]encoding.TextMarshaler{log64.String("message")},
@@ -1295,7 +1295,7 @@ var FprintWriteTestCases = []struct {
 				log64.String("host", "example.tld"),
 				log64.StringFunc("timestamp", func() json.Marshaler {
 					t := time.Date(2020, time.October, 15, 18, 9, 0, 0, time.UTC)
-					return marshal.Int64(t.Unix())
+					return marshal64.Int64(t.Unix())
 				}),
 			}
 			return l
@@ -1319,7 +1319,7 @@ var FprintWriteTestCases = []struct {
 				log64.String("host", "example.tld"),
 				log64.StringFunc("timestamp", func() json.Marshaler {
 					t := time.Date(2020, time.October, 15, 18, 9, 0, 0, time.UTC)
-					return marshal.Int64(t.Unix())
+					return marshal64.Int64(t.Unix())
 				}),
 			}
 			return l
