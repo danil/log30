@@ -73,11 +73,9 @@ func (v bytesV) MarshalText() ([]byte, error) {
 		return []byte("null"), nil
 	}
 
-	buf := pool.Get().(*bytes.Buffer)
-	buf.Reset()
-	defer pool.Put(buf)
+	var buf bytes.Buffer
 
-	err := encode30.Bytes(buf, v.V)
+	err := encode30.Bytes(&buf, v.V)
 	if err != nil {
 		return nil, err
 	}
@@ -225,11 +223,9 @@ func (v errorV) MarshalText() ([]byte, error) {
 		return []byte("null"), nil
 	}
 
-	buf := pool.Get().(*bytes.Buffer)
-	buf.Reset()
-	defer pool.Put(buf)
+	var buf bytes.Buffer
 
-	err := encode30.String(buf, v.V.Error())
+	err := encode30.String(&buf, v.V.Error())
 	if err != nil {
 		return nil, err
 	}
@@ -539,11 +535,9 @@ func (v runesV) MarshalText() ([]byte, error) {
 		return []byte("null"), nil
 	}
 
-	buf := pool.Get().(*bytes.Buffer)
-	buf.Reset()
-	defer pool.Put(buf)
+	var buf bytes.Buffer
 
-	err := encode30.Runes(buf, v.V)
+	err := encode30.Runes(&buf, v.V)
 	if err != nil {
 		return nil, err
 	}
@@ -680,11 +674,9 @@ func (v textV) MarshalText() ([]byte, error) {
 		return nil, err
 	}
 
-	buf := pool.Get().(*bytes.Buffer)
-	buf.Reset()
-	defer pool.Put(buf)
+	var buf bytes.Buffer
 
-	err = encode30.Bytes(buf, p)
+	err = encode30.Bytes(&buf, p)
 	if err != nil {
 		return nil, err
 	}
@@ -1355,7 +1347,6 @@ func (v reflectV) String() string {
 			enc.Close()
 
 			return buf.String()
-
 		}
 	}
 
