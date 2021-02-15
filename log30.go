@@ -327,17 +327,16 @@ replace:
 // New returns copy of the logger with additional key-values.
 // Copy of the original key-values has the priority lower
 // than the priority of the newer key-values.
-func (l *Log) New(kv ...KV) Logger {
-	l2 := *l
-	l2.KV = append(l2.KV[:0], l2.KV...)
-	l2.KV = append(l2.KV, kv...)
-	l2.Replace = append(l2.Replace[:0], l2.Replace...)
-	return &l2
+func (l Log) New(kv ...KV) Logger {
+	l.KV = append(l.KV[:0], l.KV...)
+	l.KV = append(l.KV, kv...)
+	l.Replace = append(l.Replace[:0], l.Replace...)
+	return l
 }
 
 // GELF returns a GELF formater <https://docs.graylog.org/en/latest/pages/gelf.html>.
-func GELF() *Log {
-	return &Log{
+func GELF() Log {
+	return Log{
 		// GELF spec version – "1.1"; Must be set by client library.
 		// <https://docs.graylog.org/en/latest/pages/gelf.html#gelf-payload-specification>,
 		// <https://github.com/graylog-labs/gelf-rb/issues/41#issuecomment-198266505>.
