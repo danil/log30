@@ -1361,7 +1361,7 @@ func (v reflectV) String() string {
 
 			p := val.Bytes()
 			enc := base64.NewEncoder(base64.StdEncoding, buf)
-			enc.Write(p)
+			_, _ = enc.Write(p)
 			enc.Close()
 
 			return buf.String()
