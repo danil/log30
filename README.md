@@ -27,7 +27,7 @@ its extremely slow and allocates a lots of memory)
 Install
 -------
 
-    go get github.com/danil/log16@v0.106.0
+    go get github.com/danil/log16@v0.107.0
 
 Usage
 -----

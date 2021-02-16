@@ -327,9 +327,8 @@ replace:
 // Copy of the original key-values has the priority lower
 // than the priority of the newer key-values.
 func (l Log) New(kv ...KV) Logger {
-	l.KV = append(l.KV[:0], l.KV...)
-	l.KV = append(l.KV, kv...)
-	l.Replace = append(l.Replace[:0], l.Replace...)
+	l.KV = append([]KV{}, append(l.KV, kv...)...)
+	l.Replace = append([][2][]byte{}, l.Replace...)
 	return l
 }
 
