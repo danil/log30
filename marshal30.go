@@ -1,4 +1,4 @@
-package marshal30
+package log30
 
 import (
 	"bytes"
@@ -998,6 +998,24 @@ func (p durationP) MarshalJSON() ([]byte, error) {
 		return []byte("null"), nil
 	}
 	return durationV{V: *p.P}.MarshalJSON()
+}
+
+// Func returns stringer/JSON marshaler interface implementation for the custom func type.
+func Func(v func() KV) funcV { return funcV{V: v} }
+
+type funcV struct{ V func() KV }
+
+func (v funcV) String() string {
+	p, _ := v.V().MarshalText()
+	return string(p)
+}
+
+func (v funcV) MarshalText() ([]byte, error) {
+	return v.V().MarshalText()
+}
+
+func (v funcV) MarshalJSON() ([]byte, error) {
+	return v.V().MarshalJSON()
 }
 
 // Raw returns stringer/JSON marshaler interface implementation for the raw byte slice.
