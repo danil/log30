@@ -1,4 +1,4 @@
-package log64
+package log16
 
 import (
 	"bytes"

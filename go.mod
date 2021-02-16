@@ -1,4 +1,4 @@
-module github.com/danil/log64
+module github.com/danil/log16
 
 go 1.15
 
