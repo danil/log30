@@ -64,16 +64,16 @@ func (l Log) Write(src []byte) (int, error) {
 var asciiSpace = [256]uint8{'\t': 1, '\n': 1, '\v': 1, '\f': 1, '\r': 1, ' ': 1}
 
 var (
-	mapPool     = sync.Pool{New: func() interface{} { return make(map[string]json.Marshaler) }}
+	mapPool     = sync.Pool{New: func() interface{} { m := make(map[string]json.Marshaler); return &m }}
 	excerptPool = sync.Pool{New: func() interface{} { return new([]byte) }}
 )
 
 func (l Log) json(src []byte) ([]byte, error) {
-	tmpKV := mapPool.Get().(map[string]json.Marshaler)
+	tmpKV := *mapPool.Get().(*map[string]json.Marshaler)
 	for k := range tmpKV {
 		delete(tmpKV, k)
 	}
-	defer mapPool.Put(tmpKV)
+	defer mapPool.Put(&tmpKV)
 
 	for _, kv := range l.KV {
 		p, err := kv.MarshalText()
