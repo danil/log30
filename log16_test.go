@@ -23,12 +23,19 @@ var WriteTestCases = []struct {
 	benchmark bool
 }{
 	{
-		name: "nil",
+		name: "blank",
 		line: line(),
-		log:  dummy(),
+		log: log16.Log{
+			Output: &bytes.Buffer{},
+			Trunc:  120,
+			Keys:   [4]encoding.TextMarshaler{log16.String("message"), log16.String("excerpt")},
+			Key:    log16.Original,
+			Marks:  [2][]byte{[]byte("…"), []byte("_BLANK_")},
+		},
+		input: []byte(" "),
 		expected: `{
-	    "message":null,
-			"excerpt":"_EMPTY_"
+	    "message":" ",
+			"excerpt":"_BLANK_"
 		}`,
 	},
 	{
@@ -839,7 +846,7 @@ var FprintWriteTestCases = []struct {
 			Output:  &bytes.Buffer{},
 			Trunc:   12,
 			Keys:    [4]encoding.TextMarshaler{log16.String("message"), log16.String("excerpt")},
-			Marks:   [3][]byte{[]byte("…")},
+			Marks:   [2][]byte{[]byte("…")},
 			Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 		},
 		line:  line(),
@@ -1322,23 +1329,6 @@ var FprintWriteTestCases = []struct {
 		}`,
 	},
 	{
-		name: "file path with empty message",
-		line: line(),
-		log: log16.Log{
-			Output: &bytes.Buffer{},
-			Flag:   log.Llongfile,
-			Trunc:  120,
-			Keys:   [4]encoding.TextMarshaler{log16.String("message"), log16.String("excerpt"), log16.String("trail"), log16.String("file")},
-			Marks:  [3][]byte{[]byte("…"), []byte("_EMPTY_")},
-		},
-		input: "path/to/file1:23:",
-		expected: `{
-			"message":"path/to/file1:23:",
-			"excerpt":"_EMPTY_",
-			"file":"path/to/file1:23"
-		}`,
-	},
-	{
 		name: "file path with blank message",
 		line: line(),
 		log: log16.Log{
@@ -1346,7 +1336,7 @@ var FprintWriteTestCases = []struct {
 			Flag:   log.Llongfile,
 			Trunc:  120,
 			Keys:   [4]encoding.TextMarshaler{log16.String("message"), log16.String("excerpt"), log16.String("trail"), log16.String("file")},
-			Marks:  [3][]byte{[]byte("…"), []byte("_EMPTY_"), []byte("_BLANK_")},
+			Marks:  [2][]byte{[]byte("…"), []byte("_BLANK_")},
 		},
 		input: "path/to/file4:56:  ",
 		expected: `{
@@ -1475,7 +1465,7 @@ var dummy = func() log16.Log {
 		Trunc:   120,
 		Keys:    [4]encoding.TextMarshaler{log16.String("message"), log16.String("excerpt"), log16.String("trail"), log16.String("file")},
 		Key:     log16.Original,
-		Marks:   [3][]byte{[]byte("…"), []byte("_EMPTY_"), []byte("_BLANK_")},
+		Marks:   [2][]byte{[]byte("…"), []byte("_BLANK_")},
 		Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 	}
 }
@@ -1527,7 +1517,7 @@ var TruncateTestCases = []struct {
 		log: log16.Log{
 			Output: &bytes.Buffer{},
 			Trunc:  12,
-			Marks:  [3][]byte{[]byte("…")},
+			Marks:  [2][]byte{[]byte("…")},
 		},
 		line:     line(),
 		input:    []byte("Hello, World!"),

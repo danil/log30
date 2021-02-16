@@ -36,7 +36,6 @@ const (
 
 const (
 	Trunc = iota
-	Empty
 	Blank
 )
 
@@ -48,7 +47,7 @@ type Log struct {
 	Keys    [4]encoding.TextMarshaler // Keys: 0 = original message; 1 = message excerpt; 2 = message trail; 3 = file path.
 	Key     uint8                     // Key is a default/sticky message key: all except 1 = original message; 1 = message excerpt.
 	Trunc   int                       // Maximum length of the message excerpt after which the message excerpt is truncated.
-	Marks   [3][]byte                 // Marks: 0 = truncate; 1 = empty; 2 = blank.
+	Marks   [2][]byte                 // Marks: 0 = truncate; 1 = blank.
 	Replace [][2][]byte               // Replace ia a pairs of byte slices to replace in the message excerpt.
 }
 
@@ -126,26 +125,21 @@ func (l Log) json(src []byte) ([]byte, error) {
 	excerpt = excerpt[:0]
 	defer excerptPool.Put(&excerpt)
 
-	if tmpKV[excerptKey] == nil {
-		if tail == len(src) && tmpKV[originalKey] == nil {
-			excerpt = append(excerpt, l.Marks[Empty]...)
-
-		} else if tail != len(src) {
-			n := len(src) + len(l.Marks[Trunc])
-			for _, m := range l.Marks {
-				if n < len(m) {
-					n = len(m)
-				}
+	if tmpKV[excerptKey] == nil && tail != len(src) {
+		n := len(src) + len(l.Marks[Trunc])
+		for _, m := range l.Marks {
+			if n < len(m) {
+				n = len(m)
 			}
-
-			excerpt = append(excerpt, make([]byte, n)...)
-			n, err := l.Truncate(excerpt, src[tail:])
-			if err != nil {
-				return nil, err
-			}
-
-			excerpt = excerpt[:n]
 		}
+
+		excerpt = append(excerpt, make([]byte, n)...)
+		n, err := l.Truncate(excerpt, src[tail:])
+		if err != nil {
+			return nil, err
+		}
+
+		excerpt = excerpt[:n]
 	}
 
 	var trailKey string
@@ -352,7 +346,7 @@ func GELF() Log {
 			String("_file"),
 		},
 		Key:     Excerpt,
-		Marks:   [3][]byte{[]byte("…"), []byte("_EMPTY_"), []byte("_BLANK_")},
+		Marks:   [2][]byte{[]byte("…"), []byte("_BLANK_")},
 		Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 	}
 }
