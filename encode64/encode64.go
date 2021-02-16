@@ -1,4 +1,4 @@
-package encode30
+package encode64
 
 import (
 	"io"

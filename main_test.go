@@ -1,4 +1,4 @@
-package log30_test
+package log64_test
 
 import (
 	"runtime"
