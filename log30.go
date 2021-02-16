@@ -129,7 +129,7 @@ func (l Log) json(src []byte) ([]byte, error) {
 
 	if tmpKV[excerptKey] == nil {
 		if tail == len(src) && tmpKV[originalKey] == nil {
-			excerpt = append(excerpt[:0], l.Marks[Empty]...)
+			excerpt = append(excerpt, l.Marks[Empty]...)
 
 		} else if tail != len(src) {
 			n := len(src) + len(l.Marks[Trunc])
@@ -139,7 +139,7 @@ func (l Log) json(src []byte) ([]byte, error) {
 				}
 			}
 
-			excerpt = append(excerpt[:0], make([]byte, n)...)
+			excerpt = append(excerpt, make([]byte, n)...)
 			n, err := l.Truncate(excerpt, src[tail:])
 			if err != nil {
 				return nil, err
