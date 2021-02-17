@@ -1,5 +1,5 @@
-log0
-=====
+`log0`
+======
 
 [![Build Status](https://cloud.drone.io/api/badges/danil/log0/status.svg)](https://cloud.drone.io/danil/log0)
 [![Go Reference](https://pkg.go.dev/badge/github.com/danil/log0.svg)](https://pkg.go.dev/github.com/danil/log0)
