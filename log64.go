@@ -359,6 +359,7 @@ func GELF() Log {
 				return Int64(time.Now().Unix())
 			}),
 		},
+		Lvl:   func(lvl int) KV { return StringInt("level", lvl) },
 		Trunc: 120,
 		Keys: [4]encoding.TextMarshaler{
 			String("full_message"),
