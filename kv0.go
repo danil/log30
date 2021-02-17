@@ -1,4 +1,4 @@
-package log64
+package log0
 
 import (
 	"encoding"
