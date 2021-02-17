@@ -809,12 +809,12 @@ func TestWrite(t *testing.T) {
 			t.Parallel()
 			linkToExample := fmt.Sprintf("%s:%d", testFile, tc.line)
 
-			l30, ok := tc.log.(log64.Log)
+			l64, ok := tc.log.(log64.Log)
 			if !ok {
 				t.Fatal("unexpected logger type")
 			}
 
-			buf, ok := l30.Output.(*bytes.Buffer)
+			buf, ok := l64.Output.(*bytes.Buffer)
 			if !ok {
 				t.Fatal("unexpected output type")
 			}
@@ -1593,13 +1593,13 @@ func TestTruncate(t *testing.T) {
 			t.Parallel()
 			linkToExample := fmt.Sprintf("%s:%d", testFile, tc.line)
 
-			l30, ok := tc.log.(log64.Log)
+			l64, ok := tc.log.(log64.Log)
 			if !ok {
 				t.Fatal("unexpected logger type")
 			}
 
 			n := len(tc.input) + 10*10
-			for _, m := range l30.Marks {
+			for _, m := range l64.Marks {
 				if n < len(m) {
 					n = len(m)
 				}
@@ -1607,7 +1607,7 @@ func TestTruncate(t *testing.T) {
 
 			excerpt := make([]byte, n)
 
-			n, err := l30.Truncate(excerpt, tc.input)
+			n, err := l64.Truncate(excerpt, tc.input)
 			if err != nil {
 				t.Fatalf("write error: %s", err)
 			}
@@ -1621,7 +1621,7 @@ func TestTruncate(t *testing.T) {
 	}
 }
 
-var WithTestCases = []struct {
+var NewTestCases = []struct {
 	name      string
 	line      int
 	log       log64.Logger
@@ -1725,20 +1725,20 @@ var WithTestCases = []struct {
 	},
 }
 
-func TestWith(t *testing.T) {
+func TestNew(t *testing.T) {
 	_, testFile, _, _ := runtime.Caller(0)
-	for _, tc := range WithTestCases {
+	for _, tc := range NewTestCases {
 		tc := tc
 		t.Run(fmt.Sprintf("with %s %d", tc.name, tc.line), func(t *testing.T) {
 			t.Parallel()
 			linkToExample := fmt.Sprintf("%s:%d", testFile, tc.line)
 
-			l30, ok := tc.log.(log64.Log)
+			l64, ok := tc.log.(log64.Log)
 			if !ok {
 				t.Fatal("unexpected logger type")
 			}
 
-			buf, ok := l30.Output.(*bytes.Buffer)
+			buf, ok := l64.Output.(*bytes.Buffer)
 			if !ok {
 				t.Fatal("unexpected output type")
 			}
@@ -1746,6 +1746,105 @@ func TestWith(t *testing.T) {
 			*buf = bytes.Buffer{}
 
 			_, err := tc.log.New(tc.kv...).Write(nil)
+			if err != nil {
+				t.Fatalf("write error: %s", err)
+			}
+
+			ja := jsonassert.New(testprinter{t: t, link: linkToExample})
+			ja.Assertf(buf.String(), tc.expected)
+		})
+	}
+}
+
+var LevelTestCases = []struct {
+	name      string
+	line      int
+	log       log64.Logger
+	levels    []int
+	kv        []log64.KV
+	expected  string
+	benchmark bool
+}{
+	{
+		name: "just level 7",
+		line: line(),
+		log: log64.Log{
+			Output: &bytes.Buffer{},
+		},
+		levels: []int{7},
+		expected: `{
+			"level":7
+		}`,
+	},
+	{
+		name: "just level 7 next to the key-value pair",
+		line: line(),
+		log: log64.Log{
+			Output: &bytes.Buffer{},
+			KV: []log64.KV{
+				log64.Strings("foo", "bar"),
+			},
+		},
+		levels: []int{7},
+		expected: `{
+			"foo":"bar",
+			"level":7
+		}`,
+	},
+	{
+		name: "two consecutive levels call 7 and 6",
+		line: line(),
+		log: log64.Log{
+			Output: &bytes.Buffer{},
+		},
+		levels: []int{7, 6},
+		expected: `{
+			"level":6
+		}`,
+	},
+	{
+		name: "level 7 overwrites level 42 from key-value pair",
+		line: line(),
+		log: log64.Log{
+			Output: &bytes.Buffer{},
+			KV: []log64.KV{
+				log64.StringInt("level", 42),
+			},
+		},
+		levels: []int{7},
+		expected: `{
+			"level":7
+		}`,
+	},
+}
+
+func TestLevel(t *testing.T) {
+	_, testFile, _, _ := runtime.Caller(0)
+	for _, tc := range LevelTestCases {
+		tc := tc
+		t.Run(fmt.Sprintf("with %s %d", tc.name, tc.line), func(t *testing.T) {
+			t.Parallel()
+			linkToExample := fmt.Sprintf("%s:%d", testFile, tc.line)
+
+			l64, ok := tc.log.(log64.Log)
+			if !ok {
+				t.Fatal("unexpected logger type")
+			}
+
+			buf, ok := l64.Output.(*bytes.Buffer)
+			if !ok {
+				t.Fatal("unexpected output type")
+			}
+
+			*buf = bytes.Buffer{}
+
+			l := tc.log.New(tc.kv...)
+
+			for _, lvl := range tc.levels {
+				l = l.Level(lvl)
+			}
+
+			_, err := l.Write(nil)
 			if err != nil {
 				t.Fatalf("write error: %s", err)
 			}

@@ -16,10 +16,17 @@ import (
 
 type Logger interface {
 	io.Writer
-	// New returns copy of the logger with additional key-values.
+	// New returns copy of the logger with an additional key-values.
 	// Copy of the original key-values should have a lower priority
 	// than the priority of the newer key-values.
 	New(...KV) Logger
+	// Level returns copy of the logger with an additional key-value pair
+	// which indicating severity level.
+	// Level is syntactic sugar replacing the often repeated call to
+	// the more verbose New method to set the severity level.
+	// Copy of the original severity level key-value pair should have a lower
+	// priority than the priority of the newer severity level key-value pair.
+	Level(int) Logger
 }
 
 type KV interface {
@@ -44,6 +51,7 @@ type Log struct {
 	Output  io.Writer                 // Output is a destination for output.
 	Flag    int                       // Flag is a log properties.
 	KV      []KV                      // Key-values.
+	Lvl     func(int) KV              // Function receives severity level and returns key-value pair which indicating severity level.
 	Keys    [4]encoding.TextMarshaler // Keys: 0 = original message; 1 = message excerpt; 2 = message trail; 3 = file path.
 	Key     uint8                     // Key is a default/sticky message key: all except 1 = original message; 1 = message excerpt.
 	Trunc   int                       // Maximum length of the message excerpt after which the message excerpt is truncated.
@@ -324,6 +332,19 @@ func (l Log) New(kv ...KV) Logger {
 	l.KV = append([]KV{}, append(l.KV, kv...)...)
 	l.Replace = append([][2][]byte{}, l.Replace...)
 	return l
+}
+
+// Level returns copy of the logger with an additional key-value pair
+// which indicating severity level.
+// Level is syntactic sugar replacing the often repeated call to
+// the more verbose New method to set the severity level.
+// Copy of the original severity level key-value pair has a lower
+// priority than the priority of the newer severity level key-value pair.
+func (l Log) Level(lvl int) Logger {
+	if l.Lvl == nil {
+		return l.New(StringInt("level", lvl))
+	}
+	return l.New(l.Lvl(lvl))
 }
 
 // GELF returns a GELF formater <https://docs.graylog.org/en/latest/pages/gelf.html>.
