@@ -1,4 +1,4 @@
-package log16
+package log64
 
 import (
 	"bytes"
@@ -11,7 +11,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/danil/log16/encode16"
+	"github.com/danil/log64/encode64"
 )
 
 // Bool returns stringer/JSON marshaler interface implementation for the bool type.
@@ -75,7 +75,7 @@ func (v bytesV) MarshalText() ([]byte, error) {
 
 	var buf bytes.Buffer
 
-	err := encode16.Bytes(&buf, v.V)
+	err := encode64.Bytes(&buf, v.V)
 	if err != nil {
 		return nil, err
 	}
@@ -225,7 +225,7 @@ func (v errorV) MarshalText() ([]byte, error) {
 
 	var buf bytes.Buffer
 
-	err := encode16.String(&buf, v.V.Error())
+	err := encode64.String(&buf, v.V.Error())
 	if err != nil {
 		return nil, err
 	}
@@ -522,7 +522,7 @@ func (v runesV) String() string {
 	buf.Reset()
 	defer pool.Put(buf)
 
-	err := encode16.Runes(buf, v.V)
+	err := encode64.Runes(buf, v.V)
 	if err != nil {
 		return ""
 	}
@@ -537,7 +537,7 @@ func (v runesV) MarshalText() ([]byte, error) {
 
 	var buf bytes.Buffer
 
-	err := encode16.Runes(&buf, v.V)
+	err := encode64.Runes(&buf, v.V)
 	if err != nil {
 		return nil, err
 	}
@@ -594,7 +594,7 @@ func (v stringV) String() string {
 	buf.Reset()
 	defer pool.Put(buf)
 
-	err := encode16.String(buf, v.V)
+	err := encode64.String(buf, v.V)
 	if err != nil {
 		return ""
 	}
@@ -604,7 +604,7 @@ func (v stringV) String() string {
 
 func (v stringV) MarshalText() ([]byte, error) {
 	var buf bytes.Buffer
-	err := encode16.String(&buf, v.V)
+	err := encode64.String(&buf, v.V)
 	if err != nil {
 		return nil, err
 	}
@@ -660,7 +660,7 @@ func (v textV) String() string {
 	buf.Reset()
 	defer pool.Put(buf)
 
-	err = encode16.Bytes(buf, p)
+	err = encode64.Bytes(buf, p)
 	if err != nil {
 		return ""
 	}
@@ -676,7 +676,7 @@ func (v textV) MarshalText() ([]byte, error) {
 
 	var buf bytes.Buffer
 
-	err = encode16.Bytes(&buf, p)
+	err = encode64.Bytes(&buf, p)
 	if err != nil {
 		return nil, err
 	}
