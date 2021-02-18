@@ -27,7 +27,7 @@ its extremely slow and allocates a lots of memory)
 Install
 -------
 
-    go get github.com/danil/log0@v0.114.0
+    go get github.com/danil/log0@v0.115.0
 
 Usage
 -----
@@ -97,7 +97,8 @@ Output:
     "version":"1.1",
     "short_message":"Hello, GELF!",
     "full_message":"Hello,\nGELF!",
-    "timestamp":1602785340
+    "timestamp":1602785340,
+    "level":1
 }
 ```
 

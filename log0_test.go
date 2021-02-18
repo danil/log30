@@ -862,16 +862,16 @@ var FprintWriteTestCases = []struct {
 	{
 		name: "readme example 2",
 		line: line(),
-		log: func() log0.Log {
-			l := log0.GELF()
-			l.Output = &bytes.Buffer{}
-			l.KV = []log0.KV{
+		log: func() log0.Logger {
+			l1 := log0.GELF()
+			l1.Output = &bytes.Buffer{}
+			l := l1.Get(
 				log0.Strings("version", "1.1"),
 				log0.StringFunc("timestamp", func() log0.KV {
 					t := time.Date(2020, time.October, 15, 18, 9, 0, 0, time.UTC)
 					return log0.Int64(t.Unix())
 				}),
-			}
+			)
 			return l
 		}(),
 		input: "Hello,\nGELF!",
@@ -879,7 +879,8 @@ var FprintWriteTestCases = []struct {
 			"version":"1.1",
 			"short_message":"Hello, GELF!",
 			"full_message":"Hello,\nGELF!",
-			"timestamp":1602785340
+			"timestamp":1602785340,
+			"level":1
 		}`,
 	},
 	{
@@ -1340,17 +1341,17 @@ var FprintWriteTestCases = []struct {
 	{
 		name: "GELF",
 		line: line(),
-		log: func() log0.Log {
-			l := log0.GELF()
-			l.Output = &bytes.Buffer{}
-			l.KV = []log0.KV{
+		log: func() log0.Logger {
+			l1 := log0.GELF()
+			l1.Output = &bytes.Buffer{}
+			l := l1.Get(
 				log0.Strings("version", "1.1"),
 				log0.Strings("host", "example.tld"),
 				log0.StringFunc("timestamp", func() log0.KV {
 					t := time.Date(2020, time.October, 15, 18, 9, 0, 0, time.UTC)
 					return log0.Int64(t.Unix())
 				}),
-			}
+			)
 			return l
 		}(),
 		input: "Hello, GELF!",
@@ -1358,24 +1359,25 @@ var FprintWriteTestCases = []struct {
 			"version":"1.1",
 			"short_message":"Hello, GELF!",
 			"host":"example.tld",
-			"timestamp":1602785340
+			"timestamp":1602785340,
+			"level":1
 		}`,
 	},
 	{
 		name: "GELF with file path",
 		line: line(),
-		log: func() log0.Log {
-			l := log0.GELF()
-			l.Output = &bytes.Buffer{}
-			l.Flag = log.Llongfile
-			l.KV = []log0.KV{
+		log: func() log0.Logger {
+			l1 := log0.GELF()
+			l1.Output = &bytes.Buffer{}
+			l1.Flag = log.Llongfile
+			l := l1.Get(
 				log0.Strings("version", "1.1"),
 				log0.Strings("host", "example.tld"),
 				log0.StringFunc("timestamp", func() log0.KV {
 					t := time.Date(2020, time.October, 15, 18, 9, 0, 0, time.UTC)
 					return log0.Int64(t.Unix())
 				}),
-			}
+			)
 			return l
 		}(),
 		input: "path/to/file7:89: Hello, GELF!",
@@ -1385,6 +1387,7 @@ var FprintWriteTestCases = []struct {
 			"full_message":"path/to/file7:89: Hello, GELF!",
 			"host":"example.tld",
 			"timestamp":1602785340,
+			"level":1,
 			"_file":"path/to/file7:89"
 		}`,
 	},
@@ -1449,12 +1452,12 @@ func BenchmarkLog0(b *testing.B) {
 	}
 }
 
-var dummy = func() log0.Log {
+var dummy = func() log0.Logger {
 	return log0.Log{
 		Output: &bytes.Buffer{},
-		Trunc:  120,
 		Keys:   [4]encoding.TextMarshaler{log0.String("message"), log0.String("excerpt"), log0.String("trail"), log0.String("file")},
 		Key:    log0.Original,
+		Trunc:  120,
 		Marks:  [2][]byte{[]byte("…"), []byte("_BLANK_")},
 		Replc:  [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 	}
