@@ -20,7 +20,7 @@ type Logger interface {
 	// Copy of the original key-values should have a lower priority
 	// than the priority of the newer key-values.
 	Get(...KV) Logger
-	// Put puts key-values and replacements slices into pools.
+	// Put puts key-values/replacements slices into pools.
 	Put()
 	// Level returns copy of the logger with an additional key-value pair
 	// which indicating severity level.
