@@ -27,7 +27,7 @@ its extremely slow and allocates a lots of memory)
 Install
 -------
 
-    go get github.com/danil/log0@v0.113.0
+    go get github.com/danil/log0@v0.114.0
 
 Usage
 -----
@@ -50,7 +50,7 @@ func main() {
         Trunc: 12,
         Keys: [4]json.Marshaler{log0.String("message"), log0.String("excerpt")},
         Marks: [3][]byte{[]byte("…")},
-        Replace: [][]byte{[]byte("\n"), []byte(" ")},
+        Replc: [][]byte{[]byte("\n"), []byte(" ")},
     }
     log.SetFlags(0)
     log.SetOutput(l)
@@ -151,8 +151,8 @@ go test -bench=. ./...
 goos: linux
 goarch: amd64
 pkg: github.com/danil/log0
-BenchmarkLog0/io.Writer_38-8         	  298993	      3926 ns/op
-BenchmarkLog0/fmt.Fprint_io.Writer_1069-8         	  117852	     10049 ns/op
+BenchmarkLog0/io.Writer_43-8         	  291405	      4078 ns/op
+BenchmarkLog0/fmt.Fprint_io.Writer_1066-8         	  116918	     10791 ns/op
 ```
 
 License
