@@ -879,8 +879,7 @@ var FprintWriteTestCases = []struct {
 			"version":"1.1",
 			"short_message":"Hello, GELF!",
 			"full_message":"Hello,\nGELF!",
-			"timestamp":1602785340,
-			"level":1
+			"timestamp":1602785340
 		}`,
 	},
 	{
@@ -1359,8 +1358,7 @@ var FprintWriteTestCases = []struct {
 			"version":"1.1",
 			"short_message":"Hello, GELF!",
 			"host":"example.tld",
-			"timestamp":1602785340,
-			"level":1
+			"timestamp":1602785340
 		}`,
 	},
 	{
@@ -1387,7 +1385,6 @@ var FprintWriteTestCases = []struct {
 			"full_message":"path/to/file7:89: Hello, GELF!",
 			"host":"example.tld",
 			"timestamp":1602785340,
-			"level":1,
 			"_file":"path/to/file7:89"
 		}`,
 	},

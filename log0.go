@@ -369,7 +369,6 @@ func GELF() Log {
 		// <https://github.com/graylog-labs/gelf-rb/issues/41#issuecomment-198266505>.
 		KV: []KV{
 			Strings("version", "1.1"),
-			StringInt("level", 1), // level equal to the standard syslog levels, default is 1 (ALERT) <https://docs.graylog.org/en/latest/pages/gelf.html#gelf-payload-specification>.
 			StringFunc("timestamp", func() KV { return Int64(time.Now().Unix()) }),
 		},
 		Lvl:   func(lvl int) KV { return StringInt("level", lvl) },
