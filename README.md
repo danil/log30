@@ -27,7 +27,7 @@ its extremely slow and allocates a lots of memory)
 Install
 -------
 
-    go get github.com/danil/log0@v0.117.0
+    go get github.com/danil/log0@v0.118.0
 
 Usage
 -----
@@ -151,8 +151,8 @@ go test -bench=. ./...
 goos: linux
 goarch: amd64
 pkg: github.com/danil/log0
-BenchmarkLog0/io.Writer_43-8         	  291405	      4078 ns/op
-BenchmarkLog0/fmt.Fprint_io.Writer_1066-8         	  116918	     10791 ns/op
+BenchmarkLog0/io.Writer_72-8         	  291411	      4080 ns/op
+BenchmarkLog0/fmt.Fprint_io.Writer_1122-8         	  105778	     10700 ns/op
 ```
 
 License
