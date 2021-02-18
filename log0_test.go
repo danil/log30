@@ -43,9 +43,9 @@ var WriteTestCases = []struct {
 		line: line(),
 		log: log0.Log{
 			Output: &bytes.Buffer{},
-			Trunc:  120,
 			KV:     []log0.KV{log0.Strings("string", "foo")},
 			Keys:   [4]encoding.TextMarshaler{log0.String("message")},
+			Trunc:  120,
 		},
 		input: []byte("Hello, World!"),
 		kv:    []log0.KV{log0.Strings("string", "bar")},
@@ -71,8 +71,8 @@ var WriteTestCases = []struct {
 		log: log0.Log{
 			Output: &bytes.Buffer{},
 			KV:     []log0.KV{log0.Strings("message", "string value")},
-			Trunc:  120,
 			Keys:   [4]encoding.TextMarshaler{log0.String("message"), log0.String("excerpt"), log0.String("trail")},
+			Trunc:  120,
 			Replc:  [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 		},
 		input: []byte("Hello,\nWorld!"),
@@ -100,8 +100,8 @@ var WriteTestCases = []struct {
 		log: log0.Log{
 			Output: &bytes.Buffer{},
 			KV:     []log0.KV{log0.Strings("message", "string value")},
-			Trunc:  120,
 			Keys:   [4]encoding.TextMarshaler{log0.String("message")},
+			Trunc:  120,
 		},
 		expected: `{
 			"message":"string value"
@@ -180,9 +180,9 @@ var WriteTestCases = []struct {
 		line: line(),
 		log: log0.Log{
 			Output: &bytes.Buffer{},
-			Trunc:  120,
 			Keys:   [4]encoding.TextMarshaler{log0.String("message")},
 			Key:    log0.Original,
+			Trunc:  120,
 		},
 		kv: []log0.KV{log0.Strings("message", "foo")},
 		expected: `{
@@ -194,9 +194,9 @@ var WriteTestCases = []struct {
 		line: line(),
 		log: log0.Log{
 			Output: &bytes.Buffer{},
-			Trunc:  120,
 			Keys:   [4]encoding.TextMarshaler{log0.String("message")},
 			Key:    log0.Original,
+			Trunc:  120,
 			Replc:  [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 		},
 		kv: []log0.KV{log0.Strings("message", "foo\n")},
@@ -209,9 +209,9 @@ var WriteTestCases = []struct {
 		line: line(),
 		log: log0.Log{
 			Output: &bytes.Buffer{},
-			Trunc:  120,
 			Keys:   [4]encoding.TextMarshaler{log0.String("message"), log0.String("excerpt"), log0.String("trail")},
 			Key:    log0.Original,
+			Trunc:  120,
 			Replc:  [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 		},
 		input: []byte("foo"),
@@ -243,9 +243,9 @@ var WriteTestCases = []struct {
 		line: line(),
 		log: log0.Log{
 			Output: &bytes.Buffer{},
-			Trunc:  120,
 			Keys:   [4]encoding.TextMarshaler{log0.String("message"), log0.String("excerpt"), log0.String("trail")},
 			Key:    log0.Original,
+			Trunc:  120,
 			Replc:  [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 		},
 		input: []byte("foo\n"),
@@ -261,9 +261,9 @@ var WriteTestCases = []struct {
 		line: line(),
 		log: log0.Log{
 			Output: &bytes.Buffer{},
-			Trunc:  120,
 			Keys:   [4]encoding.TextMarshaler{log0.String("message"), log0.String("excerpt")},
 			Key:    log0.Original,
+			Trunc:  120,
 		},
 		kv: []log0.KV{log0.Strings("excerpt", "foo")},
 		expected: `{
@@ -275,9 +275,9 @@ var WriteTestCases = []struct {
 		line: line(),
 		log: log0.Log{
 			Output: &bytes.Buffer{},
-			Trunc:  120,
 			Keys:   [4]encoding.TextMarshaler{log0.String("message"), log0.String("excerpt")},
 			Key:    log0.Original,
+			Trunc:  120,
 			Replc:  [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 		},
 		kv: []log0.KV{log0.Strings("excerpt", "foo\n")},
@@ -290,9 +290,9 @@ var WriteTestCases = []struct {
 		line: line(),
 		log: log0.Log{
 			Output: &bytes.Buffer{},
-			Trunc:  120,
 			Keys:   [4]encoding.TextMarshaler{log0.String("message"), log0.String("excerpt")},
 			Key:    log0.Original,
+			Trunc:  120,
 		},
 		input: []byte("foo"),
 		kv:    []log0.KV{log0.Strings("excerpt", "bar")},
@@ -306,9 +306,9 @@ var WriteTestCases = []struct {
 		line: line(),
 		log: log0.Log{
 			Output: &bytes.Buffer{},
-			Trunc:  120,
 			Keys:   [4]encoding.TextMarshaler{log0.String("message"), log0.String("excerpt")},
 			Key:    log0.Original,
+			Trunc:  120,
 			Replc:  [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 		},
 		input: []byte("foo\n"),
@@ -323,9 +323,9 @@ var WriteTestCases = []struct {
 		line: line(),
 		log: log0.Log{
 			Output: &bytes.Buffer{},
-			Trunc:  120,
 			Keys:   [4]encoding.TextMarshaler{log0.String("message"), log0.String("excerpt")},
 			Key:    log0.Original,
+			Trunc:  120,
 			Replc:  [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 		},
 		input: []byte("foo\n"),
@@ -340,9 +340,9 @@ var WriteTestCases = []struct {
 		line: line(),
 		log: log0.Log{
 			Output: &bytes.Buffer{},
-			Trunc:  120,
 			Keys:   [4]encoding.TextMarshaler{log0.String("message"), log0.String("excerpt")},
 			Key:    log0.Original,
+			Trunc:  120,
 			Replc:  [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 		},
 		input: []byte("foo\n"),
@@ -357,9 +357,9 @@ var WriteTestCases = []struct {
 		line: line(),
 		log: log0.Log{
 			Output: &bytes.Buffer{},
-			Trunc:  120,
 			Keys:   [4]encoding.TextMarshaler{log0.String("message"), log0.String("excerpt")},
 			Key:    log0.Original,
+			Trunc:  120,
 		},
 		kv: []log0.KV{log0.Strings("message", "foo"), log0.Strings("excerpt", "bar")},
 		expected: `{
@@ -372,9 +372,9 @@ var WriteTestCases = []struct {
 		line: line(),
 		log: log0.Log{
 			Output: &bytes.Buffer{},
-			Trunc:  120,
 			Keys:   [4]encoding.TextMarshaler{log0.String("message"), log0.String("excerpt")},
 			Key:    log0.Original,
+			Trunc:  120,
 			Replc:  [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 		},
 		kv: []log0.KV{log0.Strings("message", "foo\n"), log0.Strings("excerpt", "bar\n")},
@@ -388,9 +388,9 @@ var WriteTestCases = []struct {
 		line: line(),
 		log: log0.Log{
 			Output: &bytes.Buffer{},
-			Trunc:  120,
 			Keys:   [4]encoding.TextMarshaler{log0.String("message"), log0.String("excerpt"), log0.String("trail")},
 			Key:    log0.Original,
+			Trunc:  120,
 		},
 		input: []byte("foo"),
 		kv:    []log0.KV{log0.Strings("message", "bar"), log0.Strings("excerpt", "xyz")},
@@ -405,9 +405,9 @@ var WriteTestCases = []struct {
 		line: line(),
 		log: log0.Log{
 			Output: &bytes.Buffer{},
-			Trunc:  120,
 			Keys:   [4]encoding.TextMarshaler{log0.String("message"), log0.String("excerpt"), log0.String("trail")},
 			Key:    log0.Original,
+			Trunc:  120,
 			Replc:  [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 		},
 		input: []byte("foo\n"),
@@ -426,9 +426,9 @@ var WriteTestCases = []struct {
 		line: line(),
 		log: log0.Log{
 			Output: &bytes.Buffer{},
-			Trunc:  120,
 			Keys:   [4]encoding.TextMarshaler{log0.String("message"), log0.String("excerpt"), log0.String("trail")},
 			Key:    log0.Original,
+			Trunc:  120,
 			Replc:  [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 		},
 		input: []byte("foo\n"),
@@ -444,9 +444,9 @@ var WriteTestCases = []struct {
 		line: line(),
 		log: log0.Log{
 			Output: &bytes.Buffer{},
-			Trunc:  120,
 			Keys:   [4]encoding.TextMarshaler{log0.String("message")},
 			Key:    log0.Excerpt,
+			Trunc:  120,
 		},
 		kv: []log0.KV{log0.Strings("message", "foo")},
 		expected: `{
@@ -458,9 +458,9 @@ var WriteTestCases = []struct {
 		line: line(),
 		log: log0.Log{
 			Output: &bytes.Buffer{},
-			Trunc:  120,
 			Keys:   [4]encoding.TextMarshaler{log0.String("message")},
 			Key:    log0.Excerpt,
+			Trunc:  120,
 			Replc:  [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 		},
 		kv: []log0.KV{log0.Strings("message", "foo\n")},
@@ -473,9 +473,9 @@ var WriteTestCases = []struct {
 		line: line(),
 		log: log0.Log{
 			Output: &bytes.Buffer{},
-			Trunc:  120,
 			Keys:   [4]encoding.TextMarshaler{log0.String("message"), log0.String("excerpt"), log0.String("trail")},
 			Key:    log0.Excerpt,
+			Trunc:  120,
 			Replc:  [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 		},
 		input: []byte("foo"),
@@ -490,9 +490,9 @@ var WriteTestCases = []struct {
 		line: line(),
 		log: log0.Log{
 			Output: &bytes.Buffer{},
-			Trunc:  120,
 			Keys:   [4]encoding.TextMarshaler{log0.String("message"), log0.String("excerpt"), log0.String("trail")},
 			Key:    log0.Excerpt,
+			Trunc:  120,
 		},
 		input: []byte("foo\n"),
 		kv:    []log0.KV{log0.Strings("message", "bar")},
@@ -507,9 +507,9 @@ var WriteTestCases = []struct {
 		line: line(),
 		log: log0.Log{
 			Output: &bytes.Buffer{},
-			Trunc:  120,
 			Keys:   [4]encoding.TextMarshaler{log0.String("message"), log0.String("excerpt"), log0.String("trail")},
 			Key:    log0.Excerpt,
+			Trunc:  120,
 			Replc:  [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 		},
 		input: []byte("foo\n"),
@@ -525,9 +525,9 @@ var WriteTestCases = []struct {
 		line: line(),
 		log: log0.Log{
 			Output: &bytes.Buffer{},
-			Trunc:  120,
 			Keys:   [4]encoding.TextMarshaler{log0.String("message"), log0.String("excerpt")},
 			Key:    log0.Excerpt,
+			Trunc:  120,
 		},
 		kv: []log0.KV{log0.Strings("excerpt", "foo")},
 		expected: `{
@@ -539,9 +539,9 @@ var WriteTestCases = []struct {
 		line: line(),
 		log: log0.Log{
 			Output: &bytes.Buffer{},
-			Trunc:  120,
 			Keys:   [4]encoding.TextMarshaler{log0.String("message"), log0.String("excerpt")},
 			Key:    log0.Excerpt,
+			Trunc:  120,
 			Replc:  [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 		},
 		kv: []log0.KV{log0.Strings("excerpt", "foo\n")},
@@ -554,9 +554,9 @@ var WriteTestCases = []struct {
 		line: line(),
 		log: log0.Log{
 			Output: &bytes.Buffer{},
-			Trunc:  120,
 			Keys:   [4]encoding.TextMarshaler{log0.String("message"), log0.String("excerpt")},
 			Key:    log0.Excerpt,
+			Trunc:  120,
 		},
 		input: []byte("foo"),
 		kv:    []log0.KV{log0.Strings("excerpt", "bar")},
@@ -570,9 +570,9 @@ var WriteTestCases = []struct {
 		line: line(),
 		log: log0.Log{
 			Output: &bytes.Buffer{},
-			Trunc:  120,
 			Keys:   [4]encoding.TextMarshaler{log0.String("message"), log0.String("excerpt")},
 			Key:    log0.Excerpt,
+			Trunc:  120,
 			Replc:  [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 		},
 		input: []byte("foo\n"),
@@ -587,9 +587,9 @@ var WriteTestCases = []struct {
 		line: line(),
 		log: log0.Log{
 			Output: &bytes.Buffer{},
-			Trunc:  120,
 			Keys:   [4]encoding.TextMarshaler{log0.String("message"), log0.String("excerpt")},
 			Key:    log0.Excerpt,
+			Trunc:  120,
 			Replc:  [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 		},
 		input: []byte("foo\n"),
@@ -604,9 +604,9 @@ var WriteTestCases = []struct {
 		line: line(),
 		log: log0.Log{
 			Output: &bytes.Buffer{},
-			Trunc:  120,
 			Keys:   [4]encoding.TextMarshaler{log0.String("message"), log0.String("excerpt")},
 			Key:    log0.Excerpt,
+			Trunc:  120,
 			Replc:  [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 		},
 		input: []byte("foo\n"),
@@ -621,9 +621,9 @@ var WriteTestCases = []struct {
 		line: line(),
 		log: log0.Log{
 			Output: &bytes.Buffer{},
-			Trunc:  120,
 			Keys:   [4]encoding.TextMarshaler{log0.String("message"), log0.String("excerpt")},
 			Key:    log0.Excerpt,
+			Trunc:  120,
 		},
 		kv: []log0.KV{log0.Strings("message", "foo"), log0.Strings("excerpt", "bar")},
 		expected: `{
@@ -636,9 +636,9 @@ var WriteTestCases = []struct {
 		line: line(),
 		log: log0.Log{
 			Output: &bytes.Buffer{},
-			Trunc:  120,
 			Keys:   [4]encoding.TextMarshaler{log0.String("message"), log0.String("excerpt")},
 			Key:    log0.Excerpt,
+			Trunc:  120,
 			Replc:  [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 		},
 		kv: []log0.KV{log0.Strings("message", "foo\n"), log0.Strings("excerpt", "bar\n")},
@@ -652,9 +652,9 @@ var WriteTestCases = []struct {
 		line: line(),
 		log: log0.Log{
 			Output: &bytes.Buffer{},
-			Trunc:  120,
 			Keys:   [4]encoding.TextMarshaler{log0.String("message"), log0.String("excerpt"), log0.String("trail")},
 			Key:    log0.Excerpt,
+			Trunc:  120,
 		},
 		input: []byte("foo"),
 		kv:    []log0.KV{log0.Strings("message", "bar"), log0.Strings("excerpt", "xyz")},
@@ -669,9 +669,9 @@ var WriteTestCases = []struct {
 		line: line(),
 		log: log0.Log{
 			Output: &bytes.Buffer{},
-			Trunc:  120,
 			Keys:   [4]encoding.TextMarshaler{log0.String("message"), log0.String("excerpt"), log0.String("trail")},
 			Key:    log0.Excerpt,
+			Trunc:  120,
 			Replc:  [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 		},
 		input: []byte("foo\n"),
@@ -687,9 +687,9 @@ var WriteTestCases = []struct {
 		line: line(),
 		log: log0.Log{
 			Output: &bytes.Buffer{},
-			Trunc:  120,
 			Keys:   [4]encoding.TextMarshaler{log0.String("message"), log0.String("excerpt"), log0.String("trail")},
 			Key:    log0.Excerpt,
+			Trunc:  120,
 			Replc:  [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 		},
 		input: []byte("foo\n"),
@@ -847,9 +847,9 @@ var FprintWriteTestCases = []struct {
 		name: "readme example 1",
 		log: log0.Log{
 			Output: &bytes.Buffer{},
-			Trunc:  12,
 			Keys:   [4]encoding.TextMarshaler{log0.String("message"), log0.String("excerpt")},
-			Marks:  [2][]byte{[]byte("…")},
+			Marks:  [3][]byte{[]byte("…")},
+			Trunc:  12,
 			Replc:  [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 		},
 		line:  line(),
@@ -1115,8 +1115,8 @@ var FprintWriteTestCases = []struct {
 		log: log0.Log{
 			Output: &bytes.Buffer{},
 			KV:     []log0.KV{log0.StringBytes("excerpt", []byte("Explicit byte slice"))},
-			Trunc:  120,
 			Keys:   [4]encoding.TextMarshaler{log0.String("message"), log0.String("excerpt")},
+			Trunc:  120,
 		},
 		input: "Hello, World!",
 		expected: `{
@@ -1130,8 +1130,8 @@ var FprintWriteTestCases = []struct {
 		log: log0.Log{
 			Output: &bytes.Buffer{},
 			KV:     []log0.KV{log0.Strings("excerpt", "Explicit string")},
-			Trunc:  120,
 			Keys:   [4]encoding.TextMarshaler{log0.String("message"), log0.String("excerpt")},
+			Trunc:  120,
 		},
 		input: "Hello, World!",
 		expected: `{
@@ -1145,8 +1145,8 @@ var FprintWriteTestCases = []struct {
 		log: log0.Log{
 			Output: &bytes.Buffer{},
 			KV:     []log0.KV{log0.StringInt("excerpt", 42)},
-			Trunc:  120,
 			Keys:   [4]encoding.TextMarshaler{log0.String("message"), log0.String("excerpt")},
+			Trunc:  120,
 		},
 		input: "Hello, World!",
 		expected: `{
@@ -1160,8 +1160,8 @@ var FprintWriteTestCases = []struct {
 		log: log0.Log{
 			Output: &bytes.Buffer{},
 			KV:     []log0.KV{log0.StringFloat32("excerpt", 4.2)},
-			Trunc:  120,
 			Keys:   [4]encoding.TextMarshaler{log0.String("message"), log0.String("excerpt")},
+			Trunc:  120,
 		},
 		input: "Hello, World!",
 		expected: `{
@@ -1175,8 +1175,8 @@ var FprintWriteTestCases = []struct {
 		log: log0.Log{
 			Output: &bytes.Buffer{},
 			KV:     []log0.KV{log0.StringBool("excerpt", true)},
-			Trunc:  120,
 			Keys:   [4]encoding.TextMarshaler{log0.String("message"), log0.String("excerpt")},
+			Trunc:  120,
 		},
 		input: "Hello, World!",
 		expected: `{
@@ -1190,8 +1190,8 @@ var FprintWriteTestCases = []struct {
 		log: log0.Log{
 			Output: &bytes.Buffer{},
 			KV:     []log0.KV{log0.StringRunes("excerpt", []rune("Explicit rune slice"))},
-			Trunc:  120,
 			Keys:   [4]encoding.TextMarshaler{log0.String("message"), log0.String("excerpt")},
+			Trunc:  120,
 		},
 		input: "Hello, World!",
 		expected: `{
@@ -1237,8 +1237,8 @@ var FprintWriteTestCases = []struct {
 		log: log0.Log{
 			Output: &bytes.Buffer{},
 			Flag:   log.Llongfile,
-			Trunc:  120,
 			Keys:   [4]encoding.TextMarshaler{log0.String("message"), log0.String("excerpt"), log0.String("trail"), log0.String("file")},
+			Trunc:  120,
 		},
 		input: "path/to/file1:23: Hello, World!",
 		expected: `{
@@ -1252,8 +1252,8 @@ var FprintWriteTestCases = []struct {
 		line: line(),
 		log: log0.Log{
 			Output: &bytes.Buffer{},
-			Trunc:  120,
 			Keys:   [4]encoding.TextMarshaler{log0.String("message"), log0.String("excerpt")},
+			Trunc:  120,
 			Replc:  [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 		},
 		input: "Hello,\nWorld!",
@@ -1267,8 +1267,8 @@ var FprintWriteTestCases = []struct {
 		line: line(),
 		log: log0.Log{
 			Output: &bytes.Buffer{},
-			Trunc:  120,
 			Keys:   [4]encoding.TextMarshaler{log0.String("message"), log0.String("excerpt")},
+			Trunc:  120,
 			Replc:  [][2][]byte{[2][]byte{[]byte("!")}},
 		},
 		input: "Hello, World!!!",
@@ -1282,8 +1282,8 @@ var FprintWriteTestCases = []struct {
 		line: line(),
 		log: log0.Log{
 			Output: &bytes.Buffer{},
-			Trunc:  120,
 			Keys:   [4]encoding.TextMarshaler{log0.String("message"), log0.String("excerpt")},
+			Trunc:  120,
 			Replc:  [][2][]byte{[2][]byte{[]byte("World"), []byte("Work")}},
 		},
 		input: "Hello, World!",
@@ -1297,8 +1297,8 @@ var FprintWriteTestCases = []struct {
 		line: line(),
 		log: log0.Log{
 			Output: &bytes.Buffer{},
-			Trunc:  120,
 			Keys:   [4]encoding.TextMarshaler{log0.String("message")},
+			Trunc:  120,
 			Replc:  [][2][]byte{[2][]byte{[]byte("!"), []byte("!")}},
 		},
 		input: "Hello, World!",
@@ -1311,8 +1311,8 @@ var FprintWriteTestCases = []struct {
 		line: line(),
 		log: log0.Log{
 			Output: &bytes.Buffer{},
-			Trunc:  120,
 			Keys:   [4]encoding.TextMarshaler{log0.String("message")},
+			Trunc:  120,
 			Replc:  [][2][]byte{[2][]byte{}},
 		},
 		input: "Hello, World!",
