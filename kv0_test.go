@@ -4441,7 +4441,7 @@ func TestKV(t *testing.T) {
 			p, err = json.Marshal(m)
 
 			if !equal4.ErrorEqual(err, tc.error) {
-				t.Fatalf("marshal error expected: %s, recieved: %s %s", tc.error, err, linkToExample)
+				t.Fatalf("unexpected marshal error, expected: %s, recieved: %s %s", tc.error, err, linkToExample)
 			}
 
 			if err == nil {

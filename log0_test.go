@@ -855,7 +855,7 @@ func TestWrite(t *testing.T) {
 
 			_, err := l.Write(tc.input)
 			if err != nil {
-				t.Fatalf("write error: %s", err)
+				t.Fatalf("unexpected write error: %s", err)
 			}
 
 			ja := jsonassert.New(testprinter{t: t, link: linkToExample})
@@ -1481,7 +1481,7 @@ func TestFprintWrite(t *testing.T) {
 
 			_, err := fmt.Fprint(l, tc.input)
 			if err != nil {
-				t.Fatalf("write error: %s", err)
+				t.Fatalf("unexpected write error: %s", err)
 			}
 
 			ja := jsonassert.New(testprinter{t: t, link: linkToExample})
@@ -1540,7 +1540,7 @@ func TestLogWriteTrailingNewLine(t *testing.T) {
 
 	_, err := l.Write([]byte("Hello, Wrold!"))
 	if err != nil {
-		t.Fatalf("write error: %s", err)
+		t.Fatalf("unexpected write error: %s", err)
 	}
 
 	if buf.Bytes()[len(buf.Bytes())-1] != '\n' {
@@ -1672,13 +1672,13 @@ func TestTruncate(t *testing.T) {
 
 			n, err := l0.Truncate(excerpt, tc.input)
 			if err != nil {
-				t.Fatalf("write error: %s", err)
+				t.Fatalf("unexpected write error: %s", err)
 			}
 
 			excerpt = excerpt[:n]
 
 			if !bytes.Equal(excerpt, tc.expected) {
-				t.Errorf("unexpected excerpt, expected: %q, received %q %s", tc.expected, excerpt, linkToExample)
+				t.Errorf("unexpected excerpt, expected: %q, received: %q %s", tc.expected, excerpt, linkToExample)
 			}
 		})
 	}
@@ -1813,7 +1813,7 @@ func TestNew(t *testing.T) {
 
 			_, err := l.Write(nil)
 			if err != nil {
-				t.Fatalf("write error: %s", err)
+				t.Fatalf("unexpected write error: %s", err)
 			}
 
 			ja := jsonassert.New(testprinter{t: t, link: linkToExample})
@@ -1917,7 +1917,7 @@ func TestLevel(t *testing.T) {
 
 			_, err := l.Write(nil)
 			if err != nil {
-				t.Fatalf("write error: %s", err)
+				t.Fatalf("unexpected write error: %s", err)
 			}
 
 			ja := jsonassert.New(testprinter{t: t, link: linkToExample})
