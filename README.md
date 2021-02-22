@@ -4,7 +4,9 @@ log0
 [![Build Status](https://cloud.drone.io/api/badges/danil/log0/status.svg)](https://cloud.drone.io/danil/log0)
 [![Go Reference](https://pkg.go.dev/badge/github.com/danil/log0.svg)](https://pkg.go.dev/github.com/danil/log0)
 
-JSON logging for Go.
+JSON logging for Go.  
+Source files are distributed under the BSD-style license
+found in the [LICENSE](./LICENSE) file.
 
 <!-- markdown-toc start - Don't edit this section. Run M-x markdown-toc-refresh-toc -->
 
@@ -14,7 +16,6 @@ JSON logging for Go.
 * [Use as GELF formater](#use-as-gelf-formater)
 * [Caveat: numeric types appears in the message as a string](#caveat-numeric-types-appears-in-the-message-as-a-string)
 * [Benchmark](#benchmark)
-* [License](#license)
 
 <!-- markdown-toc end -->
 
@@ -27,7 +28,7 @@ its extremely slow and allocates a lots of memory)
 Install
 -------
 
-    go get github.com/danil/log0@v0.118.0
+    go get github.com/danil/log0@v0.119.0
 
 Usage
 -----
@@ -154,9 +155,3 @@ pkg: github.com/danil/log0
 BenchmarkLog0/io.Writer_72-8         	  291411	      4080 ns/op
 BenchmarkLog0/fmt.Fprint_io.Writer_1122-8         	  105778	     10700 ns/op
 ```
-
-License
--------
-
-Copyright (C) 2021 [Danil Kutkevich](https://danil.kutkevich.org)  
-See the [LICENSE](./LICENSE) file for license rights and limitations (MIT)
