@@ -27,7 +27,7 @@ type Logger interface {
 	// Put puts key-values/replacements slices into pools.
 	Put()
 	// Level returns copy of the logger with an additional key-value pair
-	// which indicating severity level.
+	// which indicating severity level <https://en.wikipedia.org/wiki/Syslog#Severity_level>.
 	// Level is syntactic sugar replacing the often repeated call to
 	// the more verbose Get method to set the severity level.
 	// Copy of the original severity level key-value pair should have a lower
