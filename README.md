@@ -152,6 +152,7 @@ go test -bench=. ./...
 goos: linux
 goarch: amd64
 pkg: github.com/danil/log0
-BenchmarkLog0/io.Writer_72-8         	  291411	      4080 ns/op
-BenchmarkLog0/fmt.Fprint_io.Writer_1122-8         	  105778	     10700 ns/op
+cpu: Intel(R) Core(TM) i7-8565U CPU @ 1.80GHz
+BenchmarkLog0/io.Writer_76-8         	  289021	      3951 ns/op
+BenchmarkLog0/fmt.Fprint_io.Writer_1126-8         	  106959	      9824 ns/op
 ```
