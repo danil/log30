@@ -1841,7 +1841,7 @@ var LevelTestCases = []struct {
 		line: line(),
 		log: log0.Log{
 			Output: &bytes.Buffer{},
-			Lvl:    func(lvl int) (io.Writer, log0.KV) { return nil, log0.StringInt("level", lvl) },
+			Lvl:    func(lvl int) io.Writer { return nil },
 		},
 		levels: []int{7},
 		expected: `{
@@ -1853,7 +1853,7 @@ var LevelTestCases = []struct {
 		line: line(),
 		log: log0.Log{
 			Output: &bytes.Buffer{},
-			Lvl:    func(lvl int) (io.Writer, log0.KV) { return nil, log0.StringInt("level", lvl) },
+			Lvl:    func(lvl int) io.Writer { return nil },
 			KV: []log0.KV{
 				log0.Strings("foo", "bar"),
 			},
@@ -1869,7 +1869,7 @@ var LevelTestCases = []struct {
 		line: line(),
 		log: log0.Log{
 			Output: &bytes.Buffer{},
-			Lvl:    func(lvl int) (io.Writer, log0.KV) { return nil, log0.StringInt("level", lvl) },
+			Lvl:    func(lvl int) io.Writer { return nil },
 		},
 		levels: []int{7, 6},
 		expected: `{
@@ -1881,7 +1881,7 @@ var LevelTestCases = []struct {
 		line: line(),
 		log: log0.Log{
 			Output: &bytes.Buffer{},
-			Lvl:    func(lvl int) (io.Writer, log0.KV) { return nil, log0.StringInt("level", lvl) },
+			Lvl:    func(lvl int) io.Writer { return nil },
 			KV: []log0.KV{
 				log0.StringInt("level", 42),
 			},
@@ -1917,7 +1917,7 @@ func TestLevel(t *testing.T) {
 			defer l.Put()
 
 			for _, lvl := range tc.levels {
-				l = l.Level(lvl)
+				l = l.Get(log0.StringLevel("level", lvl))
 			}
 
 			_, err := l.Write(nil)

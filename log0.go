@@ -26,20 +26,15 @@ type Logger interface {
 	Get(...KV) Logger
 	// Put puts key-values/replacements slices into pools.
 	Put()
-	// Level returns copy of the logger with an additional key-value pair
-	// which indicating severity level <https://en.wikipedia.org/wiki/Syslog#Severity_level>.
-	// Logger implementation can, when severity level equal to certain value,
-	// for example, change a output writer of the logger to ioutil.Discard,
-	// or level function may be used as syntactic sugar replacing the often
-	// repeated call to the more verbose Get method to set the severity level.
-	// Copy of the original severity level key-value pair should have a lower
-	// priority than the priority of the newer severity level key-value pair.
-	Level(severity int) Logger
 }
 
 type KV interface {
 	encoding.TextMarshaler
 	json.Marshaler
+}
+
+type Leveler interface {
+	Level() int
 }
 
 const (
@@ -57,15 +52,15 @@ const (
 
 // Log is a JSON logger/writer.
 type Log struct {
-	Output  io.Writer                                    // Output is a destination for output.
-	Flag    int                                          // Flag is a log properties.
-	KV      []KV                                         // Key-values.
-	Lvl     func(severity int) (output io.Writer, kv KV) // Function receives severity level and returns a output writer for a severity level and key-value pair which indicating severity level.
-	Keys    [4]encoding.TextMarshaler                    // Keys: 0 = original message; 1 = message excerpt; 2 = message trail; 3 = file path.
-	Key     uint8                                        // Key is a default/sticky message key: all except 1 = original message; 1 = message excerpt.
-	Trunc   int                                          // Maximum length of the message excerpt after which the message excerpt is truncated.
-	Marks   [3][]byte                                    // Marks: 0 = truncate; 1 = empty; 2 = blank.
-	Replace [][2][]byte                                  // Replace ia a pairs of byte slices to replace in the message excerpt.
+	Output  io.Writer                             // Output is a destination for output.
+	Flag    int                                   // Flag is a log properties.
+	KV      []KV                                  // Key-values.
+	Lvl     func(severity int) (output io.Writer) // Function receives severity level and returns a output writer for a severity level.
+	Keys    [4]encoding.TextMarshaler             // Keys: 0 = original message; 1 = message excerpt; 2 = message trail; 3 = file path.
+	Key     uint8                                 // Key is a default/sticky message key: all except 1 = original message; 1 = message excerpt.
+	Trunc   int                                   // Maximum length of the message excerpt after which the message excerpt is truncated.
+	Marks   [3][]byte                             // Marks: 0 = truncate; 1 = empty; 2 = blank.
+	Replace [][2][]byte                           // Replace ia a pairs of byte slices to replace in the message excerpt.
 }
 
 var (
@@ -74,9 +69,23 @@ var (
 )
 
 // Get returns copy of the logger with additional key-values.
+// If first key-value pair implements the Leveler interface and the lvl field
+// of the log is not null then calls the function from lvl field
+// with the severity level as argument obtained from Leveler interface
+// Then the function from lvl field returns writer for output of the logger.
 // Copy of the original key-values has the priority lower
 // than the priority of the newer key-values.
 func (l Log) Get(kv ...KV) Logger {
+	if l.Lvl != nil && len(kv) > 0 {
+		lvl, ok := kv[0].(Leveler)
+		if ok {
+			out := l.Lvl(lvl.Level())
+			if out != nil {
+				l.Output = out
+			}
+		}
+	}
+
 	kv0 := *kvPool.Get().(*[]KV)
 	replc := *replcPool.Get().(*[][2][]byte)
 
@@ -90,31 +99,6 @@ func (l Log) Get(kv ...KV) Logger {
 func (l Log) Put() {
 	kvPool.Put(&l.KV)
 	replcPool.Put(&l.Replace)
-}
-
-// Level calls a function from lvl field of the log and
-// returns copy of the logger with an output writer for a severity level
-// and an additional key-value pair which indicating severity level.
-// Level is syntactic sugar replacing the often repeated call to
-// the more verbose Get method to set the severity level.
-// Copy of the original severity level key-value pair has a lower
-// priority than the priority of the newer severity level key-value pair.
-func (l Log) Level(lvl int) Logger {
-	out, kv := l.Lvl(lvl)
-
-	if out != nil {
-		l.Output = out
-	}
-
-	if kv != nil {
-		kv0 := *kvPool.Get().(*[]KV)
-		l.KV = append(kv0[:0], append(l.KV, kv)...)
-	}
-
-	replc := *replcPool.Get().(*[][2][]byte)
-	l.Replace = append(replc[:0], l.Replace...)
-
-	return l
 }
 
 // Write implements io.Writer. Do nothing if log does not have output.
@@ -404,7 +388,6 @@ func GELF() Log {
 			Strings("version", "1.1"),
 			StringFunc("timestamp", func() KV { return Int64(time.Now().Unix()) }),
 		},
-		Lvl:   func(lvl int) (io.Writer, KV) { return nil, StringInt("level", lvl) },
 		Trunc: 120,
 		Keys: [4]encoding.TextMarshaler{
 			String("full_message"),

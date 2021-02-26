@@ -412,3 +412,18 @@ func TextAny(k encoding.TextMarshaler, v interface{}) kvp {
 func TextReflect(k encoding.TextMarshaler, v interface{}) kvp {
 	return kvp{K: k, V: Reflect(v)}
 }
+
+// kvl is a key-value pair with severity level.
+type kvl struct {
+	K encoding.TextMarshaler
+	V json.Marshaler
+	L int
+}
+
+func (kv kvl) MarshalText() (text []byte, err error) { return kv.K.MarshalText() }
+func (kv kvl) MarshalJSON() ([]byte, error)          { return kv.V.MarshalJSON() }
+func (kv kvl) Level() int                            { return kv.L }
+
+func StringLevel(k string, v int) kvl {
+	return kvl{K: String(k), V: Int(v), L: v}
+}
