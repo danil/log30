@@ -34,7 +34,7 @@ type Logger interface {
 	// repeated call to the more verbose Get method to set the severity level.
 	// Copy of the original severity level key-value pair should have a lower
 	// priority than the priority of the newer severity level key-value pair.
-	Level(int) Logger
+	Level(severity int) Logger
 }
 
 type KV interface {
