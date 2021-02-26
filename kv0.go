@@ -414,6 +414,15 @@ func TextReflect(k encoding.TextMarshaler, v interface{}) kvp {
 }
 
 // kvl is a key-value pair with severity level.
+// For example : 0 emergency;
+//               1 alert;
+//               2 critical;
+//               3 error;
+//               4 warning;
+//               5 notice;
+//               6 informational;
+//               7 debug;
+// (https://en.wikipedia.org/wiki/Syslog#Severity_level).
 type kvl struct {
 	K encoding.TextMarshaler
 	V json.Marshaler
