@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"encoding"
 	"fmt"
+	"io"
 	"log"
 	"runtime"
 	"testing"
@@ -1840,7 +1841,7 @@ var LevelTestCases = []struct {
 		line: line(),
 		log: log0.Log{
 			Output: &bytes.Buffer{},
-			Lvl:    func(lvl int) log0.KV { return log0.StringInt("level", lvl) },
+			Lvl:    func(lvl int) (io.Writer, log0.KV) { return nil, log0.StringInt("level", lvl) },
 		},
 		levels: []int{7},
 		expected: `{
@@ -1852,7 +1853,7 @@ var LevelTestCases = []struct {
 		line: line(),
 		log: log0.Log{
 			Output: &bytes.Buffer{},
-			Lvl:    func(lvl int) log0.KV { return log0.StringInt("level", lvl) },
+			Lvl:    func(lvl int) (io.Writer, log0.KV) { return nil, log0.StringInt("level", lvl) },
 			KV: []log0.KV{
 				log0.Strings("foo", "bar"),
 			},
@@ -1868,7 +1869,7 @@ var LevelTestCases = []struct {
 		line: line(),
 		log: log0.Log{
 			Output: &bytes.Buffer{},
-			Lvl:    func(lvl int) log0.KV { return log0.StringInt("level", lvl) },
+			Lvl:    func(lvl int) (io.Writer, log0.KV) { return nil, log0.StringInt("level", lvl) },
 		},
 		levels: []int{7, 6},
 		expected: `{
@@ -1880,7 +1881,7 @@ var LevelTestCases = []struct {
 		line: line(),
 		log: log0.Log{
 			Output: &bytes.Buffer{},
-			Lvl:    func(lvl int) log0.KV { return log0.StringInt("level", lvl) },
+			Lvl:    func(lvl int) (io.Writer, log0.KV) { return nil, log0.StringInt("level", lvl) },
 			KV: []log0.KV{
 				log0.StringInt("level", 42),
 			},

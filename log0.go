@@ -55,15 +55,15 @@ const (
 
 // Log is a JSON logger/writer.
 type Log struct {
-	Output  io.Writer                 // Output is a destination for output.
-	Flag    int                       // Flag is a log properties.
-	KV      []KV                      // Key-values.
-	Lvl     func(int) KV              // Function receives severity level and returns key-value pair which indicating severity level.
-	Keys    [4]encoding.TextMarshaler // Keys: 0 = original message; 1 = message excerpt; 2 = message trail; 3 = file path.
-	Key     uint8                     // Key is a default/sticky message key: all except 1 = original message; 1 = message excerpt.
-	Trunc   int                       // Maximum length of the message excerpt after which the message excerpt is truncated.
-	Marks   [3][]byte                 // Marks: 0 = truncate; 1 = empty; 2 = blank.
-	Replace [][2][]byte               // Replace ia a pairs of byte slices to replace in the message excerpt.
+	Output  io.Writer                                    // Output is a destination for output.
+	Flag    int                                          // Flag is a log properties.
+	KV      []KV                                         // Key-values.
+	Lvl     func(severity int) (output io.Writer, kv KV) // Function receives severity level and returns a output writer for a severity level and key-value pair which indicating severity level.
+	Keys    [4]encoding.TextMarshaler                    // Keys: 0 = original message; 1 = message excerpt; 2 = message trail; 3 = file path.
+	Key     uint8                                        // Key is a default/sticky message key: all except 1 = original message; 1 = message excerpt.
+	Trunc   int                                          // Maximum length of the message excerpt after which the message excerpt is truncated.
+	Marks   [3][]byte                                    // Marks: 0 = truncate; 1 = empty; 2 = blank.
+	Replace [][2][]byte                                  // Replace ia a pairs of byte slices to replace in the message excerpt.
 }
 
 var (
@@ -97,7 +97,21 @@ func (l Log) Put() {
 // Copy of the original severity level key-value pair has a lower
 // priority than the priority of the newer severity level key-value pair.
 func (l Log) Level(lvl int) Logger {
-	return l.Get(l.Lvl(lvl))
+	out, kv := l.Lvl(lvl)
+
+	if out != nil {
+		l.Output = out
+	}
+
+	if kv != nil {
+		kv0 := *kvPool.Get().(*[]KV)
+		l.KV = append(kv0[:0], append(l.KV, kv)...)
+	}
+
+	replc := *replcPool.Get().(*[][2][]byte)
+	l.Replace = append(replc[:0], l.Replace...)
+
+	return l
 }
 
 func (l Log) Write(src []byte) (int, error) {
@@ -381,7 +395,7 @@ func GELF() Log {
 			Strings("version", "1.1"),
 			StringFunc("timestamp", func() KV { return Int64(time.Now().Unix()) }),
 		},
-		Lvl:   func(lvl int) KV { return StringInt("level", lvl) },
+		Lvl:   func(lvl int) (io.Writer, KV) { return nil, StringInt("level", lvl) },
 		Trunc: 120,
 		Keys: [4]encoding.TextMarshaler{
 			String("full_message"),
