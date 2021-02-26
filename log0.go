@@ -115,11 +115,17 @@ func (l Log) Level(lvl int) Logger {
 	return l
 }
 
+// Write implements io.Writer. Do nothing if log does not have output.
 func (l Log) Write(src []byte) (int, error) {
+	if l.Output == nil {
+		return 0, nil
+	}
+
 	j, err := l.json(src)
 	if err != nil {
 		return 0, err
 	}
+
 	return l.Output.Write(j)
 }
 
