@@ -55,15 +55,15 @@ const (
 
 // Log is a JSON logger/writer.
 type Log struct {
-	Output io.Writer                 // Output is a destination for output.
-	Flag   int                       // Flag is a log properties.
-	KV     []KV                      // Key-values.
-	Lvl    func(int) KV              // Function receives severity level and returns key-value pair which indicating severity level.
-	Keys   [4]encoding.TextMarshaler // Keys: 0 = original message; 1 = message excerpt; 2 = message trail; 3 = file path.
-	Key    uint8                     // Key is a default/sticky message key: all except 1 = original message; 1 = message excerpt.
-	Trunc  int                       // Maximum length of the message excerpt after which the message excerpt is truncated.
-	Marks  [3][]byte                 // Marks: 0 = truncate; 1 = empty; 2 = blank.
-	Replc  [][2][]byte               // Replc ia a pairs of byte slices to replace in the message excerpt.
+	Output  io.Writer                 // Output is a destination for output.
+	Flag    int                       // Flag is a log properties.
+	KV      []KV                      // Key-values.
+	Lvl     func(int) KV              // Function receives severity level and returns key-value pair which indicating severity level.
+	Keys    [4]encoding.TextMarshaler // Keys: 0 = original message; 1 = message excerpt; 2 = message trail; 3 = file path.
+	Key     uint8                     // Key is a default/sticky message key: all except 1 = original message; 1 = message excerpt.
+	Trunc   int                       // Maximum length of the message excerpt after which the message excerpt is truncated.
+	Marks   [3][]byte                 // Marks: 0 = truncate; 1 = empty; 2 = blank.
+	Replace [][2][]byte               // Replace ia a pairs of byte slices to replace in the message excerpt.
 }
 
 var (
@@ -79,7 +79,7 @@ func (l Log) Get(kv ...KV) Logger {
 	replc := *replcPool.Get().(*[][2][]byte)
 
 	l.KV = append(kv0[:0], append(l.KV, kv...)...)
-	l.Replc = append(replc[:0], l.Replc...)
+	l.Replace = append(replc[:0], l.Replace...)
 
 	return l
 }
@@ -87,7 +87,7 @@ func (l Log) Get(kv ...KV) Logger {
 // Put puts key-values and replacements slices into pools.
 func (l Log) Put() {
 	kvPool.Put(&l.KV)
-	replcPool.Put(&l.Replc)
+	replcPool.Put(&l.Replace)
 }
 
 // Level returns copy of the logger with an additional key-value pair
@@ -340,7 +340,7 @@ func (l Log) Truncate(dst, src []byte) (int, error) {
 	n := copy(dst, src[start:end])
 
 replc:
-	for _, r := range l.Replc {
+	for _, r := range l.Replace {
 		for offset := 0; offset < n; {
 			if len(r[0]) == 0 || bytes.Equal(r[0], r[1]) {
 				continue replc
@@ -389,8 +389,8 @@ func GELF() Log {
 			String("_trail"),
 			String("_file"),
 		},
-		Key:   Excerpt,
-		Marks: [3][]byte{[]byte("…"), []byte("_EMPTY_"), []byte("_BLANK_")},
-		Replc: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
+		Key:     Excerpt,
+		Marks:   [3][]byte{[]byte("…"), []byte("_EMPTY_"), []byte("_BLANK_")},
+		Replace: [][2][]byte{[2][]byte{[]byte("\n"), []byte(" ")}},
 	}
 }

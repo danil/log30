@@ -28,7 +28,7 @@ its extremely slow and allocates a lots of memory)
 Install
 -------
 
-    go get github.com/danil/log0@v0.122.0
+    go get github.com/danil/log0@v0.123.0
 
 Usage
 -----
@@ -51,7 +51,7 @@ func main() {
         Trunc: 12,
         Keys: [4]json.Marshaler{log0.String("message"), log0.String("excerpt")},
         Marks: [3][]byte{[]byte("…")},
-        Replc: [][]byte{[]byte("\n"), []byte(" ")},
+        Replace: [][]byte{[]byte("\n"), []byte(" ")},
     }
     log.SetFlags(0)
     log.SetOutput(l)
