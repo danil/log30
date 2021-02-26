@@ -92,6 +92,7 @@ func (l Log) Put() {
 
 // Level returns copy of the logger with an additional key-value pair
 // which indicating severity level.
+// Level calls a function from lvl field of the log.
 // Level is syntactic sugar replacing the often repeated call to
 // the more verbose Get method to set the severity level.
 // Copy of the original severity level key-value pair has a lower
