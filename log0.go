@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"encoding"
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"sync"
@@ -28,13 +29,19 @@ type Logger interface {
 	Put()
 }
 
+// KV is a key-value pair where
+// key is a text marshaler and value is a json marshaler.
 type KV interface {
 	encoding.TextMarshaler
 	json.Marshaler
 }
 
-type Leveler interface {
-	Level() int
+// KV is a key-value pair where
+// key is a text marshaler and value is a json marshaler and stringer.
+type KVS interface {
+	encoding.TextMarshaler
+	json.Marshaler
+	fmt.Stringer
 }
 
 const (
@@ -52,15 +59,15 @@ const (
 
 // Log is a JSON logger/writer.
 type Log struct {
-	Output  io.Writer                             // Output is a destination for output.
-	Flag    int                                   // Flag is a log properties.
-	KV      []KV                                  // Key-values.
-	Lvl     func(severity int) (output io.Writer) // Function receives severity level and returns a output writer for a severity level.
-	Keys    [4]encoding.TextMarshaler             // Keys: 0 = original message; 1 = message excerpt; 2 = message trail; 3 = file path.
-	Key     uint8                                 // Key is a default/sticky message key: all except 1 = original message; 1 = message excerpt.
-	Trunc   int                                   // Maximum length of the message excerpt after which the message excerpt is truncated.
-	Marks   [3][]byte                             // Marks: 0 = truncate; 1 = empty; 2 = blank.
-	Replace [][2][]byte                           // Replace ia a pairs of byte slices to replace in the message excerpt.
+	Output   io.Writer                                // Output is a destination for output.
+	Flag     int                                      // Flag is a log properties.
+	KV       []KV                                     // Key-values.
+	Severity func(severity string) (output io.Writer) // Function receives severity level and returns a output writer for a severity level.
+	Keys     [4]encoding.TextMarshaler                // Keys: 0 = original message; 1 = message excerpt; 2 = message trail; 3 = file path.
+	Key      uint8                                    // Key is a default/sticky message key: all except 1 = original message; 1 = message excerpt.
+	Trunc    int                                      // Maximum length of the message excerpt after which the message excerpt is truncated.
+	Marks    [3][]byte                                // Marks: 0 = truncate; 1 = empty; 2 = blank.
+	Replace  [][2][]byte                              // Replace ia a pairs of byte slices to replace in the message excerpt.
 }
 
 var (
@@ -69,17 +76,17 @@ var (
 )
 
 // Get returns copy of the logger with additional key-values.
-// If first key-value pair implements the Leveler interface and the lvl field
-// of the log is not null then calls the function from lvl field
-// with the severity level as argument obtained from Leveler interface
-// Then the function from lvl field returns writer for output of the logger.
+// If first key-value pair implements the KVS interface and the Severity field
+// of the Log is not null then calls the function from Severity field
+// with the severity level as argument which obtained from KVS interface.
+// Then the function from Severity field returns writer for output of the logger.
 // Copy of the original key-values has the priority lower
 // than the priority of the newer key-values.
 func (l Log) Get(kv ...KV) Logger {
-	if l.Lvl != nil && len(kv) > 0 {
-		lvl, ok := kv[0].(Leveler)
+	if l.Severity != nil && len(kv) > 0 {
+		s, ok := kv[0].(KVS)
 		if ok {
-			out := l.Lvl(lvl.Level())
+			out := l.Severity(s.String())
 			if out != nil {
 				l.Output = out
 			}

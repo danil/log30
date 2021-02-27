@@ -1827,75 +1827,75 @@ func TestNew(t *testing.T) {
 	}
 }
 
-var LevelTestCases = []struct {
-	name      string
-	line      int
-	log       log0.Logger
-	levels    []int
-	kv        []log0.KV
-	expected  string
-	benchmark bool
+var SeverityTestCases = []struct {
+	name       string
+	line       int
+	log        log0.Logger
+	severities []string
+	kv         []log0.KV
+	expected   string
+	benchmark  bool
 }{
 	{
-		name: "just level 7",
+		name: "just severity 7",
 		line: line(),
 		log: log0.Log{
-			Output: &bytes.Buffer{},
-			Lvl:    func(lvl int) io.Writer { return nil },
+			Output:   &bytes.Buffer{},
+			Severity: func(severity string) io.Writer { return nil },
 		},
-		levels: []int{7},
+		severities: []string{"7"},
 		expected: `{
-			"level":7
+			"severity":"7"
 		}`,
 	},
 	{
-		name: "just level 7 next to the key-value pair",
+		name: "just severity 7 next to the key-value pair",
 		line: line(),
 		log: log0.Log{
-			Output: &bytes.Buffer{},
-			Lvl:    func(lvl int) io.Writer { return nil },
+			Output:   &bytes.Buffer{},
+			Severity: func(severity string) io.Writer { return nil },
 			KV: []log0.KV{
 				log0.Strings("foo", "bar"),
 			},
 		},
-		levels: []int{7},
+		severities: []string{"7"},
 		expected: `{
 			"foo":"bar",
-			"level":7
+			"severity":"7"
 		}`,
 	},
 	{
-		name: "two consecutive levels call 7 and 6",
+		name: "two consecutive severities call 7 and 6",
 		line: line(),
 		log: log0.Log{
-			Output: &bytes.Buffer{},
-			Lvl:    func(lvl int) io.Writer { return nil },
+			Output:   &bytes.Buffer{},
+			Severity: func(severity string) io.Writer { return nil },
 		},
-		levels: []int{7, 6},
+		severities: []string{"7", "6"},
 		expected: `{
-			"level":6
+			"severity":"6"
 		}`,
 	},
 	{
-		name: "level 7 overwrites level 42 from key-value pair",
+		name: "severity 7 overwrites severity 42 from key-value pair",
 		line: line(),
 		log: log0.Log{
-			Output: &bytes.Buffer{},
-			Lvl:    func(lvl int) io.Writer { return nil },
+			Output:   &bytes.Buffer{},
+			Severity: func(severity string) io.Writer { return nil },
 			KV: []log0.KV{
-				log0.StringInt("level", 42),
+				log0.Strings("severity", "42"),
 			},
 		},
-		levels: []int{7},
+		severities: []string{"7"},
 		expected: `{
-			"level":7
+			"severity":"7"
 		}`,
 	},
 }
 
-func TestLevel(t *testing.T) {
+func TestSeverity(t *testing.T) {
 	_, testFile, _, _ := runtime.Caller(0)
-	for _, tc := range LevelTestCases {
+	for _, tc := range SeverityTestCases {
 		tc := tc
 		t.Run(fmt.Sprintf("with %s %d", tc.name, tc.line), func(t *testing.T) {
 			t.Parallel()
@@ -1916,8 +1916,8 @@ func TestLevel(t *testing.T) {
 			l := tc.log.Get(tc.kv...)
 			defer l.Put()
 
-			for _, lvl := range tc.levels {
-				l = l.Get(log0.StringLevel("level", lvl))
+			for _, sev := range tc.severities {
+				l = l.Get(log0.StringSeverity("severity", sev))
 			}
 
 			_, err := l.Write(nil)
