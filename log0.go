@@ -29,15 +29,13 @@ type Logger interface {
 	Put()
 }
 
-// KV is a key-value pair where
-// key is a text marshaler and value is a json marshaler.
+// KV is a key-value pair.
 type KV interface {
 	encoding.TextMarshaler
 	json.Marshaler
 }
 
-// KV is a key-value pair where
-// key is a text marshaler and value is a json marshaler and stringer.
+// KVS is a key-value pair with severity.
 type KVS interface {
 	encoding.TextMarshaler
 	json.Marshaler
