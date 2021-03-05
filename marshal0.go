@@ -60,7 +60,7 @@ func (p boolP) MarshalJSON() ([]byte, error) {
 	return p.MarshalText()
 }
 
-var pool = sync.Pool{New: func() interface{} { return new(bytes.Buffer) }}
+var bufPool = sync.Pool{New: func() interface{} { return new(bytes.Buffer) }}
 
 // Bytes returns stringer/JSON marshaler interface implementation for the byte slice type.
 func Bytes(v []byte) bytesV { return bytesV{V: v} }
@@ -522,9 +522,9 @@ func (v runesV) String() string {
 		return "null"
 	}
 
-	buf := pool.Get().(*bytes.Buffer)
+	buf := bufPool.Get().(*bytes.Buffer)
 	buf.Reset()
-	defer pool.Put(buf)
+	defer bufPool.Put(buf)
 
 	err := encode0.Runes(buf, v.V)
 	if err != nil {
@@ -594,9 +594,9 @@ func String(v string) stringV { return stringV{V: v} }
 type stringV struct{ V string }
 
 func (v stringV) String() string {
-	buf := pool.Get().(*bytes.Buffer)
+	buf := bufPool.Get().(*bytes.Buffer)
 	buf.Reset()
-	defer pool.Put(buf)
+	defer bufPool.Put(buf)
 
 	err := encode0.String(buf, v.V)
 	if err != nil {
@@ -660,9 +660,9 @@ func (v textV) String() string {
 		return ""
 	}
 
-	buf := pool.Get().(*bytes.Buffer)
+	buf := bufPool.Get().(*bytes.Buffer)
 	buf.Reset()
-	defer pool.Put(buf)
+	defer bufPool.Put(buf)
 
 	err = encode0.Bytes(buf, p)
 	if err != nil {
@@ -1359,9 +1359,9 @@ func (v reflectV) String() string {
 			return reflectV{V: val.Elem().Interface()}.String()
 
 		} else if val.Kind() == reflect.Slice && val.Type().Elem().Kind() == reflect.Uint8 { // Byte slice.
-			buf := pool.Get().(*bytes.Buffer)
+			buf := bufPool.Get().(*bytes.Buffer)
 			buf.Reset()
-			defer pool.Put(buf)
+			defer bufPool.Put(buf)
 
 			p := val.Bytes()
 			enc := base64.NewEncoder(base64.StdEncoding, buf)

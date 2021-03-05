@@ -856,7 +856,7 @@ func TestWrite(t *testing.T) {
 			*buf = bytes.Buffer{}
 
 			l := tc.log.Get(tc.kv...)
-			defer l.Put()
+			defer l.Put(l)
 
 			_, err := l.Write(tc.input)
 			if err != nil {
@@ -1507,7 +1507,7 @@ func BenchmarkLog0(b *testing.B) {
 				if err != nil {
 					fmt.Println(err)
 				}
-				l.Put()
+				l.Put(l)
 			}
 		})
 	}
@@ -1814,7 +1814,7 @@ func TestNew(t *testing.T) {
 			*buf = bytes.Buffer{}
 
 			l := tc.log.Get(tc.kv...)
-			defer l.Put()
+			defer l.Put(l)
 
 			_, err := l.Write(nil)
 			if err != nil {
@@ -1914,7 +1914,7 @@ func TestSeverity(t *testing.T) {
 			*buf = bytes.Buffer{}
 
 			l := tc.log.Get(tc.kv...)
-			defer l.Put()
+			defer l.Put(l)
 
 			for _, sev := range tc.severities {
 				l = l.Get(log0.StringSeverity("severity", sev))

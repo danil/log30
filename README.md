@@ -28,7 +28,7 @@ its extremely slow and allocates a lots of memory)
 Install
 -------
 
-    go get github.com/danil/log0@v0.128.0
+    go get github.com/danil/log0@v0.129.0
 
 Usage
 -----
@@ -153,6 +153,6 @@ goos: linux
 goarch: amd64
 pkg: github.com/danil/log0
 cpu: Intel(R) Core(TM) i7-8565U CPU @ 1.80GHz
-BenchmarkLog0/io.Writer_76-8         	  289021	      3951 ns/op
-BenchmarkLog0/fmt.Fprint_io.Writer_1126-8         	  106959	      9824 ns/op
+BenchmarkLog0/io.Writer_77-8         	  292078	      4028 ns/op
+BenchmarkLog0/fmt.Fprint_io.Writer_1127-8         	  116248	     10609 ns/op
 ```

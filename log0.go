@@ -9,6 +9,7 @@ import (
 	"bytes"
 	"encoding"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -27,7 +28,7 @@ type Logger interface {
 	// than the priority of the newer key-values.
 	Get(...KV) Logger
 	// Put puts key-values/replacements slices into pools.
-	Put()
+	Put(Logger) error
 }
 
 // KV is a key-value pair.
@@ -69,10 +70,7 @@ type Log struct {
 	Replace  [][2][]byte                              // Replace ia a pairs of byte slices to replace in the message excerpt.
 }
 
-var (
-	kvPool    = sync.Pool{New: func() interface{} { return new([]KV) }}
-	replcPool = sync.Pool{New: func() interface{} { return new([][2][]byte) }}
-)
+var logPool = sync.Pool{New: func() interface{} { return new(Log) }}
 
 // Get returns copy of the logger with additional key-values.
 // If first key-value pair implements the KVS interface and the Severity field
@@ -82,29 +80,37 @@ var (
 // Copy of the original key-values has the priority lower
 // than the priority of the newer key-values.
 func (l Log) Get(kv ...KV) Logger {
-	if l.Severity != nil && len(kv) > 0 {
+	l0 := *logPool.Get().(*Log)
+	l0.Output = l.Output
+	l0.Flag = l.Flag
+	l0.KV = append(l0.KV[:0], append(l.KV, kv...)...)
+	l0.Severity = l.Severity
+	l0.Keys = l.Keys
+	l0.Key = l.Key
+	l0.Trunc = l.Trunc
+	l0.Marks = l.Marks
+	l0.Replace = append(l0.Replace[:0], l.Replace...)
+
+	if l0.Severity != nil && len(kv) > 0 {
 		s, ok := kv[0].(KVS)
 		if ok {
-			out := l.Severity(s.String())
+			out := l0.Severity(s.String())
 			if out != nil {
-				l.Output = out
+				l0.Output = out
 			}
 		}
 	}
 
-	kv0 := *kvPool.Get().(*[]KV)
-	replc := *replcPool.Get().(*[][2][]byte)
-
-	l.KV = append(kv0[:0], append(l.KV, kv...)...)
-	l.Replace = append(replc[:0], l.Replace...)
-
-	return l
+	return l0
 }
 
-// Put puts key-values and replacements slices into pools.
-func (l Log) Put() {
-	kvPool.Put(&l.KV)
-	replcPool.Put(&l.Replace)
+// Put puts a log into sync pool.
+func (Log) Put(l Logger) error {
+	l0, ok := l.(Log)
+	if ok {
+		logPool.Put(&l0)
+	}
+	return errors.New("unexpected logger")
 }
 
 // Write implements io.Writer. Do nothing if log does not have output.
