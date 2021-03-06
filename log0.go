@@ -111,12 +111,10 @@ func (l *Log) Write(src []byte) (int, error) {
 	if l.Output == nil {
 		return 0, nil
 	}
-
 	j, err := l.json(src)
 	if err != nil {
 		return 0, err
 	}
-
 	return l.Output.Write(j)
 }
 
