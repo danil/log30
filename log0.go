@@ -26,7 +26,7 @@ type Logger interface {
 	// Copy of the original key-values should have a lower priority
 	// than the priority of the newer key-values.
 	Get(...KV) Logger
-	// Put puts key-values/replacements slices into pools.
+	// Put puts a log into sync pool.
 	Put()
 }
 
