@@ -9,7 +9,6 @@ import (
 	"bytes"
 	"encoding"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -28,7 +27,7 @@ type Logger interface {
 	// than the priority of the newer key-values.
 	Get(...KV) Logger
 	// Put puts key-values/replacements slices into pools.
-	Put(Logger) error
+	Put()
 }
 
 // KV is a key-value pair.
@@ -79,8 +78,8 @@ var logPool = sync.Pool{New: func() interface{} { return new(Log) }}
 // Then the function from Severity field returns writer for output of the logger.
 // Copy of the original key-values has the priority lower
 // than the priority of the newer key-values.
-func (l Log) Get(kv ...KV) Logger {
-	l0 := *logPool.Get().(*Log)
+func (l *Log) Get(kv ...KV) Logger {
+	l0 := logPool.Get().(*Log)
 	l0.Output = l.Output
 	l0.Flag = l.Flag
 	l0.KV = append(l0.KV[:0], append(l.KV, kv...)...)
@@ -105,16 +104,10 @@ func (l Log) Get(kv ...KV) Logger {
 }
 
 // Put puts a log into sync pool.
-func (Log) Put(l Logger) error {
-	l0, ok := l.(Log)
-	if ok {
-		logPool.Put(&l0)
-	}
-	return errors.New("unexpected logger")
-}
+func (l *Log) Put() { logPool.Put(l) }
 
 // Write implements io.Writer. Do nothing if log does not have output.
-func (l Log) Write(src []byte) (int, error) {
+func (l *Log) Write(src []byte) (int, error) {
 	if l.Output == nil {
 		return 0, nil
 	}
@@ -391,8 +384,8 @@ replc:
 }
 
 // GELF returns a GELF formater <https://docs.graylog.org/en/latest/pages/gelf.html>.
-func GELF() Log {
-	return Log{
+func GELF() *Log {
+	return &Log{
 		// GELF spec version – "1.1"; Must be set by client library.
 		// <https://docs.graylog.org/en/latest/pages/gelf.html#gelf-payload-specification>,
 		// <https://github.com/graylog-labs/gelf-rb/issues/41#issuecomment-198266505>.
