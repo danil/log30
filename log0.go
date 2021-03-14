@@ -60,11 +60,11 @@ const (
 type Log struct {
 	Output   io.Writer                                // Output is a destination for output.
 	Flag     int                                      // Flag is a log properties.
-	KV       []KV                                     // Key-values.
-	Severity func(severity string) (output io.Writer) // Function receives severity level and returns a output writer for a severity level.
+	KV       []KV                                     // KV is a key-values.
+	Severity func(severity string) (output io.Writer) // Severity function receives severity level and returns a output writer for a severity level.
 	Keys     [4]encoding.TextMarshaler                // Keys: 0 = original message; 1 = message excerpt; 2 = message trail; 3 = file path.
 	Key      uint8                                    // Key is a default/sticky message key: all except 1 = original message; 1 = message excerpt.
-	Trunc    int                                      // Maximum length of the message excerpt after which the message excerpt is truncated.
+	Trunc    int                                      // Trunc is a maximum length of an excerpt, after which it is truncated.
 	Marks    [3][]byte                                // Marks: 0 = truncate; 1 = empty; 2 = blank.
 	Replace  [][2][]byte                              // Replace ia a pairs of byte slices to replace in the message excerpt.
 }
